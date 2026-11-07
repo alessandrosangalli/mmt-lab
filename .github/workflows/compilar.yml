@@ -1,0 +1,27 @@
+name: Compilar
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  compilar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar Elm 0.19.1
+        run: |
+          curl -sSL -o elm.gz https://github.com/elm/compiler/releases/download/0.19.1/binary-for-linux-64-bit.gz
+          gunzip elm.gz
+          chmod +x elm
+          sudo mv elm /usr/local/bin/elm
+
+      - name: Compilar
+        run: elm make src/Main.elm --optimize --output=index.html
+
+      - name: Guardar a página compilada
+        uses: actions/upload-artifact@v4
+        with:
+          name: laboratorio-mmt
+          path: index.html
