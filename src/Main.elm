@@ -16,17 +16,20 @@ import Chart
 import Dict
 import Engine exposing (Snapshot)
 import Format
-import Html exposing (Html, a, button, div, h1, h2, h3, input, label, li, node, ol, p, section, span, table, tbody, td, text, tfoot, th, thead, tr)
+import Html exposing (Html, a, button, div, h1, h2, h3, input, label, li, node, ol, option, p, section, select, span, table, tbody, td, text, tfoot, th, thead, tr)
 import Html.Attributes as Attr exposing (class)
 import Html.Events exposing (onClick, onInput)
 import Json.Decode as Decode
 import Link
 import Models exposing (Info, ModelId, SteadyState(..))
+import Multiverse exposing (Cell, Outcome(..))
 import Policy exposing (Policy)
 import Premise exposing (Premise, Premises)
+import Process
 import Scenario exposing (Change, Scenario)
 import Sfc.Matrix as Matrix exposing (Sector(..))
 import Style
+import Task
 
 
 
@@ -40,7 +43,35 @@ type alias Model =
     , selected : Int
     , linkVersion : Maybe String
     , baseUrl : String
+    , mapAxes : Axes
+    , map : MapState
     }
+
+
+{-| The keys of the two premises the map varies.
+-}
+type alias Axes =
+    { horizontal : String
+    , vertical : String
+    }
+
+
+{-| A map being computed, or already computed. `basis` is the scenario it was
+computed for, without the two premises it varies. `pending` are the vertical
+values still to run, and `rows` the lines done so far, top line first.
+-}
+type alias MapJob =
+    { axes : Axes
+    , basis : Scenario
+    , pending : List Float
+    , rows : List (List Cell)
+    }
+
+
+type MapState
+    = NoMap
+    | Mapping MapJob
+    | Mapped MapJob
 
 
 {-| Which of the two scenarios an edit applies to.
@@ -70,6 +101,10 @@ type Msg
     | PeriodSelected Int
     | PeriodSlid String
     | Reset
+    | MapAxisChanged Bool String
+    | MapRequested
+    | MapTick
+    | MapCellChosen Float Float
 
 
 init : Decode.Value -> ( Model, Cmd Msg )
@@ -85,6 +120,8 @@ init flags =
         , selected = link.selected
         , linkVersion = link.version
         , baseUrl = stringFlag "base" flags
+        , mapAxes = { horizontal = "", vertical = "" }
+        , map = NoMap
         }
     , Cmd.none
     )
@@ -98,7 +135,16 @@ stringFlag name flags =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    ( normalize (apply msg model), Cmd.none )
+    let
+        next =
+            normalize (apply msg model)
+    in
+    case next.map of
+        Mapping _ ->
+            ( next, Task.perform (\_ -> MapTick) (Process.sleep 10) )
+
+        _ ->
+            ( next, Cmd.none )
 
 
 {-| Keep every value in range, the premises within what the chosen model
@@ -127,6 +173,49 @@ normalize model =
         | scenario = scenario
         , comparison = Maybe.map alignHorizon model.comparison
         , selected = clamp 1 scenario.horizon model.selected
+        , mapAxes = validAxes known model.mapAxes
+    }
+
+
+{-| Axes naming two different premises of the model, falling back to its
+first two.
+-}
+validAxes : List Premise -> Axes -> Axes
+validAxes known axes =
+    let
+        keys =
+            List.map .key known
+
+        isKnown key =
+            List.member key keys
+    in
+    if isKnown axes.horizontal && isKnown axes.vertical && axes.horizontal /= axes.vertical then
+        axes
+
+    else
+        case keys of
+            first :: second :: _ ->
+                { horizontal = first, vertical = second }
+
+            _ ->
+                { horizontal = "", vertical = "" }
+
+
+findPremise : String -> List Premise -> Maybe Premise
+findPremise key known =
+    List.head (List.filter (\premise -> premise.key == key) known)
+
+
+{-| The scenario a map is computed for: everything but the two premises the
+map itself varies.
+-}
+basisOf : Axes -> Scenario -> Scenario
+basisOf axes scenario =
+    { scenario
+        | premises =
+            scenario.premises
+                |> Dict.remove axes.horizontal
+                |> Dict.remove axes.vertical
     }
 
 
@@ -216,6 +305,100 @@ apply msg model =
         Reset ->
             startOver model.modelId model
 
+        MapAxisChanged isHorizontal key ->
+            let
+                axes =
+                    model.mapAxes
+
+                other =
+                    if isHorizontal then
+                        axes.vertical
+
+                    else
+                        axes.horizontal
+            in
+            if key == other then
+                { model | mapAxes = { horizontal = axes.vertical, vertical = axes.horizontal } }
+
+            else if isHorizontal then
+                { model | mapAxes = { axes | horizontal = key } }
+
+            else
+                { model | mapAxes = { axes | vertical = key } }
+
+        MapRequested ->
+            case findPremise model.mapAxes.vertical (Models.info model.modelId).premises of
+                Just vertical ->
+                    { model
+                        | map =
+                            Mapping
+                                { axes = model.mapAxes
+                                , basis = basisOf model.mapAxes model.scenario
+                                , pending = List.reverse (Multiverse.axisValues vertical)
+                                , rows = []
+                                }
+                    }
+
+                Nothing ->
+                    model
+
+        MapTick ->
+            case model.map of
+                Mapping job ->
+                    advanceMap job model
+
+                _ ->
+                    model
+
+        MapCellChosen x y ->
+            case model.map of
+                Mapped job ->
+                    edit Base
+                        (\scenario ->
+                            { scenario
+                                | premises =
+                                    scenario.premises
+                                        |> Dict.insert job.axes.horizontal x
+                                        |> Dict.insert job.axes.vertical y
+                            }
+                        )
+                        model
+
+                _ ->
+                    model
+
+
+{-| Compute one more line of the map. The job is dropped if the scenario it
+was started for has changed in the meantime.
+-}
+advanceMap : MapJob -> Model -> Model
+advanceMap job model =
+    let
+        known =
+            (Models.info model.modelId).premises
+    in
+    if job.basis /= basisOf job.axes model.scenario then
+        { model | map = NoMap }
+
+    else
+        case ( job.pending, findPremise job.axes.horizontal known, findPremise job.axes.vertical known ) of
+            ( y :: rest, Just horizontal, Just vertical ) ->
+                let
+                    line =
+                        Multiverse.row (Models.run model.modelId) job.basis horizontal vertical y
+
+                    updated =
+                        { job | pending = rest, rows = job.rows ++ [ line ] }
+                in
+                if List.isEmpty rest then
+                    { model | map = Mapped updated }
+
+                else
+                    { model | map = Mapping updated }
+
+            _ ->
+                { model | map = Mapped job }
+
 
 {-| Each model starts from its own default scenario, so choosing a model
 discards the scenario on screen.
@@ -232,6 +415,7 @@ startOver modelId model =
         , comparison = Nothing
         , selected = scenario.horizon
         , linkVersion = Nothing
+        , map = NoMap
     }
 
 
@@ -339,6 +523,7 @@ view model =
             ++ panels
             ++ failures
             ++ [ div [ class "content" ] (viewCharts info model snapshotsA snapshotsB :: focus)
+               , viewMap info model
                , viewShare model
                , viewNotes info
                ]
@@ -1047,6 +1232,187 @@ viewCell content =
 viewTotal : Float -> Html Msg
 viewTotal amount =
     td [ class "num total" ] [ text (Format.decimal amount) ]
+
+
+viewMap : Info -> Model -> Html Msg
+viewMap info model =
+    case ( findPremise model.mapAxes.horizontal info.premises, findPremise model.mapAxes.vertical info.premises ) of
+        ( Just horizontal, Just vertical ) ->
+            let
+                viewChoice current premise =
+                    option [ Attr.value premise.key, Attr.selected (premise.key == current) ] [ text premise.name ]
+
+                viewAxisPicker id caption isHorizontal current =
+                    div [ class "map-axis" ]
+                        [ label [ Attr.for id ] [ text caption ]
+                        , select [ Attr.id id, onInput (MapAxisChanged isHorizontal) ]
+                            (List.map (viewChoice current) info.premises)
+                        ]
+
+                busy =
+                    case model.map of
+                        Mapping _ ->
+                            True
+
+                        _ ->
+                            False
+            in
+            section [ class "block map" ]
+                ([ h2 [] [ text "Mapa de premissas" ]
+                 , p [ class "hint" ]
+                    [ text "Um resultado que vale para um único conjunto de parâmetros diz pouco. O mapa roda o cenário A para cada combinação de duas premissas e mostra como a economia termina em cada uma. A política e as outras premissas ficam como estão no cenário A." ]
+                 , div [ class "map-controls" ]
+                    [ viewAxisPicker "map-horizontal" "Na horizontal" True model.mapAxes.horizontal
+                    , viewAxisPicker "map-vertical" "Na vertical" False model.mapAxes.vertical
+                    , button [ onClick MapRequested, Attr.disabled busy ]
+                        [ text
+                            (if busy then
+                                "Calculando…"
+
+                             else
+                                "Calcular o mapa"
+                            )
+                        ]
+                    ]
+                 ]
+                    ++ viewMapResult info model
+                )
+
+        _ ->
+            text ""
+
+
+viewMapResult : Info -> Model -> List (Html Msg)
+viewMapResult info model =
+    let
+        show job finished =
+            case ( findPremise job.axes.horizontal info.premises, findPremise job.axes.vertical info.premises ) of
+                ( Just horizontal, Just vertical ) ->
+                    let
+                        stale =
+                            finished && job.basis /= basisOf job.axes model.scenario
+                    in
+                    [ p [ class "map-axis-name" ] [ text ("↑ " ++ vertical.name) ]
+                    , viewMapGrid model.scenario.premises horizontal vertical job finished
+                    , p [ class "map-axis-name across" ] [ text (horizontal.name ++ " →") ]
+                    , div [ class "legend" ]
+                        [ span [ class "key settles" ] [ text "Estabiliza" ]
+                        , span [ class "key adjusting" ] [ text "Ainda se ajustando no último período" ]
+                        , span [ class "key failed" ] [ text "Sem solução (o número é o período)" ]
+                        , span [ class "key here" ] [ text "Cenário A" ]
+                        ]
+                    , p [ class "hint" ]
+                        [ text
+                            (if stale then
+                                "O cenário A mudou depois do cálculo. Calcule o mapa de novo."
+
+                             else if finished then
+                                "Toque em um quadrado para levar essas duas premissas ao cenário A."
+
+                             else
+                                "Calculando uma linha por vez."
+                            )
+                        ]
+                    ]
+
+                _ ->
+                    []
+    in
+    case model.map of
+        NoMap ->
+            []
+
+        Mapping job ->
+            show job False
+
+        Mapped job ->
+            show job True
+
+
+viewMapGrid : Premises -> Premise -> Premise -> MapJob -> Bool -> Html Msg
+viewMapGrid premises horizontal vertical job finished =
+    let
+        xs =
+            Multiverse.axisValues horizontal
+
+        ys =
+            List.reverse (Multiverse.axisValues vertical)
+
+        halfStep premise =
+            (premise.highest - premise.lowest) / toFloat (Multiverse.steps - 1) / 2
+
+        isHere cell =
+            (abs (cell.x - Premise.value horizontal premises) < halfStep horizontal)
+                && (abs (cell.y - Premise.value vertical premises) < halfStep vertical)
+
+        describe outcome =
+            case outcome of
+                Settles ->
+                    "estabiliza"
+
+                StillAdjusting ->
+                    "ainda se ajustando no último período"
+
+                NoSolution period ->
+                    "sem solução a partir do período " ++ String.fromInt period
+
+        viewCell cell =
+            let
+                ( style, content ) =
+                    case cell.outcome of
+                        Settles ->
+                            ( "settles", "" )
+
+                        StillAdjusting ->
+                            ( "adjusting", "" )
+
+                        NoSolution period ->
+                            ( "failed", String.fromInt period )
+            in
+            button
+                [ class
+                    ("cell "
+                        ++ style
+                        ++ (if isHere cell then
+                                " here"
+
+                            else
+                                ""
+                           )
+                    )
+                , Attr.disabled (not finished)
+                , Attr.title
+                    (horizontal.name
+                        ++ " "
+                        ++ Format.fixed 2 cell.x
+                        ++ ", "
+                        ++ vertical.name
+                        ++ " "
+                        ++ Format.fixed 2 cell.y
+                        ++ ": "
+                        ++ describe cell.outcome
+                    )
+                , onClick (MapCellChosen cell.x cell.y)
+                ]
+                [ text content ]
+
+        viewLine y line =
+            div [ class "map-tick" ] [ text (Format.fixed 2 y) ]
+                :: (case line of
+                        Just cells ->
+                            List.map viewCell cells
+
+                        Nothing ->
+                            List.map (\_ -> div [ class "cell pending" ] []) xs
+                   )
+
+        lines =
+            List.indexedMap (\index y -> viewLine y (List.head (List.drop index job.rows))) ys
+    in
+    div [ class "map-grid" ]
+        (List.concat lines
+            ++ (div [ class "map-tick" ] [] :: List.map (\x -> div [ class "map-tick below" ] [ text (Format.fixed 2 x) ]) xs)
+        )
 
 
 viewShare : Model -> Html Msg

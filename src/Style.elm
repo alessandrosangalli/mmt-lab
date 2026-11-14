@@ -229,6 +229,67 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
   font-size: 0.9rem;
   line-height: 1.5;
 }
+.map-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.map-axis { display: grid; gap: 4px; min-width: 0; flex: 1 1 220px; }
+.map-axis label { font-size: 0.8rem; color: var(--muted); }
+.map-axis select {
+  font: inherit;
+  font-size: 0.9rem;
+  padding: 7px 8px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--sheet);
+  color: var(--ink);
+  min-width: 0;
+  max-width: 100%;
+}
+.map-axis-name { margin: 0 0 4px; font-size: 0.8rem; color: var(--muted); }
+.map-axis-name.across { margin: 4px 0 10px; text-align: right; max-width: 520px; }
+.map-grid {
+  display: grid;
+  grid-template-columns: 2.4rem repeat(11, minmax(0, 1fr));
+  gap: 2px;
+  max-width: 520px;
+}
+.map-tick {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 4px;
+  font-size: 0.65rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.map-tick.below { justify-content: center; padding: 2px 0 0; font-size: 0.55rem; }
+.cell {
+  aspect-ratio: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  font-size: 0.6rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--sheet);
+  font-variant-numeric: tabular-nums;
+}
+button.cell { padding: 0; border: 0; border-radius: 3px; font-size: 0.6rem; }
+button.cell:disabled { opacity: 1; }
+.cell.settles { background: var(--blue); }
+.cell.adjusting { background: var(--amber); }
+.cell.failed { background: var(--red); }
+.cell.pending { background: var(--rule); }
+.cell.here { outline: 2px solid var(--ink); outline-offset: 1px; position: relative; z-index: 1; }
+.key.settles::before { background: var(--blue); }
+.key.adjusting::before { background: var(--amber); }
+.key.failed::before { background: var(--red); }
+.key.here::before { background: transparent; box-shadow: inset 0 0 0 2px var(--ink); }
 .share input {
   width: 100%;
   box-sizing: border-box;
