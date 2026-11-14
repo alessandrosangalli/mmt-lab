@@ -207,15 +207,16 @@ model =
     }
 
 
-stepState : Policy -> State -> State
+stepState : Policy -> State -> Maybe State
 stepState policy state =
     let
         outcome =
             step policy state.money
     in
-    { money = state.money + outcome.moneyChange
-    , outcome = outcome
-    }
+    Just
+        { money = state.money + outcome.moneyChange
+        , outcome = outcome
+        }
 
 
 observe : Int -> State -> Snapshot
@@ -225,11 +226,13 @@ observe number state =
     , householdWealth = state.money
     , privateSurplus = state.outcome.disposableIncome - state.outcome.consumption
     , governmentBalance = state.outcome.taxes - state.outcome.spending
+    , foreignBalance = 0
     , indicators =
         [ { name = "PIB", value = state.outcome.income }
         , { name = "Déficit do governo", value = state.outcome.spending - state.outcome.taxes }
         , { name = "Dinheiro das famílias", value = state.money }
         ]
+    , charts = []
     , flows = flows state.outcome
     , stocks = [ Flow "Dinheiro" Government Households state.money ]
     }

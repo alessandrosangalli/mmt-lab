@@ -24,7 +24,7 @@ stimulus =
 
 incomeAt : Int -> Scenario -> Maybe Float
 incomeAt period scenario =
-    Engine.run Sim.model scenario
+    (Engine.run Sim.model scenario).snapshots
         |> List.drop (period - 1)
         |> List.head
         |> Maybe.map .income
@@ -39,12 +39,12 @@ suite =
                     base =
                         Scenario.default
                 in
-                Engine.run Sim.model { base | horizon = horizon }
+                (Engine.run Sim.model { base | horizon = horizon }).snapshots
                     |> List.length
                     |> Expect.equal horizon
         , test "without changes it matches stepping the model directly" <|
             \_ ->
-                Engine.run Sim.model Scenario.default
+                (Engine.run Sim.model Scenario.default).snapshots
                     |> List.map .income
                     |> Expect.equal
                         (Sim.advanceBy Scenario.default.horizon Scenario.default.initial []

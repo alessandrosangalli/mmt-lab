@@ -373,15 +373,16 @@ model =
     }
 
 
-stepPosition : Policy -> Position -> Position
+stepPosition : Policy -> Position -> Maybe Position
 stepPosition policy position =
     let
         ( outcome, state ) =
             step bookBehaviour policy position.state
     in
-    { state = state
-    , outcome = outcome
-    }
+    Just
+        { state = state
+        , outcome = outcome
+        }
 
 
 observe : Int -> Position -> Snapshot
@@ -401,6 +402,7 @@ observe number position =
     , householdWealth = state.wealth
     , privateSurplus = outcome.disposableIncome - outcome.consumption
     , governmentBalance = negate deficit
+    , foreignBalance = 0
     , indicators =
         [ { name = "PIB", value = outcome.income }
         , { name = "Déficit do governo", value = deficit }
@@ -409,6 +411,7 @@ observe number position =
         , { name = "Dinheiro das famílias", value = state.householdMoney }
         , { name = "Juros recebidos pelas famílias", value = outcome.householdInterest }
         ]
+    , charts = []
     , flows = flows outcome
     , stocks =
         [ Flow "Dinheiro" CentralBank Households state.householdMoney

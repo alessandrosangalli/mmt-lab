@@ -1,4 +1,4 @@
-module Format exposing (decimal, signed)
+module Format exposing (decimal, indicator, signed, signedIndicator)
 
 {-| Number formatting in the Brazilian convention (decimal comma).
 -}
@@ -31,3 +31,50 @@ signed x =
 
     else
         decimal x
+
+
+{-| Like `decimal`, but small values such as an exchange rate or a price
+level keep three decimal places, where one would hide every movement.
+-}
+indicator : Float -> String
+indicator x =
+    if abs x < 10 then
+        fixed 3 x
+
+    else
+        decimal x
+
+
+signedIndicator : Float -> String
+signedIndicator x =
+    if abs x < 10 then
+        if x > 0 && round (x * 1000) /= 0 then
+            "+" ++ fixed 3 x
+
+        else
+            fixed 3 x
+
+    else
+        signed x
+
+
+fixed : Int -> Float -> String
+fixed places x =
+    let
+        scale =
+            10 ^ places
+
+        scaled =
+            round (abs x * toFloat scale)
+
+        sign =
+            if x < 0 && scaled /= 0 then
+                "−"
+
+            else
+                ""
+
+        fraction =
+            String.padLeft places '0' (String.fromInt (modBy scale scaled))
+    in
+    sign ++ String.fromInt (scaled // scale) ++ "," ++ fraction
