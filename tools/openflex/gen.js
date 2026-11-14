@@ -6,7 +6,7 @@ exports.eqs = eqs; exports.names = eqs.map(e => e.name);
 exports.js = () => 'const {exp, log} = Math;\n' + eqs.map(e => `v.${e.name} = ${e.expr.replace(/Lp\./g, 'LP.')};`).join('\n') + '\nreturn v;';
 exports.elm = () => { const done = new Set(); const out = [];
   for (const e of eqs) { let x = e.expr.replace(/Lp\.(\w+)/g, 'laggedParams.$1').replace(/L\.(\w+)/g, 'lagged.$1').replace(/p\.(\w+)/g, (m, n, off, s) => (s[off-1] && /\w/.test(s[off-1])) ? m : 'params.' + n)
-      .replace(/v\.(\w+)/g, (m, n) => done.has(n) ? n : 'guess.' + n).replace(/exp\(/g, 'exp (').replace(/log\(/g, 'ln (');
+      .replace(/v\.(\w+)/g, (m, n) => done.has(n) ? n : 'guess.' + n).replace(/exp\(/g, 'exp (').replace(/log\(/g, 'ln (').replace(/\bln \(((?:guess|lagged|params)\.\w+|\w+)\)/g, 'ln $1');
     out.push({ name: e.name, expr: x, comment: e.comment }); done.add(e.name); }
   return out; };
 
