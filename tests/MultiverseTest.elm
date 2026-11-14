@@ -35,6 +35,7 @@ share =
     , highest = 1
     , step = 0.1
     , default = 0.7
+    , brazil = Nothing
     }
 
 

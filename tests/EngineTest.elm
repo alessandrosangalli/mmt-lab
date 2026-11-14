@@ -7,6 +7,7 @@ import Fuzz exposing (Fuzzer)
 import Model.Pc as Pc
 import Models exposing (ModelId(..))
 import Policy exposing (Policy)
+import Premise
 import Scenario exposing (Scenario)
 import Sfc.Matrix as Matrix
 import Test exposing (Test, describe, fuzz2, test)
@@ -246,6 +247,38 @@ suite =
                 Expect.all
                     [ \_ -> Expect.within (Absolute 1.0e-7) 0.7227069524 (exchangeRate Dict.empty)
                     , \_ -> Expect.within (Absolute 1.0e-7) 0.7999057983 (exchangeRate (Dict.fromList [ ( "port", 1 ) ]))
+                    ]
+                    ()
+        , test "with the Brazilian trade estimates, a small spending rise never closes the external accounts, matching the prototype" <|
+            \_ ->
+                let
+                    base =
+                        Models.defaultScenario OpenModel
+
+                    ending premises =
+                        (Models.run OpenModel
+                            { base
+                                | initial = { spending = 17, taxRatePct = 20, interestRatePct = 3 }
+                                , horizon = 120
+                                , premises = premises
+                            }
+                        ).snapshots
+                            |> List.reverse
+                            |> List.head
+                            |> Maybe.map (\snapshot -> ( List.head snapshot.charts |> Maybe.map .value |> Maybe.withDefault 0, negate snapshot.foreignBalance ))
+                            |> Maybe.withDefault ( 0, 0 )
+
+                    ( bookRate, bookAccount ) =
+                        ending Dict.empty
+
+                    ( brazilRate, brazilAccount ) =
+                        ending (Premise.brazilian (Models.info OpenModel).premises Dict.empty)
+                in
+                Expect.all
+                    [ \_ -> Expect.within (Absolute 1.0e-7) 0.8853728586 bookRate
+                    , \_ -> Expect.within (Absolute 1.0e-7) (-0.003219239662) bookAccount
+                    , \_ -> Expect.within (Absolute 1.0e-7) 0.4639329734 brazilRate
+                    , \_ -> Expect.within (Absolute 1.0e-7) (-0.8874863289) brazilAccount
                     ]
                     ()
         , test "premises do not move the starting point of the open economy" <|

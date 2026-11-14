@@ -96,6 +96,7 @@ type Msg
     | ChangePeriodChanged Target Int String
     | ChangePolicyChanged Target Int PolicyField String
     | PremiseChanged Target String String
+    | BrazilianPremisesChosen Target
     | ComparisonAdded
     | ComparisonRemoved
     | PeriodSelected Int
@@ -284,6 +285,13 @@ apply msg model =
 
                 Nothing ->
                     model
+
+        BrazilianPremisesChosen target ->
+            let
+                known =
+                    (Models.info model.modelId).premises
+            in
+            edit target (\scenario -> { scenario | premises = Premise.brazilian known scenario.premises }) model
 
         ComparisonAdded ->
             { model | comparison = Just model.scenario }
@@ -669,6 +677,11 @@ viewScenario info target comparing scenario =
                 [ div [ class "premises" ]
                     (h3 [] [ text "Premissas do modelo" ]
                         :: List.map (viewPremise target prefix scenario.premises) info.premises
+                        ++ [ div [ class "buttons" ]
+                                [ button [ class "secondary", onClick (BrazilianPremisesChosen target) ]
+                                    [ text "Usar as estimativas brasileiras disponíveis" ]
+                                ]
+                           ]
                     )
                 ]
 
@@ -1300,6 +1313,7 @@ viewMapResult info model =
                         , span [ class "key adjusting" ] [ text "Ainda se ajustando no último período" ]
                         , span [ class "key failed" ] [ text "Sem solução (o número é o período)" ]
                         , span [ class "key here" ] [ text "Cenário A" ]
+                        , span [ class "key brazil" ] [ text "Estimativas brasileiras, quando há para os dois eixos" ]
                         ]
                     , p [ class "hint" ]
                         [ text
@@ -1345,6 +1359,14 @@ viewMapGrid premises horizontal vertical job finished =
             (abs (cell.x - Premise.value horizontal premises) < halfStep horizontal)
                 && (abs (cell.y - Premise.value vertical premises) < halfStep vertical)
 
+        isBrazil cell =
+            case ( horizontal.brazil, vertical.brazil ) of
+                ( Just x, Just y ) ->
+                    (abs (cell.x - x) < halfStep horizontal) && (abs (cell.y - y) < halfStep vertical)
+
+                _ ->
+                    False
+
         describe outcome =
             case outcome of
                 Settles ->
@@ -1375,6 +1397,12 @@ viewMapGrid premises horizontal vertical job finished =
                         ++ style
                         ++ (if isHere cell then
                                 " here"
+
+                            else
+                                ""
+                           )
+                        ++ (if isBrazil cell then
+                                " brazil"
 
                             else
                                 ""

@@ -51,6 +51,7 @@ exportResponse =
     , highest = 1
     , step = 0.01
     , default = OpenFlex.bookParams.eps1
+    , brazil = Just 0.01
     }
 
 
@@ -58,11 +59,12 @@ importResponse : Premise
 importResponse =
     { key = "mu1"
     , name = "Resposta das importações ao preço"
-    , note = "Quanto as importações caem quando ficam mais caras. O livro usa 0,70. Este projeto ainda não conferiu nenhuma estimativa brasileira."
+    , note = "Quanto as importações caem quando ficam mais caras. O livro usa 0,70. Para o Brasil, Santos, Cieplinski, Pimentel e Bhering (2017) estimam 0,55, entre 0,37 e 0,55; estudos anteriores chegam a 0,17."
     , lowest = 0
     , highest = 1
-    , step = 0.05
+    , step = 0.01
     , default = OpenFlex.bookParams.mu1
+    , brazil = Just 0.55
     }
 
 
@@ -75,6 +77,7 @@ passThrough =
     , highest = 1
     , step = 0.05
     , default = OpenFlex.bookParams.nu1m
+    , brazil = Nothing
     }
 
 
@@ -87,6 +90,7 @@ portfolioResponse =
     , highest = 10
     , step = 0.5
     , default = OpenFlex.bookParams.lambda11
+    , brazil = Nothing
     }
 
 
