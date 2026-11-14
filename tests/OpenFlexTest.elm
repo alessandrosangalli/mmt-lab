@@ -150,9 +150,18 @@ suite =
         , test "payments balance through a fall in home exports" <|
             \_ ->
                 expectBalanced (from5 (\p -> { p | eps0 = -2.2 }))
-        , test "payments balance through a rise in home spending and in the home interest rate" <|
+        , test "payments balance through a rise in home government spending" <|
             \_ ->
-                expectBalanced (from5 (\p -> { p | g_k_uk = 20, r_uk = 0.04 }))
+                expectBalanced (from5 (\p -> { p | g_k_uk = 20 }))
+        , test "payments balance through a rise in the home interest rate" <|
+            \_ ->
+                expectBalanced (from5 (\p -> { p | r_uk = 0.04 }))
+        , test "more spending and a higher rate together stop having a solution in period 73, as in the prototype" <|
+            \_ ->
+                OpenFlex.simulate (from5 (\p -> { p | g_k_uk = 20, r_uk = 0.04 })) 120
+                    |> Result.mapError .period
+                    |> Result.map (\_ -> ())
+                    |> Expect.equal (Err 73)
         , test "a home interest rate of 6% has no solution after a while, and says so" <|
             \_ ->
                 case OpenFlex.simulate (from5 (\p -> { p | r_uk = 0.06 })) 120 of
