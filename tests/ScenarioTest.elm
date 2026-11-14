@@ -1,8 +1,8 @@
 module ScenarioTest exposing (suite)
 
+import Engine
 import Expect exposing (FloatingPointTolerance(..))
 import Fuzz
-import Engine
 import Model.Sim as Sim
 import Policy exposing (Policy)
 import Scenario exposing (Scenario)

@@ -293,7 +293,6 @@ steadyState behaviour policy =
     }
 
 
-
 {-| The steady-state income, when there is one. With a low tax rate and a
 high interest rate, interest on the debt outgrows tax revenue and the
 economy never settles.

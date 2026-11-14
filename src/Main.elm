@@ -2,8 +2,9 @@ module Main exposing (main)
 
 {-| MMT Lab: the browser front end.
 
-The economics lives in `Model.Sim`, the accounting in `Sfc.Matrix` and the
-experiment in `Scenario`. This module holds the screen state and draws it.
+The economics lives in the `Model.*` modules, the accounting in `Sfc.Matrix`
+and the experiment in `Scenario`. This module holds the screen state and
+draws whatever snapshots the chosen model produces.
 The page never writes to the address bar: it reads the scenario from the URL
 once, at start-up, and shows a link that reproduces the current state.
 Interface text is in Portuguese.
