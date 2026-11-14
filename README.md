@@ -41,6 +41,7 @@ O código é em inglês; a interface é em português.
 | --- | --- |
 | `Sfc.Matrix` | Matriz de transações. Cada fluxo sai de um setor e entra em outro, então as linhas somam zero por construção |
 | `Model.Sim` | O modelo SIM como funções puras |
+| `Model.Pc` | O modelo PC (cap. 4): títulos públicos, banco central e taxa de juros. Ainda sem tela |
 | `Scenario` | Um experimento repetível: política inicial, mudanças datadas e horizonte |
 | `Link` | Leitura e escrita de um cenário na URL |
 | `Chart` | Gráfico de linhas responsivo |
