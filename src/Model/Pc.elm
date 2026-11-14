@@ -129,8 +129,6 @@ type alias Period =
 
 
 -- MODEL
-
-
 {- The equations, with (-1) marking the previous period's value:
 
    Y   = C + G
