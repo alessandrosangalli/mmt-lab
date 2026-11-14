@@ -277,7 +277,7 @@ O resultado da seção 1 se mantém no ponto de partida brasileiro: com as respo
 
 O repouso sem crescimento foi levado para o código como o modelo `brazil-1`, com gasto 18, alíquota de 27% e juro de 3,5% por trimestre. Nele, com as respostas brasileiras de comércio, um gasto de 18 para 19 levava a moeda a 0,607 no período 120, com a conta corrente ainda abrindo. Esse resultado não se sustentou com crescimento, como se vê abaixo.
 
-### Crescimento e transferências: o modelo `brazil-2`
+### Crescimento e transferências: o modelo `brazil-3`
 
 O `brazil-1` repousava com déficit zero e sem transferências. Para chegar às contas públicas brasileiras, duas coisas mudaram nas equações.
 
@@ -289,53 +289,58 @@ Valores usados:
 
 | Grandeza | Valor | Fonte | Lida |
 | --- | --- | --- | --- |
-| Crescimento real do PIB | 2,3% ao ano (2025) | IBGE, Contas Nacionais Trimestrais | Título |
-| Inflação doméstica | 4,5% ao ano; o IPCA-15 acumulava 4,62% em 12 meses em outubro de 2026 | IBGE, citado pela Agência Gov | Secundária |
-| Inflação externa | 2,7% ao ano | Sem fonte lida | Não lida |
-| Juro externo | 3,75% a 4% ao ano, cerca de 0,96% por trimestre | Federal Reserve, comunicado de 28 de outubro de 2026 | Texto |
+| Crescimento real do PIB | 2,3% ao ano (2025) | IBGE, Contas Nacionais Trimestrais do 4º trimestre de 2025 | Texto |
+| Inflação doméstica | 4,6% ao ano; o IPCA acumulava 4,63% em 12 meses em outubro de 2026 | IBGE, Indicadores do IPCA de outubro de 2026 | Texto |
+| Inflação externa | 2% ao ano, o objetivo do Federal Reserve | Federal Reserve, comunicado de 28 de outubro de 2026 | Texto |
+| Juro externo | 3,75% a 4% ao ano, cerca de 0,96% por trimestre | O mesmo comunicado | Texto |
+| Consumo do governo | 19,1% do PIB em 2025 | IBGE, Contas Nacionais Trimestrais do 4º trimestre de 2025, calculado dos valores correntes | Texto |
 
-Três desses quatro valores ainda não cumprem a regra do início deste documento, que pede leitura no original antes de entrar no modelo. Eles entraram porque o modelo na tela é declarado como calibração parcial, e precisam ser conferidos antes de qualquer veredito.
+**Sobre a inflação externa.** O comunicado diz que a inflação americana está acima do objetivo, sem dar o número. O dado de outubro de 2026 não existe em 12 meses: o órgão de estatísticas americano não coletou preços em outubro de 2025. Foi usado o objetivo de 2%, que é o valor de longo prazo declarado, e não a inflação corrente.
+
+**Sobre a inflação doméstica.** As contas nacionais dão um PIB de R$ 12,74 trilhões em 2025 contra R$ 11,78 trilhões em 2024, o que implica preços do PIB subindo cerca de 5,7%. O modelo usa o IPCA, 4,6%, que é mais recente. A diferença entre os dois é uma incerteza a registrar.
+
+A primeira versão com crescimento, `brazil-2`, ficou no ar por cerca de uma hora com valores ainda não conferidos (inflação de 4,5% e 2,7%, consumo do governo de 18,8%). O `brazil-3` troca esses valores pelos da tabela acima.
 
 As contas do governo geral, que servem de alvo e de conferência, vêm de uma única fonte, o boletim de Estatísticas Fiscais do Governo Geral do Tesouro para o primeiro trimestre de 2026 (lido no texto). Os números são de um trimestre só, sem ajuste sazonal.
 
-| Conta do governo, em % do PIB | Modelo na partida | Brasil, 1º trimestre de 2026 | Como entra |
+| Conta do governo, em % do PIB | Modelo na partida | Brasil | Como entra |
 | --- | --- | --- | --- |
-| Receita total | 41,9% | 41,90% | Escolhida pela alíquota de 38% |
-| Consumo do governo | 18,8% | 18,8% nas contas nacionais; 15,85% de pessoal e bens e serviços no boletim | Alvo |
-| Juros | 11,3% | 11,10% | Resultado |
-| Transferências | 17,9% | 16,18% de benefícios, mais 4,41% de demais gastos | Resultado |
-| Déficit | 5,4% | 5,73% | Resultado |
+| Receita total | 41,9% | 41,90% no 1º trimestre de 2026 | Escolhida pela alíquota de 38% |
+| Consumo do governo | 19,1% | 19,1% em 2025 | Alvo |
+| Juros | 11,3% | 11,10% no 1º trimestre de 2026 | Resultado |
+| Transferências | 17,7% | 16,18% de benefícios, mais 4,41% de demais gastos | Resultado |
+| Déficit | 5,5% | 5,73% no 1º trimestre de 2026 | Resultado |
 
-Os alvos de importações (17,5%), dívida (3,28 vezes o PIB trimestral) e parcela do exterior (9,9%) continuam os mesmos, e as exportações saem em 18,3%, contra 18,0%. Juros, transferências e déficit não foram alvos e caem perto dos números brasileiros. É o primeiro ponto de partida em que a receita, o gasto, a dívida e o juro brasileiros cabem ao mesmo tempo.
+Os alvos de importações (17,5%), dívida (3,28 vezes o PIB trimestral) e parcela do exterior (9,9%) continuam os mesmos, e as exportações saem em 18,2%, contra 17,8% em 2025. Juros, transferências e déficit não foram alvos e caem perto dos números brasileiros. É o primeiro ponto de partida em que a receita, o gasto, a dívida e o juro brasileiros cabem ao mesmo tempo.
 
-**O que não bate.** Na partida, a conta corrente é positiva, 0,4% do PIB. O modelo trata as famílias brasileiras como donas de muitos títulos estrangeiros, cerca de um quinto da riqueza, proporção herdada do livro. O Brasil tem déficit em conta corrente e passivo externo líquido. Falta um alvo para os ativos externos dos residentes, com a posição internacional de investimento do Banco Central.
+**O que não bate: as contas externas.** Na partida, a conta corrente do modelo é positiva, 0,3% do PIB. No Brasil ela é negativa: déficit de 2,46% do PIB em 12 meses até junho de 2026 (Banco Central, nota do setor externo de 28 de julho de 2026, lida no texto). Numa trajetória de crescimento, um déficit desse tamanho exige um passivo externo líquido perto de 1,4 vez o PIB trimestral, cerca de 36% do PIB anual. No modelo, o único passivo externo é a dívida pública em poder de estrangeiros, 0,32 vez o PIB trimestral, e as famílias ainda têm um quinto da riqueza em títulos estrangeiros, proporção herdada do livro. O passivo externo brasileiro é sobretudo investimento direto: a entrada líquida foi de 3,58% do PIB em 12 meses, segundo a mesma nota. O modelo não tem esse tipo de ativo. Sem ele, não dá para acertar ao mesmo tempo a parcela da dívida pública no exterior e a conta corrente. É uma limitação de estrutura, não de parâmetro, e pesa na tese T5.
 
 As premissas continuam ancoradas na partida: mudam a força das reações, e não o ponto de partida, o que é conferido por teste com quatro combinações.
 
-### O que o `brazil-2` faz, e o que mudou em relação ao `brazil-1`
+### O que o `brazil-3` faz, e o que mudou em relação ao `brazil-1`
 
 Números em relação à tendência, conferidos entre o protótipo e o código Elm.
 
 | Mudança | Comércio | Câmbio no período 120 | Câmbio no período 600 | Dívida sobre o PIB trimestral no período 600 |
 | --- | --- | --- | --- | --- |
-| Gasto de 18 para 19 | Brasileiro | 0,827 | 0,742 | 3,35 |
-| Gasto de 18 para 19 | Do livro | 0,951 | 0,951 | 3,27 |
+| Gasto de 18 para 19 | Brasileiro | 0,822 | 0,724 | 3,35 |
+| Gasto de 18 para 19 | Do livro | 0,950 | 0,950 | 3,27 |
 
-**A instabilidade do `brazil-1` desaparece com crescimento.** Sem crescimento, com as respostas brasileiras de comércio, a moeda caía sem parar depois de um aumento de gasto. Com crescimento, ela cai mais e mais devagar do que com as respostas do livro, mas se acomoda: cerca de 26% abaixo, depois de mais de cem anos de trimestres. A explicação mais provável é que o crescimento dilui os estoques de dívida externa a cada período, o que falta num modelo parado. O resultado anterior era, em boa parte, consequência de o modelo não crescer. Isso vale para as seções 1 e 5 deste documento, que usam o modelo do livro sem crescimento.
+**A instabilidade do `brazil-1` desaparece com crescimento.** Sem crescimento, com as respostas brasileiras de comércio, a moeda caía sem parar depois de um aumento de gasto. Com crescimento, ela cai mais e mais devagar do que com as respostas do livro, mas se acomoda: cerca de 28% abaixo, depois de mais de cem anos de trimestres. A explicação mais provável é que o crescimento dilui os estoques de dívida externa a cada período, o que falta num modelo parado; isso ainda não foi testado isoladamente. O resultado anterior era, em boa parte, consequência de o modelo não crescer. Isso vale para as seções 1 e 5 deste documento, que usam o modelo do livro sem crescimento.
 
-Uma alta de meio ponto no juro por trimestre, que são dois pontos ao ano, valoriza a moeda em 6,2% de imediato: 3,1% por ponto ao ano, dentro da faixa medida. No período 120 a moeda está em 0,761 e a dívida subiu de 3,28 para 3,43 vezes o PIB trimestral. Com juro de 6% por trimestre, o modelo deixa de ter solução no período 80.
+Uma alta de meio ponto no juro por trimestre, que são dois pontos ao ano, valoriza a moeda em 6,2% de imediato: 3,1% por ponto ao ano, dentro da faixa medida. No período 120 a moeda está em 0,754 e a dívida subiu de 3,28 para 3,43 vezes o PIB trimestral. Com juro de 6% por trimestre, o modelo deixa de ter solução no período 80.
 
 Esses resultados foram vistos antes de os critérios de T4 a T6 serem pré-registrados, e isso terá de ser declarado.
 
 ### O que falta decidir e fazer
 
-1. **Conferir nos originais** o crescimento, a inflação doméstica e a inflação externa.
-2. **Ativos externos dos residentes.** Um alvo que leve a conta corrente da partida ao sinal brasileiro.
-3. **O outro país.** O cálculo manteve o país doméstico perto do tamanho do livro. Para o Brasil, o resto do mundo é muito maior.
-4. **Repasse do câmbio aos preços.** Ajustar para a faixa de 0,10 a 0,16.
-5. **Defasagens.** O livro não tem defasagem nas exportações; a estimativa brasileira indica ajuste em três trimestres.
-6. **Investimento.** O modelo não tem, e por isso o consumo das famílias fica em 80% do PIB.
-7. **Transferências como controle na tela**, para simular mudanças em benefícios.
+1. **Passivo externo privado.** Um ativo que represente o investimento estrangeiro no país, para o modelo acertar a conta corrente sem errar a parcela da dívida pública no exterior. Muda as equações.
+2. **O outro país.** O cálculo manteve o país doméstico perto do tamanho do livro. Para o Brasil, o resto do mundo é muito maior.
+3. **Repasse do câmbio aos preços.** Ajustar para a faixa de 0,10 a 0,16.
+4. **Defasagens.** O livro não tem defasagem nas exportações; a estimativa brasileira indica ajuste em três trimestres.
+5. **Investimento.** O modelo não tem, e por isso o consumo das famílias fica em 80% do PIB, contra 63,4% no Brasil, mais 16,8% de investimento.
+6. **Transferências como controle na tela**, para simular mudanças em benefícios.
+7. **Testar isoladamente** por que o crescimento estabiliza o câmbio.
 
 ## Referências
 
@@ -356,8 +361,10 @@ Esses resultados foram vistos antes de os critérios de T4 a T6 serem pré-regis
 - Ministério da Fazenda (2026). [Dívida Pública Federal totaliza R$ 9,383 trilhões em setembro](https://www.gov.br/fazenda/pt-br/assuntos/noticias/2026/novembro/divida-publica-federal-totaliza-r-9-383-trilhoes-em-setembro).
 - Tesouro Nacional (2026). [Estatísticas Fiscais do Governo Geral, 1º trimestre de 2026](https://cdn.tesouro.gov.br/sistemas-internos/apex/producao/sistemas/thot/arquivos/publicacoes/55011_1842181/Boletim_EFGG_2026-I.pdf).
 - Federal Reserve (2026). [Federal Reserve issues FOMC statement, 28 de outubro de 2026](https://www.federalreserve.gov/newsevents/pressreleases/monetary20261028a.htm).
-- IBGE (2026). [PIB cresce 2,3% em 2025 e fecha o ano em R$ 12,7 trilhões](https://agenciadenoticias.ibge.gov.br/agencia-sala-de-imprensa/45968-pib-cresce-2-3-em-2025-e-fecha-o-ano-em-r-12-7-trilhoes.html). Só o título foi lido.
-- Agência Gov (2026). [Prévia da inflação de outubro é menor com queda de preços de água e luz](https://agenciagov.ebc.com.br/noticias/202610/previa-da-inflacao-de-outubro-e-menor-com-queda-de-precos-de-agua-e-luz).
+- IBGE (2026). [Contas Nacionais Trimestrais, 4º trimestre de 2025](https://agenciadenoticias.ibge.gov.br/media/com_mediaibge/arquivos/0038750a1c5c36ff2ffe025f1ee4c6cc.pdf).
+- IBGE (2026). [Indicadores IBGE: Sistema Nacional de Índices de Preços ao Consumidor, outubro de 2026](https://biblioteca.ibge.gov.br/visualizacao/periodicos/236/inpc_ipca_2026_out.pdf).
+- Banco Central do Brasil (2026). [Estatísticas do setor externo, nota para a imprensa de 28 de julho de 2026](https://www.bcb.gov.br/content/estatisticas/hist_estatisticassetorexterno/202607_Texto_de_estatisticas_do_setor_externo.pdf).
+- U.S. Bureau of Labor Statistics (2026). [Consumer Price Index Summary, outubro de 2026](https://www.bls.gov/news.release/cpi.nr0.htm).
 - Tesouro Nacional (2026). [Relatório Mensal da Dívida, agosto de 2026](https://cdn.tesouro.gov.br/sistemas-internos/apex/producao/sistemas/thot/arquivos/publicacoes/55919_1762808/Texto_RMD_Ago_26.pdf).
 - Banco Central do Brasil (2026). [Estatísticas fiscais, nota para a imprensa de 31 de julho de 2026](https://www.bcb.gov.br/content/estatisticas/hist_estatisticasfiscais/202607_Texto_de_estatisticas_fiscais.pdf).
 - Banco Central do Brasil. Estatísticas fiscais de setembro de 2026, citadas em [notícia de 29 de outubro de 2026](https://sbtnews.sbt.com.br/noticia/economia/bc-divida-publica-chega-a-82-9-do-pib-em-setembro).
