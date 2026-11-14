@@ -10,6 +10,7 @@ ever sees snapshots, so adding a model does not change the screen.
 -}
 
 import Policy exposing (Policy)
+import Premise exposing (Premises)
 import Scenario exposing (Scenario)
 import Sfc.Matrix exposing (Flow)
 
@@ -51,7 +52,7 @@ type alias Snapshot =
 -}
 type alias Model state =
     { initial : state
-    , step : Policy -> state -> Maybe state
+    , step : Premises -> Policy -> state -> Maybe state
     , observe : Int -> state -> Snapshot
     }
 
@@ -76,7 +77,7 @@ advance model scenario period state snapshots =
         { snapshots = List.reverse snapshots, failedAt = Nothing }
 
     else
-        case model.step (Scenario.policyAt scenario period) state of
+        case model.step scenario.premises (Scenario.policyAt scenario period) state of
             Just next ->
                 advance model scenario (period + 1) next (model.observe period next :: snapshots)
 

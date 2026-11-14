@@ -1,10 +1,12 @@
 module LinkTest exposing (suite)
 
+import Dict
 import Expect
 import Fuzz exposing (Fuzzer)
 import Link
 import Models exposing (ModelId(..))
 import Policy exposing (Policy)
+import Premise exposing (Premises)
 import Scenario exposing (Change, Scenario)
 import Test exposing (Test, describe, fuzz3, test)
 
@@ -24,14 +26,26 @@ changeFuzzer =
         policyFuzzer
 
 
+{-| Premises as a link may carry them: any of a few keys, any value.
+-}
+premisesFuzzer : Fuzzer Premises
+premisesFuzzer =
+    Fuzz.map Dict.fromList
+        (Fuzz.listOfLengthBetween 0
+            3
+            (Fuzz.pair (Fuzz.oneOfValues [ "eps1", "mu1", "nu1m", "port" ]) (Fuzz.floatRange 0 10))
+        )
+
+
 {-| Any scenario that is already within the accepted ranges.
 -}
 scenarioFuzzer : Fuzzer Scenario
 scenarioFuzzer =
-    Fuzz.map3 Scenario
+    Fuzz.map4 Scenario
         policyFuzzer
         (Fuzz.listOfLengthBetween 0 Scenario.maxChanges changeFuzzer)
         (Fuzz.intRange Scenario.minHorizon Scenario.maxHorizon)
+        premisesFuzzer
 
 
 {-| A scenario with an optional second one on the same time axis.
@@ -85,6 +99,7 @@ suite =
                             { initial = Scenario.default.initial
                             , changes = []
                             , horizon = Scenario.minHorizon
+                            , premises = Dict.empty
                             }
                         , comparison = Nothing
                         , selected = Scenario.minHorizon
@@ -124,6 +139,23 @@ suite =
                           ]
                         , 16
                         )
+        , test "premises are read for each scenario, and malformed ones are dropped" <|
+            \_ ->
+                let
+                    link =
+                        Link.fromQuery "x=eps1:0.01,broken,nu1m:abc,port:2&bx=mu1:0.3"
+                in
+                ( Dict.toList link.scenario.premises
+                , Maybe.map (\other -> Dict.toList other.premises) link.comparison
+                )
+                    |> Expect.equal
+                        ( [ ( "eps1", 0.01 ), ( "port", 2 ) ]
+                        , Just [ ( "mu1", 0.3 ) ]
+                        )
+        , test "a link that only names a model opens that model's default scenario" <|
+            \_ ->
+                (Link.fromQuery "v=open-1").scenario
+                    |> Expect.equal (Models.defaultScenario OpenModel)
         , test "a comparison scenario takes the horizon of the main one" <|
             \_ ->
                 (Link.fromQuery "n=30&bg=10").comparison
@@ -132,6 +164,7 @@ suite =
                             { initial = { spending = 10, taxRatePct = 20, interestRatePct = 2.5 }
                             , changes = []
                             , horizon = 30
+                            , premises = Dict.empty
                             }
                         )
         ]

@@ -7,9 +7,10 @@ string, so that a link reproduces an experiment exactly.
 
 `v` names the model and its version. `g`, `t` and `i` are the initial
 spending, tax rate and interest rate, `n` the horizon, `p` the period in
-focus, and `c` the changes as `period:spending:taxRate:interestRate`. A
-second scenario to compare against uses `bg`, `bt`, `bi` and `bc`, and
-shares the horizon.
+focus, and `c` the changes as `period:spending:taxRate:interestRate`.
+`x` lists the premises that differ from the model's defaults, as
+`key:value`. A second scenario to compare against uses `bg`, `bt`, `bi`,
+`bc` and `bx`, and shares the horizon.
 
 Links written before the interest rate existed have no `i` and only three
 parts per change. They still open, with the default interest rate.
@@ -19,6 +20,7 @@ parts per change. They still open, with the default interest rate.
 import Dict exposing (Dict)
 import Models exposing (ModelId(..))
 import Policy exposing (Policy)
+import Premise exposing (Premises)
 import Scenario exposing (Change, Scenario)
 import Url
 
@@ -41,6 +43,7 @@ toQuery model scenario comparison selected =
                , "p=" ++ String.fromInt selected
                ]
             ++ changesField "c" scenario.changes
+            ++ premisesField "x" scenario.premises
             ++ comparisonFields comparison
         )
 
@@ -57,7 +60,9 @@ comparisonFields : Maybe Scenario -> List String
 comparisonFields comparison =
     case comparison of
         Just other ->
-            policyFields "b" other.initial ++ changesField "bc" other.changes
+            policyFields "b" other.initial
+                ++ changesField "bc" other.changes
+                ++ premisesField "bx" other.premises
 
         Nothing ->
             []
@@ -72,6 +77,19 @@ changesField key changes =
         [ key ++ "=" ++ String.join "," (List.map encodeChange changes) ]
 
 
+premisesField : String -> Premises -> List String
+premisesField key premises =
+    if Dict.isEmpty premises then
+        []
+
+    else
+        [ key
+            ++ "="
+            ++ String.join ","
+                (List.map (\( name, amount ) -> name ++ ":" ++ String.fromFloat amount) (Dict.toList premises))
+        ]
+
+
 encodeChange : Change -> String
 encodeChange change =
     String.join ":"
@@ -82,8 +100,8 @@ encodeChange change =
         ]
 
 
-{-| Never fails: anything missing or malformed falls back to the default,
-and every value is brought into range.
+{-| Never fails: anything missing or malformed falls back to the default of
+the model the link names, and every value is brought into range.
 -}
 fromQuery : String -> Link
 fromQuery query =
@@ -91,8 +109,16 @@ fromQuery query =
         fields =
             parseFields query
 
+        version =
+            Dict.get "v" fields
+
+        model =
+            version
+                |> Maybe.andThen Models.fromVersion
+                |> Maybe.withDefault SimModel
+
         base =
-            Scenario.default
+            Models.defaultScenario model
 
         floatField key fallback =
             Dict.get key fields
@@ -115,33 +141,34 @@ fromQuery query =
                 |> Maybe.map decodeChanges
                 |> Maybe.withDefault []
 
+        premisesOf key =
+            Dict.get key fields
+                |> Maybe.map decodePremises
+                |> Maybe.withDefault Dict.empty
+
         scenario =
             Scenario.sanitize
                 { initial = policyOf ""
                 , changes = changesOf "c"
                 , horizon = intField "n" base.horizon
+                , premises = premisesOf "x"
                 }
 
         comparison =
-            if List.any (\key -> Dict.member key fields) [ "bg", "bt", "bi", "bc" ] then
+            if List.any (\key -> Dict.member key fields) [ "bg", "bt", "bi", "bc", "bx" ] then
                 Just
                     (Scenario.sanitize
                         { initial = policyOf "b"
                         , changes = changesOf "bc"
                         , horizon = scenario.horizon
+                        , premises = premisesOf "bx"
                         }
                     )
 
             else
                 Nothing
-
-        version =
-            Dict.get "v" fields
     in
-    { model =
-        version
-            |> Maybe.andThen Models.fromVersion
-            |> Maybe.withDefault SimModel
+    { model = model
     , scenario = scenario
     , comparison = comparison
     , selected = clamp 1 scenario.horizon (intField "p" scenario.horizon)
@@ -170,6 +197,24 @@ toPair part =
     case String.split "=" part of
         [ key, value ] ->
             Just ( key, Url.percentDecode value |> Maybe.withDefault value )
+
+        _ ->
+            Nothing
+
+
+decodePremises : String -> Premises
+decodePremises raw =
+    raw
+        |> String.split ","
+        |> List.filterMap decodePremise
+        |> Dict.fromList
+
+
+decodePremise : String -> Maybe ( String, Float )
+decodePremise raw =
+    case String.split ":" raw of
+        [ name, amount ] ->
+            Maybe.map (\number -> ( name, number )) (String.toFloat amount)
 
         _ ->
             Nothing

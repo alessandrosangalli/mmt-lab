@@ -13,15 +13,17 @@ Interface text is in Portuguese.
 
 import Browser
 import Chart
+import Dict
 import Engine exposing (Snapshot)
 import Format
-import Html exposing (Html, a, button, div, h1, h2, input, label, li, node, ol, p, section, span, table, tbody, td, text, tfoot, th, thead, tr)
+import Html exposing (Html, a, button, div, h1, h2, h3, input, label, li, node, ol, p, section, span, table, tbody, td, text, tfoot, th, thead, tr)
 import Html.Attributes as Attr exposing (class)
 import Html.Events exposing (onClick, onInput)
 import Json.Decode as Decode
 import Link
 import Models exposing (Info, ModelId, SteadyState(..))
 import Policy exposing (Policy)
+import Premise exposing (Premise, Premises)
 import Scenario exposing (Change, Scenario)
 import Sfc.Matrix as Matrix exposing (Sector(..))
 import Style
@@ -62,6 +64,7 @@ type Msg
     | ChangeRemoved Target Int
     | ChangePeriodChanged Target Int String
     | ChangePolicyChanged Target Int PolicyField String
+    | PremiseChanged Target String String
     | ComparisonAdded
     | ComparisonRemoved
     | PeriodSelected Int
@@ -75,13 +78,14 @@ init flags =
         link =
             Link.fromQuery (stringFlag "search" flags)
     in
-    ( { modelId = link.model
-      , scenario = link.scenario
-      , comparison = link.comparison
-      , selected = link.selected
-      , linkVersion = link.version
-      , baseUrl = stringFlag "base" flags
-      }
+    ( normalize
+        { modelId = link.model
+        , scenario = link.scenario
+        , comparison = link.comparison
+        , selected = link.selected
+        , linkVersion = link.version
+        , baseUrl = stringFlag "base" flags
+        }
     , Cmd.none
     )
 
@@ -97,16 +101,27 @@ update msg model =
     ( normalize (apply msg model), Cmd.none )
 
 
-{-| Keep every value in range and the two scenarios on the same time axis.
+{-| Keep every value in range, the premises within what the chosen model
+knows, and the two scenarios on the same time axis.
 -}
 normalize : Model -> Model
 normalize model =
     let
+        known =
+            (Models.info model.modelId).premises
+
+        clean dirty =
+            let
+                sanitized =
+                    Scenario.sanitize dirty
+            in
+            { sanitized | premises = Premise.sanitize known sanitized.premises }
+
         scenario =
-            Scenario.sanitize model.scenario
+            clean model.scenario
 
         alignHorizon other =
-            Scenario.sanitize { other | horizon = scenario.horizon }
+            clean { other | horizon = scenario.horizon }
     in
     { model
         | scenario = scenario
@@ -169,6 +184,14 @@ apply msg model =
                     edit target
                         (Scenario.updateChange index (\change -> { change | policy = setField field number change.policy }))
                         model
+
+                Nothing ->
+                    model
+
+        PremiseChanged target key raw ->
+            case String.toFloat raw of
+                Just number ->
+                    edit target (\scenario -> { scenario | premises = Dict.insert key number scenario.premises }) model
 
                 Nothing ->
                     model
@@ -453,6 +476,17 @@ viewScenario info target comparing scenario =
                 Comparison ->
                     []
 
+        premiseControls =
+            if List.isEmpty info.premises then
+                []
+
+            else
+                [ div [ class "premises" ]
+                    (h3 [] [ text "Premissas do modelo" ]
+                        :: List.map (viewPremise target prefix scenario.premises) info.premises
+                    )
+                ]
+
         addButton =
             button
                 [ onClick (ChangeAdded target)
@@ -481,7 +515,29 @@ viewScenario info target comparing scenario =
             ++ [ div [ class "changes" ] (List.indexedMap (viewChange info target prefix scenario.horizon) scenario.changes)
                , div [ class "buttons" ] (addButton :: otherButtons)
                ]
+            ++ premiseControls
         )
+
+
+viewPremise : Target -> String -> Premises -> Premise -> Html Msg
+viewPremise target prefix premises premise =
+    let
+        current =
+            Premise.value premise premises
+    in
+    div [ class "premise" ]
+        [ viewSlider
+            { id = prefix ++ "-premise-" ++ premise.key
+            , caption = premise.name
+            , shown = Format.fixed 2 current
+            , lowest = premise.lowest
+            , highest = premise.highest
+            , step = premise.step
+            , current = current
+            , onChange = PremiseChanged target premise.key
+            }
+        , p [ class "premise-note" ] [ text premise.note ]
+        ]
 
 
 viewPolicySliders : Info -> String -> Policy -> (PolicyField -> String -> Msg) -> Html Msg
@@ -1002,7 +1058,7 @@ viewShare model =
     section [ class "block share" ]
         [ h2 [] [ text "Link deste cenário" ]
         , p [ class "hint" ]
-            [ text "Este endereço reproduz exatamente o que está na tela: o modelo, os cenários, as mudanças de política, o número de períodos e o período em foco." ]
+            [ text "Este endereço reproduz exatamente o que está na tela: o modelo, os cenários, as mudanças de política, as premissas, o número de períodos e o período em foco." ]
         , input
             [ Attr.id "share-link"
             , Attr.type_ "text"

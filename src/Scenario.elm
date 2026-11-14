@@ -17,7 +17,9 @@ economy starts with, the dated changes to it, and how many periods to run.
 Together with a model, it determines the whole simulation.
 -}
 
+import Dict
 import Policy exposing (Policy)
+import Premise exposing (Premises)
 
 
 {-| From `period` on, the policy becomes `policy`.
@@ -32,6 +34,7 @@ type alias Scenario =
     { initial : Policy
     , changes : List Change
     , horizon : Int
+    , premises : Premises
     }
 
 
@@ -55,10 +58,12 @@ default =
     { initial = Policy.default
     , changes = []
     , horizon = 40
+    , premises = Dict.empty
     }
 
 
-{-| Bring every value into the range the model accepts. Order is kept.
+{-| Bring every value into the range the models accept. Order is kept.
+Premises are left alone: only a model knows the range of its own.
 -}
 sanitize : Scenario -> Scenario
 sanitize scenario =
@@ -68,6 +73,7 @@ sanitize scenario =
             |> List.take maxChanges
             |> List.map sanitizeChange
     , horizon = clamp minHorizon maxHorizon scenario.horizon
+    , premises = scenario.premises
     }
 
 

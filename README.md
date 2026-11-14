@@ -22,6 +22,8 @@ C  = α1 · YD + α2 · H(anterior)  consumo das famílias
 
 **OPEN (cap. 12, modelo OPENFLEX).** Dois países trocam mercadorias e compram títulos um do outro, com câmbio flutuante. Há preços de importação e de exportação, então a taxa de câmbio chega ao nível de preços doméstico. Você controla a política do país doméstico; o outro não muda. São 65 variáveis por período, resolvidas por passadas sucessivas (`Sfc.Solver`). Com políticas extremas o modelo deixa de ter solução, e a tela diz em que período isso acontece. O código do modelo é gerado a partir de uma lista de equações; veja `tools/openflex/`.
 
+No modelo aberto, quatro **premissas** contestadas viram controles na tela: a resposta das exportações ao câmbio, a resposta das importações ao preço, o repasse do câmbio aos preços de importação e a reação das carteiras aos juros. Cada uma mostra o valor do livro e o que se sabe para o Brasil. Elas valem por cenário, então dá para comparar a mesma política sob duas premissas.
+
 Na tela você monta um **cenário**: a política inicial (gasto público G, alíquota θ e, no modelo PC, a taxa de juros r), mudanças de política datadas e o número de períodos. Os gráficos mostram o PIB, a riqueza das famílias e os saldos setoriais em cada período, e no modelo aberto também a taxa de câmbio e o nível de preços; ao escolher um período, você vê a tabela de Godley e o balanço dele. Dá para comparar dois cenários: as curvas aparecem sobrepostas, e uma tabela mostra a diferença entre eles no período escolhido.
 
 O modelo e o cenário ficam codificados em um link, que reproduz exatamente o mesmo experimento:
@@ -37,7 +39,8 @@ O modelo e o cenário ficam codificados em um link, que reproduz exatamente o me
 | `n` | Número de períodos |
 | `p` | Período em foco |
 | `c` | Mudanças de política, como `período:gasto:alíquota:juros`, separadas por vírgula |
-| `bg`, `bt`, `bi`, `bc` | O mesmo para o cenário B, quando há comparação. O número de períodos é compartilhado |
+| `x` | Premissas diferentes do padrão do modelo, como `nome:valor`, separadas por vírgula |
+| `bg`, `bt`, `bi`, `bc`, `bx` | O mesmo para o cenário B, quando há comparação. O número de períodos é compartilhado |
 
 Links antigos, sem o campo de juros, continuam abrindo.
 
@@ -54,6 +57,7 @@ O código é em inglês; a interface é em português.
 | --- | --- |
 | `Sfc.Matrix` | Matriz de transações. Cada fluxo sai de um setor e entra em outro, então as linhas somam zero por construção |
 | `Policy` | O que o governo e o banco central decidem em um período |
+| `Premise` | Uma premissa contestada de um modelo, com faixa, valor padrão e explicação |
 | `Scenario` | Um experimento repetível: política inicial, mudanças datadas e horizonte |
 | `Engine` | A interface que todo modelo implementa e o laço que roda um cenário por ela |
 | `Model.Sim`, `Model.Pc` | Os modelos fechados, como funções puras |
