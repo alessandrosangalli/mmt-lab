@@ -73,6 +73,7 @@ h1 {
   margin-bottom: 4px;
 }
 .controls h2 { font-size: 1rem; margin: 0; }
+.controls .hint { margin: 0; }
 .policy, .changes { display: grid; gap: 14px; }
 .changes:empty { display: none; }
 .change {

@@ -1,10 +1,11 @@
 module Model.Sim exposing
     ( Outcome
     , Period
-    , Policy
+    , State
     , advance
     , advanceBy
     , flows
+    , model
     , sectors
     , steadyStateIncome
     , step
@@ -18,6 +19,8 @@ money the government issues when it spends.
 
 -}
 
+import Engine exposing (Snapshot)
+import Policy exposing (Policy)
 import Sfc.Matrix exposing (Flow, Sector(..))
 
 
@@ -41,12 +44,6 @@ propensityOutOfWealth =
 
 
 -- TYPES
-
-
-type alias Policy =
-    { spending : Float
-    , taxRatePct : Float
-    }
 
 
 {-| Everything that happens within one period.
@@ -177,3 +174,62 @@ flows outcome =
     , Flow "Impostos" Households Government outcome.taxes
     , Flow "Variação do dinheiro" Households Government outcome.moneyChange
     ]
+
+
+
+-- ENGINE
+
+
+{-| What the engine carries from one period to the next: the money households
+hold, and what happened in the period that just ended.
+-}
+type alias State =
+    { money : Float
+    , outcome : Outcome
+    }
+
+
+model : Engine.Model State
+model =
+    { initial =
+        { money = 0
+        , outcome =
+            { income = 0
+            , consumption = 0
+            , spending = 0
+            , taxes = 0
+            , disposableIncome = 0
+            , moneyChange = 0
+            }
+        }
+    , step = stepState
+    , observe = observe
+    }
+
+
+stepState : Policy -> State -> State
+stepState policy state =
+    let
+        outcome =
+            step policy state.money
+    in
+    { money = state.money + outcome.moneyChange
+    , outcome = outcome
+    }
+
+
+observe : Int -> State -> Snapshot
+observe number state =
+    { number = number
+    , income = state.outcome.income
+    , householdWealth = state.money
+    , privateSurplus = state.outcome.disposableIncome - state.outcome.consumption
+    , governmentBalance = state.outcome.taxes - state.outcome.spending
+    , indicators =
+        [ { name = "PIB", value = state.outcome.income }
+        , { name = "Déficit do governo", value = state.outcome.spending - state.outcome.taxes }
+        , { name = "Dinheiro das famílias", value = state.money }
+        ]
+    , flows = flows state.outcome
+    , stocks = [ Flow "Dinheiro" Government Households state.money ]
+    }

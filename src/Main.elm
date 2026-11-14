@@ -2,8 +2,9 @@ module Main exposing (main)
 
 {-| MMT Lab: the browser front end.
 
-The economics lives in `Model.Sim`, the accounting in `Sfc.Matrix` and the
-experiment in `Scenario`. This module holds the screen state and draws it.
+The economics lives in the `Model.*` modules, the accounting in `Sfc.Matrix`
+and the experiment in `Scenario`. This module holds the screen state and
+draws whatever snapshots the chosen model produces.
 The page never writes to the address bar: it reads the scenario from the URL
 once, at start-up, and shows a link that reproduces the current state.
 Interface text is in Portuguese.
@@ -12,13 +13,15 @@ Interface text is in Portuguese.
 
 import Browser
 import Chart
+import Engine exposing (Snapshot)
 import Format
 import Html exposing (Html, a, button, div, h1, h2, input, label, li, node, ol, p, section, span, table, tbody, td, text, tfoot, th, thead, tr)
 import Html.Attributes as Attr exposing (class)
 import Html.Events exposing (onClick, onInput)
 import Json.Decode as Decode
 import Link
-import Model.Sim as Sim exposing (Period, Policy)
+import Models exposing (Info, ModelId)
+import Policy exposing (Policy)
 import Scenario exposing (Change, Scenario)
 import Sfc.Matrix as Matrix exposing (Sector(..))
 import Style
@@ -29,7 +32,8 @@ import Style
 
 
 type alias Model =
-    { scenario : Scenario
+    { modelId : ModelId
+    , scenario : Scenario
     , comparison : Maybe Scenario
     , selected : Int
     , linkVersion : Maybe String
@@ -47,10 +51,12 @@ type Target
 type PolicyField
     = Spending
     | TaxRate
+    | InterestRate
 
 
 type Msg
-    = InitialChanged Target PolicyField String
+    = ModelSelected ModelId
+    | InitialChanged Target PolicyField String
     | HorizonChanged String
     | ChangeAdded Target
     | ChangeRemoved Target Int
@@ -69,7 +75,8 @@ init flags =
         link =
             Link.fromQuery (stringFlag "search" flags)
     in
-    ( { scenario = link.scenario
+    ( { modelId = link.model
+      , scenario = link.scenario
       , comparison = link.comparison
       , selected = link.selected
       , linkVersion = link.version
@@ -111,6 +118,9 @@ normalize model =
 apply : Msg -> Model -> Model
 apply msg model =
     case msg of
+        ModelSelected modelId ->
+            { model | modelId = modelId, linkVersion = Nothing }
+
         InitialChanged target field raw ->
             case String.toFloat raw of
                 Just number ->
@@ -208,6 +218,9 @@ setField field number policy =
         TaxRate ->
             { policy | taxRatePct = number }
 
+        InterestRate ->
+            { policy | interestRatePct = number }
+
 
 
 -- VIEW
@@ -216,14 +229,17 @@ setField field number policy =
 view : Model -> Html Msg
 view model =
     let
+        info =
+            Models.info model.modelId
+
         runA =
-            Scenario.run model.scenario
+            Models.run model.modelId model.scenario
 
         runB =
-            Maybe.map Scenario.run model.comparison
+            Maybe.map (Models.run model.modelId) model.comparison
 
-        at periods =
-            List.head (List.drop (model.selected - 1) periods)
+        at snapshots =
+            List.head (List.drop (model.selected - 1) snapshots)
 
         comparing =
             model.comparison /= Nothing
@@ -231,15 +247,15 @@ view model =
         focus =
             case ( at runA, model.comparison, Maybe.andThen at runB ) of
                 ( Just currentA, Just scenarioB, Just currentB ) ->
-                    [ viewComparison model.scenario currentA scenarioB currentB
-                    , viewTransactions "cenário A · " currentA
-                    , viewTransactions "cenário B · " currentB
+                    [ viewComparison info model.scenario currentA scenarioB currentB
+                    , viewTransactions info "cenário A · " currentA
+                    , viewTransactions info "cenário B · " currentB
                     ]
 
                 ( Just currentA, _, _ ) ->
-                    [ viewFocus model.scenario currentA
-                    , viewTransactions "" currentA
-                    , viewBalanceSheet currentA
+                    [ viewFocus info model.scenario currentA
+                    , viewTransactions info "" currentA
+                    , viewBalanceSheet info currentA
                     ]
 
                 _ ->
@@ -248,22 +264,23 @@ view model =
         panels =
             case model.comparison of
                 Just scenarioB ->
-                    [ viewScenario Base comparing model.scenario
-                    , viewScenario Comparison comparing scenarioB
+                    [ viewScenario info Base comparing model.scenario
+                    , viewScenario info Comparison comparing scenarioB
                     ]
 
                 Nothing ->
-                    [ viewScenario Base comparing model.scenario ]
+                    [ viewScenario info Base comparing model.scenario ]
     in
     div [ class "page" ]
         ([ node "style" [] [ text Style.css ]
          , viewHeader
-         , viewVersionWarning model.linkVersion
+         , viewVersionWarning info model.linkVersion
+         , viewModelPicker model.modelId
          ]
             ++ panels
-            ++ [ div [ class "content" ] (viewCharts model runA runB :: focus)
+            ++ [ div [ class "content" ] (viewCharts info model runA runB :: focus)
                , viewShare model
-               , viewNotes
+               , viewNotes info
                ]
         )
 
@@ -273,15 +290,15 @@ viewHeader =
     div [ class "header" ]
         [ h1 [] [ text "Laboratório MMT" ]
         , p [ class "subtitle" ]
-            [ text "O modelo SIM de Godley e Lavoie. Famílias, empresas e governo, e um único ativo: o dinheiro que o governo emite quando gasta." ]
+            [ text "Modelos contábeis de Godley e Lavoie, em que todo fluxo sai de um setor e entra em outro. Monte um cenário, compare políticas e compartilhe o link." ]
         ]
 
 
-viewVersionWarning : Maybe String -> Html Msg
-viewVersionWarning linkVersion =
+viewVersionWarning : Info -> Maybe String -> Html Msg
+viewVersionWarning info linkVersion =
     case linkVersion of
         Just version ->
-            if version == Link.modelVersion then
+            if version == info.version then
                 text ""
 
             else
@@ -290,7 +307,7 @@ viewVersionWarning linkVersion =
                         ("Este link foi criado com outra versão do modelo ("
                             ++ version
                             ++ "). A versão atual é "
-                            ++ Link.modelVersion
+                            ++ info.version
                             ++ ", e os números podem ser diferentes dos originais."
                         )
                     ]
@@ -299,19 +316,50 @@ viewVersionWarning linkVersion =
             text ""
 
 
+viewModelPicker : ModelId -> Html Msg
+viewModelPicker selected =
+    let
+        viewOption id =
+            button
+                [ class
+                    (if id == selected then
+                        "model-option"
+
+                     else
+                        "model-option secondary"
+                    )
+                , Attr.attribute "aria-pressed"
+                    (if id == selected then
+                        "true"
+
+                     else
+                        "false"
+                    )
+                , onClick (ModelSelected id)
+                ]
+                [ text (Models.info id).name ]
+    in
+    section [ class "controls models" ]
+        [ h2 [] [ text "Modelo" ]
+        , div [ class "buttons" ] (List.map viewOption Models.all)
+        , p [ class "hint" ] [ text (Models.info selected).summary ]
+        ]
+
+
 type alias Slider =
     { id : String
     , caption : String
     , shown : String
     , lowest : Float
     , highest : Float
+    , step : Float
     , current : Float
     , onChange : String -> Msg
     }
 
 
-viewScenario : Target -> Bool -> Scenario -> Html Msg
-viewScenario target comparing scenario =
+viewScenario : Info -> Target -> Bool -> Scenario -> Html Msg
+viewScenario info target comparing scenario =
     let
         prefix =
             case target of
@@ -346,6 +394,7 @@ viewScenario target comparing scenario =
                         , shown = String.fromInt scenario.horizon
                         , lowest = toFloat Scenario.minHorizon
                         , highest = toFloat Scenario.maxHorizon
+                        , step = 1
                         , current = toFloat scenario.horizon
                         , onChange = HorizonChanged
                         }
@@ -376,41 +425,63 @@ viewScenario target comparing scenario =
     in
     section [ class ("controls " ++ prefix) ]
         ([ h2 [] [ text title ]
-         , viewPolicySliders (prefix ++ "-initial") scenario.initial (InitialChanged target)
+         , viewPolicySliders info (prefix ++ "-initial") scenario.initial (InitialChanged target)
          ]
             ++ horizonSlider
-            ++ [ div [ class "changes" ] (List.indexedMap (viewChange target prefix scenario.horizon) scenario.changes)
+            ++ [ div [ class "changes" ] (List.indexedMap (viewChange info target prefix scenario.horizon) scenario.changes)
                , div [ class "buttons" ] (addButton :: otherButtons)
                ]
         )
 
 
-viewPolicySliders : String -> Policy -> (PolicyField -> String -> Msg) -> Html Msg
-viewPolicySliders prefix policy toMsg =
+viewPolicySliders : Info -> String -> Policy -> (PolicyField -> String -> Msg) -> Html Msg
+viewPolicySliders info prefix policy toMsg =
+    let
+        interestSlider =
+            if info.usesInterestRate then
+                [ viewSlider
+                    { id = prefix ++ "-interest-rate"
+                    , caption = "Taxa de juros por período (r)"
+                    , shown = Format.decimal policy.interestRatePct ++ "%"
+                    , lowest = 0
+                    , highest = 6
+                    , step = 0.5
+                    , current = policy.interestRatePct
+                    , onChange = toMsg InterestRate
+                    }
+                ]
+
+            else
+                []
+    in
     div [ class "policy" ]
-        [ viewSlider
+        ([ viewSlider
             { id = prefix ++ "-spending"
             , caption = "Gasto público por período (G)"
             , shown = Format.decimal policy.spending
             , lowest = 0
             , highest = 50
+            , step = 1
             , current = policy.spending
             , onChange = toMsg Spending
             }
-        , viewSlider
+         , viewSlider
             { id = prefix ++ "-tax-rate"
             , caption = "Alíquota de imposto (θ)"
             , shown = String.fromInt (round policy.taxRatePct) ++ "%"
             , lowest = 5
             , highest = 50
+            , step = 1
             , current = policy.taxRatePct
             , onChange = toMsg TaxRate
             }
-        ]
+         ]
+            ++ interestSlider
+        )
 
 
-viewChange : Target -> String -> Int -> Int -> Change -> Html Msg
-viewChange target scenarioPrefix horizon index change =
+viewChange : Info -> Target -> String -> Int -> Int -> Change -> Html Msg
+viewChange info target scenarioPrefix horizon index change =
     let
         prefix =
             scenarioPrefix ++ "-change-" ++ String.fromInt index
@@ -426,10 +497,11 @@ viewChange target scenarioPrefix horizon index change =
             , shown = String.fromInt change.period
             , lowest = 2
             , highest = toFloat horizon
+            , step = 1
             , current = toFloat change.period
             , onChange = ChangePeriodChanged target index
             }
-        , viewPolicySliders prefix change.policy (ChangePolicyChanged target index)
+        , viewPolicySliders info prefix change.policy (ChangePolicyChanged target index)
         ]
 
 
@@ -445,7 +517,7 @@ viewSlider slider =
             , Attr.type_ "range"
             , Attr.min (String.fromFloat slider.lowest)
             , Attr.max (String.fromFloat slider.highest)
-            , Attr.step "1"
+            , Attr.step (String.fromFloat slider.step)
             , Attr.value (String.fromFloat slider.current)
             , onInput slider.onChange
             ]
@@ -453,8 +525,8 @@ viewSlider slider =
         ]
 
 
-viewCharts : Model -> List Period -> Maybe (List Period) -> Html Msg
-viewCharts model runA runB =
+viewCharts : Info -> Model -> List Snapshot -> Maybe (List Snapshot) -> Html Msg
+viewCharts info model runA runB =
     let
         markers =
             List.map .period model.scenario.changes
@@ -466,8 +538,8 @@ viewCharts model runA runB =
         seriesOf pick =
             { style = "a", values = List.map pick runA }
                 :: (case runB of
-                        Just periods ->
-                            [ { style = "b", values = List.map pick periods } ]
+                        Just snapshots ->
+                            [ { style = "b", values = List.map pick snapshots } ]
 
                         Nothing ->
                             []
@@ -481,15 +553,9 @@ viewCharts model runA runB =
                 , onSelect = PeriodSelected
                 }
 
-        privateSurplus period =
-            period.outcome.disposableIncome - period.outcome.consumption
-
-        governmentBalance period =
-            period.outcome.taxes - period.outcome.spending
-
-        balanceSeries suffix periods =
-            [ { style = "private" ++ suffix, values = List.map privateSurplus periods }
-            , { style = "government" ++ suffix, values = List.map governmentBalance periods }
+        balanceSeries suffix snapshots =
+            [ { style = "private" ++ suffix, values = List.map .privateSurplus snapshots }
+            , { style = "government" ++ suffix, values = List.map .governmentBalance snapshots }
             ]
 
         balancesChart =
@@ -504,17 +570,6 @@ viewCharts model runA runB =
                 , selected = model.selected
                 , onSelect = PeriodSelected
                 }
-
-        balancesLegend =
-            List.filterMap identity
-                [ Just (span [ class "key private" ] [ text "Setor privado" ])
-                , Just (span [ class "key government" ] [ text "Governo" ])
-                , if runB /= Nothing then
-                    Just (span [ class "key dashed" ] [ text "Tracejado: cenário B" ])
-
-                  else
-                    Nothing
-                ]
 
         legend =
             List.filterMap identity
@@ -535,54 +590,83 @@ viewCharts model runA runB =
                     Just (span [ class "key changed" ] [ text "Mudança de política" ])
                 , Just (span [ class "key cursor" ] [ text "Período em foco" ])
                 ]
+
+        balancesLegend =
+            List.filterMap identity
+                [ Just (span [ class "key private" ] [ text "Setor privado" ])
+                , Just (span [ class "key government" ] [ text "Governo" ])
+                , if runB /= Nothing then
+                    Just (span [ class "key dashed" ] [ text "Tracejado: cenário B" ])
+
+                  else
+                    Nothing
+                ]
     in
     section [ class "block" ]
         [ h2 [] [ text "PIB em cada período" ]
         , div [ class "legend" ] legend
-        , chart (\period -> period.outcome.income)
-        , h2 [ class "spaced" ] [ text "Dinheiro guardado pelas famílias" ]
-        , chart .money
+        , chart .income
+        , h2 [ class "spaced" ] [ text info.wealthLabel ]
+        , chart .householdWealth
         , h2 [ class "spaced" ] [ text "Saldos setoriais" ]
         , div [ class "legend" ] balancesLegend
         , balancesChart
         , p [ class "hint" ]
-            [ text "As duas curvas são espelhadas: em cada período, o superávit do setor privado é igual ao déficit do governo. Neste modelo, as empresas ficam sempre em zero e não há setor externo." ]
+            [ text "As duas curvas são espelhadas: em cada período, o superávit do setor privado é igual ao déficit do governo. Nestes modelos não há setor externo." ]
         , viewSlider
             { id = "selected-period"
             , caption = "Período em foco"
             , shown = String.fromInt model.selected
             , lowest = 1
             , highest = toFloat model.scenario.horizon
+            , step = 1
             , current = toFloat model.selected
             , onChange = PeriodSlid
             }
         ]
 
 
-policySentence : Policy -> String
-policySentence policy =
+policySentence : Info -> Policy -> String
+policySentence info policy =
     "gasto de "
         ++ Format.decimal policy.spending
-        ++ " e alíquota de "
-        ++ String.fromInt (round policy.taxRatePct)
-        ++ "%"
+        ++ (if info.usesInterestRate then
+                ", alíquota de "
+                    ++ String.fromInt (round policy.taxRatePct)
+                    ++ "% e juro de "
+                    ++ Format.decimal policy.interestRatePct
+                    ++ "%"
+
+            else
+                " e alíquota de "
+                    ++ String.fromInt (round policy.taxRatePct)
+                    ++ "%"
+           )
 
 
-viewFocus : Scenario -> Period -> Html Msg
-viewFocus scenario period =
+steadyStateText : Maybe Float -> String
+steadyStateText income =
+    case income of
+        Just value ->
+            Format.decimal value
+
+        Nothing ->
+            "não há"
+
+
+viewFocus : Info -> Scenario -> Snapshot -> Html Msg
+viewFocus info scenario snapshot =
     let
         policy =
-            Scenario.policyAt scenario period.number
+            Scenario.policyAt scenario snapshot.number
     in
     section [ class "block" ]
-        [ h2 [] [ text ("Período " ++ String.fromInt period.number) ]
+        [ h2 [] [ text ("Período " ++ String.fromInt snapshot.number) ]
         , div [ class "summary" ]
-            [ viewIndicator "PIB" (Format.decimal period.outcome.income)
-            , viewIndicator "Déficit do governo" (Format.decimal period.outcome.moneyChange)
-            , viewIndicator "Dinheiro das famílias" (Format.decimal period.money)
-            , viewIndicator "PIB de equilíbrio (G ÷ θ)" (Format.decimal (Sim.steadyStateIncome policy))
-            ]
-        , p [ class "hint" ] [ text ("Política em vigor neste período: " ++ policySentence policy ++ ".") ]
+            (List.map (\indicator -> viewIndicator indicator.name (Format.decimal indicator.value)) snapshot.indicators
+                ++ [ viewIndicator "PIB de equilíbrio" (steadyStateText (info.steadyStateIncome policy)) ]
+            )
+        , p [ class "hint" ] [ text ("Política em vigor neste período: " ++ policySentence info policy ++ ".") ]
         ]
 
 
@@ -594,25 +678,37 @@ viewIndicator name amount =
         ]
 
 
-viewComparison : Scenario -> Period -> Scenario -> Period -> Html Msg
-viewComparison scenarioA periodA scenarioB periodB =
+viewComparison : Info -> Scenario -> Snapshot -> Scenario -> Snapshot -> Html Msg
+viewComparison info scenarioA snapshotA scenarioB snapshotB =
     let
         policyA =
-            Scenario.policyAt scenarioA periodA.number
+            Scenario.policyAt scenarioA snapshotA.number
 
         policyB =
-            Scenario.policyAt scenarioB periodB.number
+            Scenario.policyAt scenarioB snapshotB.number
 
-        viewRow name valueA valueB =
+        steadyA =
+            info.steadyStateIncome policyA
+
+        steadyB =
+            info.steadyStateIncome policyB
+
+        viewRow name cellA cellB difference =
             tr []
                 [ th [ Attr.scope "row" ] [ text name ]
-                , td [ class "num" ] [ text (Format.decimal valueA) ]
-                , td [ class "num" ] [ text (Format.decimal valueB) ]
-                , td [ class "num total" ] [ text (Format.signed (valueB - valueA)) ]
+                , td [ class "num" ] [ text cellA ]
+                , td [ class "num" ] [ text cellB ]
+                , td [ class "num total" ] [ text difference ]
                 ]
+
+        viewIndicatorRow left right =
+            viewRow left.name
+                (Format.decimal left.value)
+                (Format.decimal right.value)
+                (Format.signed (right.value - left.value))
     in
     section [ class "block" ]
-        [ h2 [] [ text ("Período " ++ String.fromInt periodA.number ++ ": os dois cenários") ]
+        [ h2 [] [ text ("Período " ++ String.fromInt snapshotA.number ++ ": os dois cenários") ]
         , div [ class "scroll" ]
             [ table [ class "godley" ]
                 [ thead []
@@ -624,19 +720,23 @@ viewComparison scenarioA periodA scenarioB periodB =
                         ]
                     ]
                 , tbody []
-                    [ viewRow "PIB" periodA.outcome.income periodB.outcome.income
-                    , viewRow "Déficit do governo" periodA.outcome.moneyChange periodB.outcome.moneyChange
-                    , viewRow "Dinheiro das famílias" periodA.money periodB.money
-                    , viewRow "PIB de equilíbrio (G ÷ θ)" (Sim.steadyStateIncome policyA) (Sim.steadyStateIncome policyB)
-                    ]
+                    (List.map2 viewIndicatorRow snapshotA.indicators snapshotB.indicators
+                        ++ [ viewRow "PIB de equilíbrio"
+                                (steadyStateText steadyA)
+                                (steadyStateText steadyB)
+                                (Maybe.map2 (\left right -> Format.signed (right - left)) steadyA steadyB
+                                    |> Maybe.withDefault ""
+                                )
+                           ]
+                    )
                 ]
             ]
         , p [ class "hint" ]
             [ text
                 ("Política em vigor neste período. Cenário A: "
-                    ++ policySentence policyA
+                    ++ policySentence info policyA
                     ++ ". Cenário B: "
-                    ++ policySentence policyB
+                    ++ policySentence info policyB
                     ++ "."
                 )
             ]
@@ -665,36 +765,26 @@ sectorName sector =
             "Resto do mundo"
 
 
-viewTransactions : String -> Period -> Html Msg
-viewTransactions scenarioLabel period =
+viewTransactions : Info -> String -> Snapshot -> Html Msg
+viewTransactions info scenarioLabel snapshot =
     let
-        flows =
-            Sim.flows period.outcome
-
         matrixRows =
-            Matrix.rows Sim.sectors flows
+            Matrix.rows info.sectors snapshot.flows
 
         balanced =
-            Matrix.isBalanced Sim.sectors flows
-
-        viewRow matrixRow =
-            tr []
-                (th [ Attr.scope "row" ] [ text matrixRow.label ]
-                    :: List.map viewCell matrixRow.cells
-                    ++ [ viewTotal (Matrix.rowTotal matrixRow) ]
-                )
+            Matrix.isBalanced info.sectors snapshot.flows
 
         columnTotals =
-            List.map (\sector -> Matrix.columnTotal sector flows) Sim.sectors
+            List.map (\sector -> Matrix.columnTotal sector snapshot.flows) info.sectors
     in
     section [ class "block" ]
-        [ h2 [] [ text ("Tabela de Godley · " ++ scenarioLabel ++ "período " ++ String.fromInt period.number) ]
+        [ h2 [] [ text ("Tabela de Godley · " ++ scenarioLabel ++ "período " ++ String.fromInt snapshot.number) ]
         , p [ class "hint" ]
             [ text "Cada fluxo sai de um setor e entra em outro, então toda linha soma zero. As colunas somam zero quando as contas de cada setor fecham." ]
         , div [ class "scroll" ]
             [ table [ class "godley" ]
-                [ viewTableHead "Transação"
-                , tbody [] (List.map viewRow matrixRows)
+                [ viewTableHead info.sectors "Transação"
+                , tbody [] (List.map viewMatrixRow matrixRows)
                 , tfoot []
                     [ tr []
                         (th [ Attr.scope "row" ] [ text "Σ" ]
@@ -724,35 +814,47 @@ viewTransactions scenarioLabel period =
         ]
 
 
-viewBalanceSheet : Period -> Html Msg
-viewBalanceSheet period =
+viewBalanceSheet : Info -> Snapshot -> Html Msg
+viewBalanceSheet info snapshot =
+    let
+        netWorth =
+            List.map (\sector -> Matrix.columnTotal sector snapshot.stocks) info.sectors
+    in
     section [ class "block" ]
         [ h2 [] [ text "Balanço: quem tem o quê" ]
         , div [ class "scroll" ]
             [ table [ class "godley" ]
-                [ viewTableHead "Estoque"
-                , tbody []
+                [ viewTableHead info.sectors "Estoque"
+                , tbody [] (List.map viewMatrixRow (Matrix.rows info.sectors snapshot.stocks))
+                , tfoot []
                     [ tr []
-                        [ th [ Attr.scope "row" ] [ text "Dinheiro" ]
-                        , viewCell (Just period.money)
-                        , viewCell Nothing
-                        , viewCell (Just (negate period.money))
-                        , viewTotal 0
-                        ]
+                        (th [ Attr.scope "row" ] [ text "Riqueza financeira líquida" ]
+                            :: List.map viewTotal netWorth
+                            ++ [ viewTotal (List.sum netWorth) ]
+                        )
                     ]
                 ]
             ]
         , p [ class "hint" ]
-            [ text "A dívida do governo e o dinheiro das famílias são o mesmo número, visto dos dois lados." ]
+            [ text "Todo ativo de um setor é a dívida de outro. Por isso a riqueza financeira de todos os setores, somada, é zero." ]
         ]
 
 
-viewTableHead : String -> Html Msg
-viewTableHead firstColumn =
+viewMatrixRow : Matrix.Row -> Html Msg
+viewMatrixRow matrixRow =
+    tr []
+        (th [ Attr.scope "row" ] [ text matrixRow.label ]
+            :: List.map viewCell matrixRow.cells
+            ++ [ viewTotal (Matrix.rowTotal matrixRow) ]
+        )
+
+
+viewTableHead : List Sector -> String -> Html Msg
+viewTableHead sectors firstColumn =
     thead []
         [ tr []
             (th [] [ text firstColumn ]
-                :: List.map (\sector -> th [] [ text (sectorName sector) ]) Sim.sectors
+                :: List.map (\sector -> th [] [ text (sectorName sector) ]) sectors
                 ++ [ th [] [ text "Σ" ] ]
             )
         ]
@@ -786,12 +888,12 @@ viewShare : Model -> Html Msg
 viewShare model =
     let
         query =
-            "?" ++ Link.toQuery model.scenario model.comparison model.selected
+            "?" ++ Link.toQuery model.modelId model.scenario model.comparison model.selected
     in
     section [ class "block share" ]
         [ h2 [] [ text "Link deste cenário" ]
         , p [ class "hint" ]
-            [ text "Este endereço reproduz exatamente o que está na tela: os cenários, as mudanças de política, o número de períodos e o período em foco." ]
+            [ text "Este endereço reproduz exatamente o que está na tela: o modelo, os cenários, as mudanças de política, o número de períodos e o período em foco." ]
         , input
             [ Attr.id "share-link"
             , Attr.type_ "text"
@@ -803,19 +905,13 @@ viewShare model =
         ]
 
 
-viewNotes : Html Msg
-viewNotes =
+viewNotes : Info -> Html Msg
+viewNotes info =
     section [ class "block notes" ]
         [ h2 [] [ text "O que observar" ]
-        , ol []
-            [ li [] [ text "No começo ninguém tem dinheiro. O governo gasta primeiro e só depois recolhe impostos." ]
-            , li [] [ text "Todo déficit vira dinheiro guardado pelas famílias, centavo por centavo." ]
-            , li [] [ text "O PIB caminha até G ÷ θ. Nesse ponto o déficit zera sozinho, sem ninguém decidir cortar nada." ]
-            , li [] [ text "Adicione uma mudança de política e veja a economia buscar um novo equilíbrio a partir daquele período." ]
-            , li [] [ text "Compare dois cenários: um corte de gasto e um aumento de imposto levam a equilíbrios diferentes, e o gráfico mostra o caminho de cada um." ]
-            ]
+        , ol [] (List.map (\note -> li [] [ text note ]) info.notes)
         , p [ class "hint" ]
-            [ text "Este modelo ainda não tem inflação, juros, bancos nem setor externo. É a contabilidade básica sobre a qual o resto vai ser construído." ]
+            [ text "Estes modelos ainda não têm inflação, bancos nem setor externo. São a contabilidade básica sobre a qual o resto vai ser construído." ]
         ]
 
 

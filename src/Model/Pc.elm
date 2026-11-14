@@ -2,7 +2,6 @@ module Model.Pc exposing
     ( Behaviour
     , Outcome
     , Period
-    , Policy
     , State
     , SteadyState
     , advance
@@ -10,8 +9,10 @@ module Model.Pc exposing
     , bookBehaviour
     , flows
     , initial
+    , model
     , sectors
     , steadyState
+    , steadyStateIncome
     , step
     )
 
@@ -29,20 +30,13 @@ package. Within a period nothing is simultaneous, so no solver is needed.
 
 -}
 
+import Engine exposing (Snapshot)
+import Policy exposing (Policy)
 import Sfc.Matrix exposing (Flow, Sector(..))
 
 
 
 -- TYPES
-
-
-{-| What the government and the central bank decide.
--}
-type alias Policy =
-    { spending : Float
-    , taxRatePct : Float
-    , interestRatePct : Float
-    }
 
 
 {-| How households behave: how much they consume out of income and out of
@@ -299,6 +293,23 @@ steadyState behaviour policy =
     }
 
 
+{-| The steady-state income, when there is one. With a low tax rate and a
+high interest rate, interest on the debt outgrows tax revenue and the
+economy never settles.
+-}
+steadyStateIncome : Policy -> Maybe Float
+steadyStateIncome policy =
+    let
+        settled =
+            steadyState bookBehaviour policy
+    in
+    if settled.disposableIncome > 0 && not (isInfinite settled.disposableIncome) then
+        Just settled.income
+
+    else
+        Nothing
+
+
 
 -- TRANSACTION FLOWS
 
@@ -325,3 +336,83 @@ flows outcome =
     , Flow "Variação dos títulos das famílias" Households Government outcome.householdBillsChange
     , Flow "Variação dos títulos do banco central" CentralBank Government outcome.centralBankBillsChange
     ]
+
+
+
+-- ENGINE
+
+
+{-| What the engine carries from one period to the next: the stocks, and
+what happened in the period that just ended.
+-}
+type alias Position =
+    { state : State
+    , outcome : Outcome
+    }
+
+
+model : Engine.Model Position
+model =
+    { initial =
+        { state = initial
+        , outcome =
+            { income = 0
+            , consumption = 0
+            , spending = 0
+            , taxes = 0
+            , disposableIncome = 0
+            , householdInterest = 0
+            , centralBankInterest = 0
+            , moneyChange = 0
+            , householdBillsChange = 0
+            , centralBankBillsChange = 0
+            }
+        }
+    , step = stepPosition
+    , observe = observe
+    }
+
+
+stepPosition : Policy -> Position -> Position
+stepPosition policy position =
+    let
+        ( outcome, state ) =
+            step bookBehaviour policy position.state
+    in
+    { state = state
+    , outcome = outcome
+    }
+
+
+observe : Int -> Position -> Snapshot
+observe number position =
+    let
+        outcome =
+            position.outcome
+
+        state =
+            position.state
+
+        deficit =
+            outcome.spending + outcome.householdInterest - outcome.taxes
+    in
+    { number = number
+    , income = outcome.income
+    , householdWealth = state.wealth
+    , privateSurplus = outcome.disposableIncome - outcome.consumption
+    , governmentBalance = negate deficit
+    , indicators =
+        [ { name = "PIB", value = outcome.income }
+        , { name = "Déficit do governo", value = deficit }
+        , { name = "Riqueza das famílias", value = state.wealth }
+        , { name = "Títulos das famílias", value = state.householdBills }
+        , { name = "Dinheiro das famílias", value = state.householdMoney }
+        , { name = "Juros recebidos pelas famílias", value = outcome.householdInterest }
+        ]
+    , flows = flows outcome
+    , stocks =
+        [ Flow "Dinheiro" CentralBank Households state.householdMoney
+        , Flow "Títulos das famílias" Government Households state.householdBills
+        , Flow "Títulos do banco central" Government CentralBank state.centralBankBills
+        ]
+    }

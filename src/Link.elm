@@ -1,59 +1,63 @@
-module Link exposing (Link, fromQuery, modelVersion, toQuery)
+module Link exposing (Link, fromQuery, toQuery)
 
-{-| A scenario written into, and read back from, a URL query string, so that
-a link reproduces an experiment exactly.
+{-| A model and its scenarios written into, and read back from, a URL query
+string, so that a link reproduces an experiment exactly.
 
-    v=sim-1&g=20&t=20&n=40&p=40&c=10:25:20,20:25:30
+    v=pc-1&g=20&t=20&i=2.5&n=40&p=40&c=10:25:20:3.5
 
-`g` and `t` are the initial spending and tax rate, `n` the horizon, `p` the
-period in focus, and `c` the changes as `period:spending:taxRate`. A second
-scenario to compare against uses `bg`, `bt` and `bc`, and shares the horizon.
+`v` names the model and its version. `g`, `t` and `i` are the initial
+spending, tax rate and interest rate, `n` the horizon, `p` the period in
+focus, and `c` the changes as `period:spending:taxRate:interestRate`. A
+second scenario to compare against uses `bg`, `bt`, `bi` and `bc`, and
+shares the horizon.
+
+Links written before the interest rate existed have no `i` and only three
+parts per change. They still open, with the default interest rate.
 
 -}
 
 import Dict exposing (Dict)
+import Models exposing (ModelId(..))
+import Policy exposing (Policy)
 import Scenario exposing (Change, Scenario)
 import Url
 
 
 type alias Link =
-    { scenario : Scenario
+    { model : ModelId
+    , scenario : Scenario
     , comparison : Maybe Scenario
     , selected : Int
     , version : Maybe String
     }
 
 
-{-| Identifies the model and its equations. It changes whenever the same
-scenario would produce different numbers.
--}
-modelVersion : String
-modelVersion =
-    "sim-1"
-
-
-toQuery : Scenario -> Maybe Scenario -> Int -> String
-toQuery scenario comparison selected =
+toQuery : ModelId -> Scenario -> Maybe Scenario -> Int -> String
+toQuery model scenario comparison selected =
     String.join "&"
-        ([ "v=" ++ modelVersion
-         , "g=" ++ String.fromFloat scenario.initial.spending
-         , "t=" ++ String.fromFloat scenario.initial.taxRatePct
-         , "n=" ++ String.fromInt scenario.horizon
-         , "p=" ++ String.fromInt selected
-         ]
+        ([ "v=" ++ (Models.info model).version ]
+            ++ policyFields "" scenario.initial
+            ++ [ "n=" ++ String.fromInt scenario.horizon
+               , "p=" ++ String.fromInt selected
+               ]
             ++ changesField "c" scenario.changes
             ++ comparisonFields comparison
         )
+
+
+policyFields : String -> Policy -> List String
+policyFields prefix policy =
+    [ prefix ++ "g=" ++ String.fromFloat policy.spending
+    , prefix ++ "t=" ++ String.fromFloat policy.taxRatePct
+    , prefix ++ "i=" ++ String.fromFloat policy.interestRatePct
+    ]
 
 
 comparisonFields : Maybe Scenario -> List String
 comparisonFields comparison =
     case comparison of
         Just other ->
-            [ "bg=" ++ String.fromFloat other.initial.spending
-            , "bt=" ++ String.fromFloat other.initial.taxRatePct
-            ]
-                ++ changesField "bc" other.changes
+            policyFields "b" other.initial ++ changesField "bc" other.changes
 
         Nothing ->
             []
@@ -74,11 +78,12 @@ encodeChange change =
         [ String.fromInt change.period
         , String.fromFloat change.policy.spending
         , String.fromFloat change.policy.taxRatePct
+        , String.fromFloat change.policy.interestRatePct
         ]
 
 
-{-| Never fails: anything missing or malformed falls back to the default
-scenario, and every value is brought into range.
+{-| Never fails: anything missing or malformed falls back to the default,
+and every value is brought into range.
 -}
 fromQuery : String -> Link
 fromQuery query =
@@ -99,6 +104,12 @@ fromQuery query =
                 |> Maybe.andThen String.toInt
                 |> Maybe.withDefault fallback
 
+        policyOf prefix =
+            { spending = floatField (prefix ++ "g") base.initial.spending
+            , taxRatePct = floatField (prefix ++ "t") base.initial.taxRatePct
+            , interestRatePct = floatField (prefix ++ "i") base.initial.interestRatePct
+            }
+
         changesOf key =
             Dict.get key fields
                 |> Maybe.map decodeChanges
@@ -106,22 +117,16 @@ fromQuery query =
 
         scenario =
             Scenario.sanitize
-                { initial =
-                    { spending = floatField "g" base.initial.spending
-                    , taxRatePct = floatField "t" base.initial.taxRatePct
-                    }
+                { initial = policyOf ""
                 , changes = changesOf "c"
                 , horizon = intField "n" base.horizon
                 }
 
         comparison =
-            if List.any (\key -> Dict.member key fields) [ "bg", "bt", "bc" ] then
+            if List.any (\key -> Dict.member key fields) [ "bg", "bt", "bi", "bc" ] then
                 Just
                     (Scenario.sanitize
-                        { initial =
-                            { spending = floatField "bg" base.initial.spending
-                            , taxRatePct = floatField "bt" base.initial.taxRatePct
-                            }
+                        { initial = policyOf "b"
                         , changes = changesOf "bc"
                         , horizon = scenario.horizon
                         }
@@ -129,11 +134,18 @@ fromQuery query =
 
             else
                 Nothing
+
+        version =
+            Dict.get "v" fields
     in
-    { scenario = scenario
+    { model =
+        version
+            |> Maybe.andThen Models.fromVersion
+            |> Maybe.withDefault SimModel
+    , scenario = scenario
     , comparison = comparison
     , selected = clamp 1 scenario.horizon (intField "p" scenario.horizon)
-    , version = Dict.get "v" fields
+    , version = version
     }
 
 
@@ -172,13 +184,25 @@ decodeChanges raw =
 
 decodeChange : String -> Maybe Change
 decodeChange raw =
-    case String.split ":" raw of
-        [ period, spending, taxRatePct ] ->
-            Maybe.map3
-                (\p g t -> { period = p, policy = { spending = g, taxRatePct = t } })
+    let
+        build period spending taxRatePct interestRatePct =
+            Maybe.map4
+                (\p g t i ->
+                    { period = p
+                    , policy = { spending = g, taxRatePct = t, interestRatePct = i }
+                    }
+                )
                 (String.toInt period)
                 (String.toFloat spending)
                 (String.toFloat taxRatePct)
+                interestRatePct
+    in
+    case String.split ":" raw of
+        [ period, spending, taxRatePct, interestRatePct ] ->
+            build period spending taxRatePct (String.toFloat interestRatePct)
+
+        [ period, spending, taxRatePct ] ->
+            build period spending taxRatePct (Just Policy.default.interestRatePct)
 
         _ ->
             Nothing

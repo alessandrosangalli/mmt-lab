@@ -8,17 +8,16 @@ module Scenario exposing
     , minHorizon
     , policyAt
     , removeChange
-    , run
     , sanitize
     , updateChange
     )
 
 {-| A scenario is an experiment that can be repeated exactly: the policy the
 economy starts with, the dated changes to it, and how many periods to run.
-The whole simulation is a pure function of this value.
+Together with a model, it determines the whole simulation.
 -}
 
-import Model.Sim as Sim exposing (Period, Policy)
+import Policy exposing (Policy)
 
 
 {-| From `period` on, the policy becomes `policy`.
@@ -53,7 +52,7 @@ maxChanges =
 
 default : Scenario
 default =
-    { initial = { spending = 20, taxRatePct = 20 }
+    { initial = Policy.default
     , changes = []
     , horizon = 40
     }
@@ -63,7 +62,7 @@ default =
 -}
 sanitize : Scenario -> Scenario
 sanitize scenario =
-    { initial = sanitizePolicy scenario.initial
+    { initial = Policy.sanitize scenario.initial
     , changes =
         scenario.changes
             |> List.take maxChanges
@@ -75,14 +74,7 @@ sanitize scenario =
 sanitizeChange : Change -> Change
 sanitizeChange change =
     { period = clamp 2 maxHorizon change.period
-    , policy = sanitizePolicy change.policy
-    }
-
-
-sanitizePolicy : Policy -> Policy
-sanitizePolicy policy =
-    { spending = clamp 0 50 policy.spending
-    , taxRatePct = clamp 5 50 policy.taxRatePct
+    , policy = Policy.sanitize change.policy
     }
 
 
@@ -102,15 +94,6 @@ policyAt scenario period =
     in
     List.foldl pick ( 0, scenario.initial ) scenario.changes
         |> Tuple.second
-
-
-{-| Every period of the scenario, oldest first.
--}
-run : Scenario -> List Period
-run scenario =
-    List.range 1 scenario.horizon
-        |> List.foldl (\period history -> Sim.advance (policyAt scenario period) history) []
-        |> List.reverse
 
 
 

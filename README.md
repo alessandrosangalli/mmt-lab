@@ -4,9 +4,11 @@ Um laboratório no navegador para responder, de forma reproduzível, à pergunta
 
 O projeto está no começo. A versão atual demonstra só a contabilidade básica, com o modelo SIM.
 
-## Versão atual: o modelo SIM
+## Versão atual
 
-O modelo SIM vem de Godley e Lavoie (*Monetary Economics*, 2007, cap. 3). São três setores (famílias, empresas e governo) e um único ativo: o dinheiro que o governo emite quando gasta.
+O laboratório roda dois modelos de Godley e Lavoie (*Monetary Economics*, 2007), escolhidos na tela.
+
+**SIM (cap. 3).** Três setores (famílias, empresas e governo) e um único ativo: o dinheiro que o governo emite quando gasta.
 
 ```
 Y  = C + G                       o PIB é tudo o que se gasta
@@ -16,22 +18,26 @@ C  = α1 · YD + α2 · H(anterior)  consumo das famílias
 ΔH = YD − C  =  G − T            o déficit vira dinheiro das famílias
 ```
 
-Na tela você monta um **cenário**: a política inicial (gasto público G e alíquota θ), mudanças de política datadas e o número de períodos. Os gráficos mostram o PIB, o dinheiro guardado pelas famílias e os saldos setoriais em cada período; ao escolher um período, você vê a tabela de Godley e o balanço dele. Dá para comparar dois cenários: as curvas aparecem sobrepostas, e uma tabela mostra a diferença entre eles no período escolhido.
+**PC (cap. 4).** Acrescenta títulos públicos, um banco central e a taxa de juros. As famílias dividem a riqueza entre dinheiro e títulos, o banco central compra os títulos que sobram, e o juro é o que o banco central decidir. As equações estão em `src/Model/Pc.elm`. Os parâmetros de carteira vêm do livro e só fazem sentido com juros baixos, por isso o controle de juros para em 6%.
 
-O cenário inteiro fica codificado em um link, que reproduz exatamente o mesmo experimento:
+Na tela você monta um **cenário**: a política inicial (gasto público G, alíquota θ e, no modelo PC, a taxa de juros r), mudanças de política datadas e o número de períodos. Os gráficos mostram o PIB, a riqueza das famílias e os saldos setoriais em cada período; ao escolher um período, você vê a tabela de Godley e o balanço dele. Dá para comparar dois cenários: as curvas aparecem sobrepostas, e uma tabela mostra a diferença entre eles no período escolhido.
+
+O modelo e o cenário ficam codificados em um link, que reproduz exatamente o mesmo experimento:
 
 ```
-?v=sim-1&g=20&t=20&n=80&p=16&c=15:30:20
+?v=pc-1&g=20&t=20&i=2.5&n=80&p=16&c=15:30:20:3.5
 ```
 
 | Campo | Significado |
 | --- | --- |
-| `v` | Versão do modelo. Muda sempre que o mesmo cenário passaria a dar números diferentes |
-| `g`, `t` | Gasto e alíquota iniciais |
+| `v` | Modelo e versão (`sim-1`, `pc-1`). Muda sempre que o mesmo cenário passaria a dar números diferentes |
+| `g`, `t`, `i` | Gasto, alíquota e taxa de juros iniciais |
 | `n` | Número de períodos |
 | `p` | Período em foco |
-| `c` | Mudanças de política, como `período:gasto:alíquota`, separadas por vírgula |
-| `bg`, `bt`, `bc` | O mesmo para o cenário B, quando há comparação. O número de períodos é compartilhado |
+| `c` | Mudanças de política, como `período:gasto:alíquota:juros`, separadas por vírgula |
+| `bg`, `bt`, `bi`, `bc` | O mesmo para o cenário B, quando há comparação. O número de períodos é compartilhado |
+
+Links antigos, sem o campo de juros, continuam abrindo.
 
 ## Organização do código
 
@@ -40,14 +46,18 @@ O código é em inglês; a interface é em português.
 | Módulo | O que faz |
 | --- | --- |
 | `Sfc.Matrix` | Matriz de transações. Cada fluxo sai de um setor e entra em outro, então as linhas somam zero por construção |
-| `Model.Sim` | O modelo SIM como funções puras |
-| `Model.Pc` | O modelo PC (cap. 4): títulos públicos, banco central e taxa de juros. Ainda sem tela |
+| `Policy` | O que o governo e o banco central decidem em um período |
 | `Scenario` | Um experimento repetível: política inicial, mudanças datadas e horizonte |
-| `Link` | Leitura e escrita de um cenário na URL |
+| `Engine` | A interface que todo modelo implementa e o laço que roda um cenário por ela |
+| `Model.Sim`, `Model.Pc` | Os modelos, como funções puras |
+| `Models` | O catálogo de modelos disponíveis na tela |
+| `Link` | Leitura e escrita do modelo e dos cenários na URL |
 | `Chart` | Gráfico de linhas responsivo |
 | `Format` | Formatação de números |
 | `Style` | Folha de estilo da página |
 | `Main` | Estado da tela e desenho |
+
+Para acrescentar um modelo, basta implementar `Engine.Model` e registrá-lo em `Models`. A tela não muda.
 
 ## Como rodar
 
@@ -72,7 +82,7 @@ Para rodar os testes:
 npx elm-test
 ```
 
-Os testes conferem os números do primeiro período, que as contas de todos os setores fecham em zero para qualquer política, e que o PIB converge para G ÷ θ. Conferem também que um cenário sobrevive intacto à ida e volta por um link, e que um link malformado nunca quebra a página.
+Os testes conferem, para políticas sorteadas, que as contas de todos os setores fecham em zero em todos os modelos, que o superávit privado espelha o saldo do governo, que cada modelo converge para o seu estado estacionário calculado em forma fechada, e que um modelo e seus cenários sobrevivem intactos à ida e volta por um link.
 
 ## Integração contínua
 
