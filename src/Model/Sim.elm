@@ -202,7 +202,7 @@ model =
             , moneyChange = 0
             }
         }
-    , step = stepState
+    , step = \_ policy state -> stepState policy state
     , observe = observe
     }
 

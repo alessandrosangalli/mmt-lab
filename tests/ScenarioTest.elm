@@ -1,5 +1,6 @@
 module ScenarioTest exposing (suite)
 
+import Dict
 import Engine
 import Expect exposing (FloatingPointTolerance(..))
 import Fuzz
@@ -19,6 +20,7 @@ stimulus =
     { initial = policy 20
     , changes = [ { period = 60, policy = policy 30 } ]
     , horizon = 120
+    , premises = Dict.empty
     }
 
 
@@ -101,11 +103,13 @@ suite =
                     { initial = { spending = 999, taxRatePct = 0, interestRatePct = 40 }
                     , changes = [ { period = -4, policy = { spending = -1, taxRatePct = 80, interestRatePct = -2 } } ]
                     , horizon = 100000
+                    , premises = Dict.fromList [ ( "anything", 3 ) ]
                     }
                     |> Expect.equal
                         { initial = { spending = 50, taxRatePct = 5, interestRatePct = 6 }
                         , changes = [ { period = 2, policy = { spending = 0, taxRatePct = 50, interestRatePct = 0 } } ]
                         , horizon = Scenario.maxHorizon
+                        , premises = Dict.fromList [ ( "anything", 3 ) ]
                         }
         , test "addChange appends a change ten periods after the latest" <|
             \_ ->

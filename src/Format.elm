@@ -1,4 +1,4 @@
-module Format exposing (decimal, indicator, signed, signedIndicator)
+module Format exposing (decimal, fixed, indicator, signed, signedIndicator)
 
 {-| Number formatting in the Brazilian convention (decimal comma).
 -}
@@ -58,6 +58,8 @@ signedIndicator x =
         signed x
 
 
+{-| A given number of decimal places: `fixed 2 0.7 == "0,70"`.
+-}
 fixed : Int -> Float -> String
 fixed places x =
     let

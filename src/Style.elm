@@ -73,6 +73,21 @@ h1 {
   margin-bottom: 4px;
 }
 .controls h2 { font-size: 1rem; margin: 0; }
+.premises {
+  display: grid;
+  gap: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--rule);
+}
+.premises h3 { font-size: 0.9rem; margin: 0; }
+.premise { display: grid; gap: 4px; }
+.premise-note {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--muted);
+  max-width: 65ch;
+}
 .controls .hint { margin: 0; }
 .policy, .changes { display: grid; gap: 14px; }
 .changes:empty { display: none; }

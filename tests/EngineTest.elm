@@ -1,5 +1,6 @@
 module EngineTest exposing (suite)
 
+import Dict
 import Engine exposing (Snapshot)
 import Expect exposing (FloatingPointTolerance(..))
 import Fuzz exposing (Fuzzer)
@@ -30,6 +31,7 @@ scenarioFuzzer =
             { initial = initial
             , changes = [ { period = period, policy = changed } ]
             , horizon = 40
+            , premises = Dict.empty
             }
         )
         policyFuzzer
@@ -176,6 +178,90 @@ suite =
                 , Maybe.map (\period -> List.length result.snapshots == period - 1) result.failedAt
                 )
                     |> Expect.equal ( True, Just True )
+        , test "with the Brazilian estimate of how exports respond to the currency, a spending rise has no solution in period 108, as in the prototype" <|
+            \_ ->
+                let
+                    base =
+                        Models.defaultScenario OpenModel
+
+                    result =
+                        Models.run OpenModel
+                            { base
+                                | initial = { spending = 20, taxRatePct = 20, interestRatePct = 3 }
+                                , horizon = 120
+                                , premises = Dict.fromList [ ( "eps1", 0.01 ) ]
+                            }
+                in
+                result.failedAt
+                    |> Expect.equal (Just 108)
+        , test "full pass-through to import prices raises the price level more, matching the prototype" <|
+            \_ ->
+                let
+                    base =
+                        Models.defaultScenario OpenModel
+
+                    run premises =
+                        (Models.run OpenModel
+                            { base
+                                | initial = { spending = 20, taxRatePct = 20, interestRatePct = 3 }
+                                , premises = premises
+                            }
+                        ).snapshots
+                            |> List.reverse
+                            |> List.head
+                            |> Maybe.map (\snapshot -> List.map .value snapshot.charts)
+                            |> Maybe.withDefault []
+                in
+                case ( run Dict.empty, run (Dict.fromList [ ( "nu1m", 1 ) ]) ) of
+                    ( [ bookRate, bookPrices ], [ fullRate, fullPrices ] ) ->
+                        Expect.all
+                            [ \_ -> Expect.within (Absolute 1.0e-7) 0.700809203 bookRate
+                            , \_ -> Expect.within (Absolute 1.0e-7) 0.9661389335 bookPrices
+                            , \_ -> Expect.within (Absolute 1.0e-7) 0.6350964822 fullRate
+                            , \_ -> Expect.within (Absolute 1.0e-7) 0.9833039919 fullPrices
+                            ]
+                            ()
+
+                    _ ->
+                        Expect.fail "expected two extra series in each run"
+        , test "weaker portfolio reaction to interest softens the effect of a rate rise, matching the prototype" <|
+            \_ ->
+                let
+                    base =
+                        Models.defaultScenario OpenModel
+
+                    exchangeRate premises =
+                        (Models.run OpenModel
+                            { base
+                                | initial = { spending = 16, taxRatePct = 20, interestRatePct = 4 }
+                                , premises = premises
+                            }
+                        ).snapshots
+                            |> List.reverse
+                            |> List.head
+                            |> Maybe.andThen (\snapshot -> List.head snapshot.charts)
+                            |> Maybe.map .value
+                            |> Maybe.withDefault 0
+                in
+                Expect.all
+                    [ \_ -> Expect.within (Absolute 1.0e-7) 0.7227069524 (exchangeRate Dict.empty)
+                    , \_ -> Expect.within (Absolute 1.0e-7) 0.7999057983 (exchangeRate (Dict.fromList [ ( "port", 1 ) ]))
+                    ]
+                    ()
+        , test "premises do not move the starting point of the open economy" <|
+            \_ ->
+                let
+                    base =
+                        Models.defaultScenario OpenModel
+
+                    result =
+                        Models.run OpenModel
+                            { base | premises = Dict.fromList [ ( "eps1", 0.01 ), ( "nu1m", 1 ), ( "port", 1 ) ] }
+                in
+                ( result.failedAt
+                , List.all (\snapshot -> abs (snapshot.income - 97.394) < 0.01) result.snapshots
+                )
+                    |> Expect.equal ( Nothing, True )
         , test "a version string names its model" <|
             \_ ->
                 List.map Models.fromVersion [ "sim-1", "pc-1", "pc-7", "open-1", "other-1", "" ]

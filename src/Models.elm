@@ -8,6 +8,7 @@ import Model.Open as Open
 import Model.Pc as Pc
 import Model.Sim as Sim
 import Policy exposing (Policy)
+import Premise exposing (Premise)
 import Scenario exposing (Scenario)
 import Sfc.Matrix exposing (Sector)
 
@@ -45,6 +46,7 @@ type alias Info =
     , sectors : List Sector
     , defaultPolicy : Policy
     , steadyStateIncome : Policy -> SteadyState
+    , premises : List Premise
     , notes : List String
     }
 
@@ -68,6 +70,7 @@ info id =
             , sectors = Sim.sectors
             , defaultPolicy = Policy.default
             , steadyStateIncome = \policy -> SettlesAt (Sim.steadyStateIncome policy)
+            , premises = []
             , notes =
                 [ "No começo ninguém tem dinheiro. O governo gasta primeiro e só depois recolhe impostos."
                 , "Todo déficit vira dinheiro guardado pelas famílias, centavo por centavo."
@@ -94,6 +97,7 @@ info id =
 
                         Nothing ->
                             NeverSettles
+            , premises = []
             , notes =
                 [ "O juro é o que o banco central decidir: ele compra os títulos que as famílias não quiserem."
                 , "O banco central devolve ao governo o juro que recebe, então só o juro pago às famílias pesa no déficit."
@@ -114,12 +118,14 @@ info id =
             , sectors = Open.sectors
             , defaultPolicy = Open.defaultPolicy
             , steadyStateIncome = \_ -> NotComputed
+            , premises = Open.premises
             , notes =
                 [ "Aumente o gasto público: a renda sobe, as importações crescem, a conta corrente fica negativa e a moeda perde valor, até a conta corrente voltar a zero."
                 , "A moeda mais fraca encarece os importados, e o nível de preços doméstico sobe. É o repasse do câmbio aos preços."
                 , "Os três saldos setoriais (setor privado, governo e exterior) somam zero em todo período."
                 , "O modelo é muito sensível ao juro. Com os parâmetros do livro, um ponto a mais de juro valoriza a moeda em cerca de 30% de imediato, e acima de 4% o modelo deixa de ter solução depois de alguns períodos."
-                , "Tudo isso decorre dos parâmetros do livro. A calibração para o Brasil ainda não foi feita."
+                , "Em Premissas do modelo, troque a resposta das exportações ao câmbio de 0,70, o valor do livro, para 0,01, a estimativa brasileira, e aumente o gasto: a moeda continua caindo e o modelo deixa de ter solução. Use Comparar com outro cenário para ver os dois lado a lado."
+                , "Os demais parâmetros continuam sendo os do livro. A calibração para o Brasil ainda não foi feita, então isso mostra o que cada premissa faz, não o que aconteceria no Brasil."
                 ]
             }
 

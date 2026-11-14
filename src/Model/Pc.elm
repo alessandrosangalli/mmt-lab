@@ -368,7 +368,7 @@ model =
             , centralBankBillsChange = 0
             }
         }
-    , step = stepPosition
+    , step = \_ policy position -> stepPosition policy position
     , observe = observe
     }
 
