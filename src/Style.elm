@@ -41,6 +41,7 @@ body {
   margin: 0 auto;
   padding: 24px 16px 48px;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 22px;
 }
 h1 {
@@ -84,7 +85,7 @@ button {
 }
 button.secondary { background: transparent; color: var(--blue); }
 button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-.content { display: grid; gap: 22px; }
+.content { display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px; }
 .summary {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -95,6 +96,7 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
   overflow: hidden;
 }
 .indicator { background: var(--sheet); padding: 10px 12px; display: grid; gap: 2px; }
+.indicator:last-child:nth-child(odd) { grid-column: 1 / -1; }
 .indicator .name {
   font-size: 0.72rem;
   color: var(--muted);

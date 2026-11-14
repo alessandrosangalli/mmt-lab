@@ -1,10 +1,12 @@
 # Laboratório MMT
 
-Um simulador no navegador para ver na prática a contabilidade por trás da Teoria Monetária Moderna (MMT). É escrito em [Elm](https://elm-lang.org) e inspirado no [Minsky](https://sourceforge.net/projects/minsky/), de Steve Keen.
+Um laboratório no navegador para responder, de forma reproduzível, à pergunta **"a MMT funciona no Brasil?"**. É escrito em [Elm](https://elm-lang.org) e inspirado no [Minsky](https://sourceforge.net/projects/minsky/), de Steve Keen.
 
-## Versão 0: o modelo SIM
+O projeto está no começo. A versão atual demonstra só a contabilidade básica, com o modelo SIM.
 
-A versão 0 implementa o modelo SIM de Godley e Lavoie (*Monetary Economics*, 2007, cap. 3). São três setores (famílias, empresas e governo) e um único ativo: o dinheiro que o governo emite quando gasta.
+## Versão atual: o modelo SIM
+
+O modelo SIM vem de Godley e Lavoie (*Monetary Economics*, 2007, cap. 3). São três setores (famílias, empresas e governo) e um único ativo: o dinheiro que o governo emite quando gasta.
 
 ```
 Y  = C + G                       o PIB é tudo o que se gasta
@@ -14,19 +16,23 @@ C  = α1 · YD + α2 · H(anterior)  consumo das famílias
 ΔH = YD − C  =  G − T            o déficit vira dinheiro das famílias
 ```
 
-Na tela você controla o gasto público (G) e a alíquota de imposto (θ), avança os períodos e acompanha:
+Na tela você controla o gasto público (G) e a alíquota de imposto (θ), avança os períodos e acompanha o PIB, o dinheiro guardado pelas famílias, a tabela de Godley do período e o balanço dos setores.
 
-- um gráfico do PIB e do dinheiro guardado pelas famílias;
-- a **tabela de Godley** do período, em que toda linha e toda coluna somam zero;
-- o balanço, em que a dívida do governo e o dinheiro das famílias aparecem como o mesmo número.
+## Organização do código
 
-O modelo inteiro é a função pura `passo` em `src/Main.elm`.
+O código é em inglês; a interface é em português.
+
+| Módulo | O que faz |
+| --- | --- |
+| `Sfc.Matrix` | Matriz de transações. Cada fluxo sai de um setor e entra em outro, então as linhas somam zero por construção |
+| `Model.Sim` | O modelo SIM como funções puras |
+| `Format` | Formatação de números |
+| `Style` | Folha de estilo da página |
+| `Main` | Estado da tela e desenho |
 
 ## Como rodar
 
-**Sem instalar nada:** abra [ellie-app.com/new](https://ellie-app.com/new), cole o conteúdo de `src/Main.elm` e clique em *Compile*.
-
-**No computador**, com o [Elm 0.19.1](https://guide.elm-lang.org/install/elm.html) instalado:
+Com o [Elm 0.19.1](https://guide.elm-lang.org/install/elm.html) instalado:
 
 ```sh
 elm reactor
@@ -34,19 +40,28 @@ elm reactor
 
 Depois abra `http://localhost:8000/src/Main.elm`.
 
-Para gerar uma página única:
+Para gerar o site como o CI gera:
 
 ```sh
-elm make src/Main.elm --optimize --output=index.html
+elm make src/Main.elm --optimize --output=dist/elm.js
+cp public/index.html dist/index.html
 ```
 
-A cada push, o GitHub Actions compila o projeto e guarda o `index.html` gerado como artefato do workflow.
+Para rodar os testes:
 
-## Próximos passos
+```sh
+npx elm-test
+```
 
-- Cenários prontos para comparar políticas lado a lado
-- Inflação
-- Emprego garantido (Job Guarantee)
+Os testes conferem os números do primeiro período, que as contas de todos os setores fecham em zero para qualquer política, e que o PIB converge para G ÷ θ.
+
+## Integração contínua
+
+A cada push, o GitHub Actions roda os testes, confere a formatação com `elm-format` e compila o site. Na branch `main`, o site é publicado no GitHub Pages.
+
+## Licença
+
+[GPL v3](LICENSE).
 
 ## Referências
 

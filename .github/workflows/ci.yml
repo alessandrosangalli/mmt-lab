@@ -29,11 +29,8 @@ jobs:
           elm make src/Main.elm --optimize --output=dist/elm.js
           cp public/index.html dist/index.html
 
-      - name: Format (temporary, to fetch the formatted sources)
-        run: |
-          npx --yes elm-format@0.8.7 --yes src tests
-          echo "=====DIFF-BEGIN"; git diff | gzip -9c | base64 -w 76; echo "=====DIFF-END"
-          echo "=====JS-BEGIN"; gzip -9c dist/elm.js | base64 -w 76; echo "=====JS-END"
+      - name: Check formatting
+        run: npx --yes elm-format@0.8.7 --validate src tests
 
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
