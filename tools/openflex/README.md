@@ -9,6 +9,7 @@ O arquivo `src/Model/OpenFlex.elm` é gerado a partir de uma única lista de equ
 | `model.js` | O protótipo: resolve os períodos, acha o estado estacionário e confere a contabilidade |
 | `emit.js` | Escreve o módulo Elm e imprime os números usados nos testes |
 | `steady.json` | O estado estacionário da linha de base, calculado pelo protótipo |
+| `explore-brazil.js` | Teste exploratório: leva os parâmetros aos poucos para proporções brasileiras e mostra onde o modelo repousa. Os resultados estão em `CALIBRATION.md`, seção 8 |
 
 Para refazer tudo, com o Node instalado:
 
