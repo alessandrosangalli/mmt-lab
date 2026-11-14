@@ -3,6 +3,7 @@ module Model.OpenFlex exposing
     , Params
     , Vars
     , bookParams
+    , carry
     , flows
     , sectors
     , simulate
@@ -30,6 +31,12 @@ this version of the model, so it only added a constant to each central
 bank's balance sheet. And the home central bank's bill holdings follow the
 book's own alternative equation 12.82A (it holds the bills nobody else
 does), which keeps the accounts from drifting apart over long runs.
+
+Two things are added, and both are switched off in the book's baseline. The
+home government can pay transfers to households (`tr_k_uk`). And the economy
+can sit on a growth path: every value is measured relative to its trend, where
+real quantities grow at `trend` a period and each country's prices at its
+`infl`. See `carry`.
 
 The body of `sweep`, the list of fields and the steady state are generated
 from one list of equations, the same list that produced the prototype these
@@ -87,6 +94,10 @@ type alias Params =
     , w_uk : Float
     , w_us : Float
     , b_cb_ukus_s : Float
+    , trend : Float
+    , infl_uk : Float
+    , infl_us : Float
+    , tr_k_uk : Float
     }
 
 
@@ -135,6 +146,10 @@ bookParams =
     , w_uk = 1
     , w_us = 1
     , b_cb_ukus_s = 0.02031
+    , trend = 1
+    , infl_uk = 1
+    , infl_us = 1
+    , tr_k_uk = 0
     }
 
 
@@ -158,6 +173,7 @@ type alias Vars =
     , im_us : Float
     , t_uk : Float
     , t_us : Float
+    , tr_uk : Float
     , yd_uk : Float
     , yd_us : Float
     , ydhs_k_uk : Float
@@ -230,6 +246,7 @@ steadyState =
     , im_us = 11.40938062724784
     , t_uk = 19.46320060295118
     , t_us = 19.46558933831728
+    , tr_uk = 0
     , yd_uk = 77.85280241180472
     , yd_us = 77.86235735326912
     , ydhs_k_uk = 81.39532738726916
@@ -284,6 +301,90 @@ steadyState =
 
 
 
+-- TRENDS
+
+
+{-| Last period's values, measured against this period's trend.
+
+Real quantities grow at `trend` a period, each country's prices at its
+`infl`, amounts of money at both, and an exchange rate at the ratio of the
+two inflations. So relative to this period's trend, last period's value is
+smaller by one period of growth. With no growth and no inflation this
+changes nothing.
+
+-}
+carry : Params -> Vars -> Vars
+carry params vars =
+    { xr_us = vars.xr_us / (params.infl_uk / params.infl_us)
+    , pm_uk = vars.pm_uk / params.infl_uk
+    , px_uk = vars.px_uk / params.infl_uk
+    , px_us = vars.px_us / params.infl_us
+    , pm_us = vars.pm_us / params.infl_us
+    , x_k_uk = vars.x_k_uk / params.trend
+    , im_k_uk = vars.im_k_uk / params.trend
+    , x_k_us = vars.x_k_us / params.trend
+    , im_k_us = vars.im_k_us / params.trend
+    , x_uk = vars.x_uk / (params.trend * params.infl_uk)
+    , x_us = vars.x_us / (params.trend * params.infl_us)
+    , im_uk = vars.im_uk / (params.trend * params.infl_uk)
+    , im_us = vars.im_us / (params.trend * params.infl_us)
+    , t_uk = vars.t_uk / (params.trend * params.infl_uk)
+    , t_us = vars.t_us / (params.trend * params.infl_us)
+    , tr_uk = vars.tr_uk / (params.trend * params.infl_uk)
+    , yd_uk = vars.yd_uk / (params.trend * params.infl_uk)
+    , yd_us = vars.yd_us / (params.trend * params.infl_us)
+    , ydhs_k_uk = vars.ydhs_k_uk / params.trend
+    , ydhs_k_us = vars.ydhs_k_us / params.trend
+    , ydhse_k_uk = vars.ydhse_k_uk / params.trend
+    , ydhse_k_us = vars.ydhse_k_us / params.trend
+    , c_k_uk = vars.c_k_uk / params.trend
+    , c_k_us = vars.c_k_us / params.trend
+    , s_k_uk = vars.s_k_uk / params.trend
+    , s_k_us = vars.s_k_us / params.trend
+    , y_k_uk = vars.y_k_uk / params.trend
+    , y_k_us = vars.y_k_us / params.trend
+    , n_uk = vars.n_uk / params.trend
+    , n_us = vars.n_us / params.trend
+    , ps_uk = vars.ps_uk / params.infl_uk
+    , ps_us = vars.ps_us / params.infl_us
+    , s_uk = vars.s_uk / (params.trend * params.infl_uk)
+    , s_us = vars.s_us / (params.trend * params.infl_us)
+    , pds_uk = vars.pds_uk / params.infl_uk
+    , pds_us = vars.pds_us / params.infl_us
+    , y_uk = vars.y_uk / (params.trend * params.infl_uk)
+    , y_us = vars.y_us / (params.trend * params.infl_us)
+    , py_uk = vars.py_uk / params.infl_uk
+    , py_us = vars.py_us / params.infl_us
+    , cons_uk = vars.cons_uk / (params.trend * params.infl_uk)
+    , cons_us = vars.cons_us / (params.trend * params.infl_us)
+    , g_uk = vars.g_uk / (params.trend * params.infl_uk)
+    , g_us = vars.g_us / (params.trend * params.infl_us)
+    , v_uk = vars.v_uk / (params.trend * params.infl_uk)
+    , v_us = vars.v_us / (params.trend * params.infl_us)
+    , v_k_uk = vars.v_k_uk / params.trend
+    , v_k_us = vars.v_k_us / params.trend
+    , f_cb_uk = vars.f_cb_uk / (params.trend * params.infl_uk)
+    , f_cb_us = vars.f_cb_us / (params.trend * params.infl_us)
+    , b_uk_s = vars.b_uk_s / (params.trend * params.infl_uk)
+    , b_us_s = vars.b_us_s / (params.trend * params.infl_us)
+    , b_ukuk_d = vars.b_ukuk_d / (params.trend * params.infl_uk)
+    , b_ukus_d = vars.b_ukus_d / (params.trend * params.infl_uk)
+    , h_uk_d = vars.h_uk_d / (params.trend * params.infl_uk)
+    , b_usus_d = vars.b_usus_d / (params.trend * params.infl_us)
+    , b_usuk_d = vars.b_usuk_d / (params.trend * params.infl_us)
+    , h_us_d = vars.h_us_d / (params.trend * params.infl_us)
+    , b_cb_usus_d = vars.b_cb_usus_d / (params.trend * params.infl_us)
+    , b_usuk_s = vars.b_usuk_s / (params.trend * params.infl_uk)
+    , b_cb_ukuk_d = vars.b_cb_ukuk_d / (params.trend * params.infl_uk)
+    , b_ukus_s = vars.b_ukus_s / (params.trend * params.infl_us)
+    , cab_uk = vars.cab_uk / (params.trend * params.infl_uk)
+    , psbr_uk = vars.psbr_uk / (params.trend * params.infl_uk)
+    , psbr_us = vars.psbr_us / (params.trend * params.infl_us)
+    , xr_uk = vars.xr_uk / (params.infl_us / params.infl_uk)
+    }
+
+
+
 -- EQUATIONS
 
 
@@ -299,7 +400,8 @@ ln x =
 
 {-| One pass over every equation, in order. Each one uses the values already
 computed in this pass where there are any, and the previous guess otherwise.
-A period is solved by repeating the pass until nothing changes.
+A period is solved by repeating the pass until nothing changes. `lagged` is
+the previous period as `carry` returns it.
 
 The comment above each line is the equation's number in the book.
 
@@ -313,11 +415,11 @@ sweep laggedParams lagged params guess =
 
         -- [12.21] import prices in UK
         pm_uk =
-            exp (params.nu0m + params.nu1m * ln guess.py_us + (1 - params.nu1m) * ln guess.py_uk - params.nu1m * ln guess.xr_uk)
+            exp (params.nu0m + params.nu1m * ln (guess.py_us) + (1 - params.nu1m) * ln (guess.py_uk) - params.nu1m * ln (guess.xr_uk))
 
         -- [12.22] export prices in UK
         px_uk =
-            exp (params.nu0x + params.nu1x * ln guess.py_us + (1 - params.nu1x) * ln guess.py_uk - params.nu1x * ln guess.xr_uk)
+            exp (params.nu0x + params.nu1x * ln (guess.py_us) + (1 - params.nu1x) * ln (guess.py_uk) - params.nu1x * ln (guess.xr_uk))
 
         -- [12.23] export prices in US
         px_us =
@@ -329,11 +431,11 @@ sweep laggedParams lagged params guess =
 
         -- [12.25] real exports from UK
         x_k_uk =
-            exp (params.eps0 - params.eps1 * ln (pm_us / guess.py_us) + params.eps2 * ln guess.y_k_us)
+            exp (params.eps0 - params.eps1 * ln (pm_us / guess.py_us) + params.eps2 * ln (guess.y_k_us))
 
         -- [12.26] real imports of UK
         im_k_uk =
-            exp (params.mu0 - params.mu1 * ln (lagged.pm_uk / lagged.py_uk) + params.mu2 * ln guess.y_k_uk)
+            exp (params.mu0 - params.mu1 * ln (lagged.pm_uk / lagged.py_uk) + params.mu2 * ln (guess.y_k_uk))
 
         -- [12.27] real exports from US
         x_k_us =
@@ -367,9 +469,13 @@ sweep laggedParams lagged params guess =
         t_us =
             params.theta_us * (guess.y_us + laggedParams.r_us * lagged.b_usus_d + guess.xr_uk * laggedParams.r_uk * lagged.b_usuk_s)
 
-        -- [12.1] disposable income in UK
+        -- government transfers to UK households, fixed in real terms (not in the book)
+        tr_uk =
+            params.tr_k_uk * guess.pds_uk
+
+        -- [12.1] disposable income in UK, plus transfers
         yd_uk =
-            (guess.y_uk + laggedParams.r_uk * lagged.b_ukuk_d + xr_us * laggedParams.r_us * lagged.b_ukus_s) * (1 - params.theta_uk) + (xr_us - lagged.xr_us) * lagged.b_ukus_s
+            (guess.y_uk + laggedParams.r_uk * lagged.b_ukuk_d + xr_us * laggedParams.r_us * lagged.b_ukus_s) * (1 - params.theta_uk) + (xr_us - lagged.xr_us) * lagged.b_ukus_s + tr_uk
 
         -- [12.4] disposable income in US
         yd_us =
@@ -497,7 +603,7 @@ sweep laggedParams lagged params guess =
 
         -- [12.11] profits of the central bank in UK
         f_cb_uk =
-            laggedParams.r_uk * lagged.b_cb_ukuk_d + laggedParams.r_us * laggedParams.b_cb_ukus_s * xr_us
+            laggedParams.r_uk * lagged.b_cb_ukuk_d + laggedParams.r_us * laggedParams.b_cb_ukus_s / (params.trend * params.infl_us) * xr_us
 
         -- [12.12] profits of the central bank in US
         f_cb_us =
@@ -505,7 +611,7 @@ sweep laggedParams lagged params guess =
 
         -- [12.13] government budget constraint in UK
         b_uk_s =
-            lagged.b_uk_s + g_uk + laggedParams.r_uk * lagged.b_uk_s - t_uk - f_cb_uk
+            lagged.b_uk_s + g_uk + tr_uk + laggedParams.r_uk * lagged.b_uk_s - t_uk - f_cb_uk
 
         -- [12.14] government budget constraint in US
         b_us_s =
@@ -553,11 +659,11 @@ sweep laggedParams lagged params guess =
 
         -- [12.15] current account balance of UK
         cab_uk =
-            x_uk - im_uk + xr_us * laggedParams.r_us * lagged.b_ukus_s - laggedParams.r_uk * lagged.b_usuk_s + laggedParams.r_us * laggedParams.b_cb_ukus_s * xr_us
+            x_uk - im_uk + xr_us * laggedParams.r_us * lagged.b_ukus_s - laggedParams.r_uk * lagged.b_usuk_s + laggedParams.r_us * laggedParams.b_cb_ukus_s / (params.trend * params.infl_us) * xr_us
 
         -- government deficit in UK
         psbr_uk =
-            g_uk + laggedParams.r_uk * lagged.b_uk_s - t_uk - f_cb_uk
+            g_uk + tr_uk + laggedParams.r_uk * lagged.b_uk_s - t_uk - f_cb_uk
 
         -- government deficit in US
         psbr_us =
@@ -582,6 +688,7 @@ sweep laggedParams lagged params guess =
     , im_us = im_us
     , t_uk = t_uk
     , t_us = t_us
+    , tr_uk = tr_uk
     , yd_uk = yd_uk
     , yd_us = yd_us
     , ydhs_k_uk = ydhs_k_uk
@@ -670,6 +777,7 @@ distance before after =
         , relativeChange before.im_us after.im_us
         , relativeChange before.t_uk after.t_uk
         , relativeChange before.t_us after.t_us
+        , relativeChange before.tr_uk after.tr_uk
         , relativeChange before.yd_uk after.yd_uk
         , relativeChange before.yd_us after.yd_us
         , relativeChange before.ydhs_k_uk after.ydhs_k_uk
@@ -733,7 +841,7 @@ now. Fails, rather than returning nonsense, when the passes do not settle.
 step : Params -> Vars -> Params -> Result Solver.Error Vars
 step laggedParams lagged params =
     Solver.fixedPoint
-        { sweep = sweep laggedParams lagged params
+        { sweep = sweep laggedParams (carry params lagged) params
         , distance = distance
         , tolerance = 1.0e-12
         , maxSweeps = 500
@@ -781,7 +889,7 @@ sectors =
 {-| The home country's payments in a period, in its own currency, with the
 foreign country as a single sector. Capital gains from the exchange rate are
 not payments, so they do not appear: foreign bills enter at what was paid for
-them in the period.
+them in the period. `lagged` is the previous period as `carry` returns it.
 -}
 flows : Params -> Vars -> Params -> Vars -> List Flow
 flows laggedParams lagged params vars =
@@ -791,16 +899,17 @@ flows laggedParams lagged params vars =
     , Flow "Importações" Firms RestOfWorld vars.im_uk
     , Flow "Renda" Firms Households vars.y_uk
     , Flow "Impostos" Households Government vars.t_uk
+    , Flow "Transferências" Government Households vars.tr_uk
     , Flow "Juros dos títulos domésticos das famílias" Government Households (laggedParams.r_uk * lagged.b_ukuk_d)
     , Flow "Juros dos títulos domésticos do banco central" Government CentralBank (laggedParams.r_uk * lagged.b_cb_ukuk_d)
     , Flow "Juros dos títulos domésticos do exterior" Government RestOfWorld (laggedParams.r_uk * lagged.b_usuk_s)
     , Flow "Juros dos títulos estrangeiros das famílias" RestOfWorld Households (vars.xr_us * laggedParams.r_us * lagged.b_ukus_s)
-    , Flow "Juros dos títulos estrangeiros do banco central" RestOfWorld CentralBank (vars.xr_us * laggedParams.r_us * laggedParams.b_cb_ukus_s)
+    , Flow "Juros dos títulos estrangeiros do banco central" RestOfWorld CentralBank (vars.xr_us * laggedParams.r_us * laggedParams.b_cb_ukus_s / (params.trend * params.infl_us))
     , Flow "Lucro do banco central" CentralBank Government vars.f_cb_uk
     , Flow "Variação do dinheiro" Households CentralBank (vars.h_uk_d - lagged.h_uk_d)
     , Flow "Variação dos títulos domésticos das famílias" Households Government (vars.b_ukuk_d - lagged.b_ukuk_d)
     , Flow "Variação dos títulos domésticos do banco central" CentralBank Government (vars.b_cb_ukuk_d - lagged.b_cb_ukuk_d)
     , Flow "Variação dos títulos domésticos do exterior" RestOfWorld Government (vars.b_usuk_s - lagged.b_usuk_s)
     , Flow "Variação dos títulos estrangeiros das famílias" Households RestOfWorld ((vars.b_ukus_s - lagged.b_ukus_s) * vars.xr_us)
-    , Flow "Variação dos títulos estrangeiros do banco central" CentralBank RestOfWorld ((params.b_cb_ukus_s - laggedParams.b_cb_ukus_s) * vars.xr_us)
+    , Flow "Variação dos títulos estrangeiros do banco central" CentralBank RestOfWorld ((params.b_cb_ukus_s - laggedParams.b_cb_ukus_s / (params.trend * params.infl_us)) * vars.xr_us)
     ]

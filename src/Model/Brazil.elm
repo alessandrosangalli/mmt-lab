@@ -1,18 +1,19 @@
 module Model.Brazil exposing (defaultPolicy, model, premises, sectors)
 
-{-| Model OPENFLEX started from a resting point with Brazilian proportions,
+{-| Model OPENFLEX started from a growth path with Brazilian proportions,
 with the period read as a quarter.
 
-The equations are the book's. What changes is where the economy starts
-(`Model.BrazilRest`) and the default value of each premise, which is the
-Brazilian one where this project has read a source.
+The equations are the book's, plus government transfers and trend growth.
+What changes is where the economy starts (`Model.BrazilRest`) and the default
+value of each premise, which is the Brazilian one where this project has
+read a source. Every value is measured relative to its trend.
 
 -}
 
 import Engine
 import Model.BrazilRest as Rest
 import Model.Open as Open exposing (State)
-import Model.OpenFlex exposing (Params)
+import Model.OpenFlex as OpenFlex exposing (Params)
 import Policy exposing (Policy)
 import Premise exposing (Premise, Premises)
 import Sfc.Matrix exposing (Sector)
@@ -23,7 +24,7 @@ sectors =
     Open.sectors
 
 
-{-| The policy under which the economy starts at rest.
+{-| The policy under which the economy stays on its growth path.
 -}
 defaultPolicy : Policy
 defaultPolicy =
@@ -63,13 +64,13 @@ premises =
     [ exportResponse, importResponse, passThrough, portfolioResponse ]
 
 
-{-| Premises are anchored on the resting point: each one changes how strongly
-the economy reacts when something moves, and none changes where it rests.
+{-| Premises are anchored on the starting path: each one changes how strongly
+the economy reacts when something moves, and none changes where it starts.
 
 A portfolio share, for example, is `lambda10 + lambda11 * r_uk - lambda12 *
-r_us`. When the reaction `lambda11` changes, `lambda10` is shifted so that
-the share at the resting interest rates stays the same. Trade and import
-prices are handled the same way.
+(r_us + dxre_us)`. When the reaction `lambda11` changes, `lambda10` is
+shifted so that the share at the starting interest rates stays the same.
+Trade and import prices are handled the same way.
 
 -}
 toParams : Premises -> Policy -> Params
@@ -93,8 +94,14 @@ toParams chosen policy =
         pass =
             Premise.value passThrough chosen
 
-        portfolioShift =
-            (rest.lambda11 - portfolio) * (rest.r_uk - rest.r_us)
+        change =
+            rest.lambda11 - portfolio
+
+        homeGap =
+            rest.r_uk - rest.r_us - rest.dxre_us
+
+        foreignGap =
+            rest.r_us - rest.r_uk - rest.dxre_uk
     in
     { rest
         | g_k_uk = policy.spending
@@ -106,10 +113,10 @@ toParams chosen policy =
         , mu0 = rest.mu0 + (imports - rest.mu1) * logBase e (at.pm_uk / at.py_uk)
         , nu1m = pass
         , nu0m = rest.nu0m - (pass - rest.nu1m) * (logBase e at.py_us - logBase e at.py_uk - logBase e at.xr_uk)
-        , lambda10 = rest.lambda10 + portfolioShift
-        , lambda20 = rest.lambda20 - portfolioShift
-        , lambda40 = rest.lambda40 - portfolioShift
-        , lambda50 = rest.lambda50 + portfolioShift
+        , lambda10 = rest.lambda10 + change * homeGap
+        , lambda20 = rest.lambda20 - change * homeGap
+        , lambda40 = rest.lambda40 + change * foreignGap
+        , lambda50 = rest.lambda50 - change * foreignGap
         , lambda11 = portfolio
         , lambda12 = portfolio
         , lambda21 = portfolio
@@ -125,7 +132,7 @@ model : Engine.Model State
 model =
     { initial =
         { laggedParams = Rest.params
-        , lagged = Rest.vars
+        , lagged = OpenFlex.carry Rest.params Rest.vars
         , params = Rest.params
         , vars = Rest.vars
         }

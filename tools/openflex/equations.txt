@@ -1,5 +1,7 @@
 # One line per equation, in solving order. v. = this period (latest value), L. = last period,
 # p. = parameter now, Lp. = parameter last period. Numbers in brackets are the book's equation numbers.
+# Every value is measured relative to its trend, and L. values arrive already divided by one period of
+# trend growth (gen.js, `carry`). With no growth and no inflation that changes nothing.
 # [12.86] US exchange rate
 xr_us = 1 / v.xr_uk
 # [12.21] import prices in UK
@@ -30,8 +32,10 @@ im_us = v.im_k_us * v.pm_us
 t_uk = p.theta_uk * (v.y_uk + Lp.r_uk * L.b_ukuk_d + v.xr_us * Lp.r_us * L.b_ukus_s)
 # [12.8] taxes in US
 t_us = p.theta_us * (v.y_us + Lp.r_us * L.b_usus_d + v.xr_uk * Lp.r_uk * L.b_usuk_s)
-# [12.1] disposable income in UK
-yd_uk = (v.y_uk + Lp.r_uk * L.b_ukuk_d + v.xr_us * Lp.r_us * L.b_ukus_s) * (1 - p.theta_uk) + (v.xr_us - L.xr_us) * L.b_ukus_s
+# government transfers to UK households, fixed in real terms (not in the book)
+tr_uk = p.tr_k_uk * v.pds_uk
+# [12.1] disposable income in UK, plus transfers
+yd_uk = (v.y_uk + Lp.r_uk * L.b_ukuk_d + v.xr_us * Lp.r_us * L.b_ukus_s) * (1 - p.theta_uk) + (v.xr_us - L.xr_us) * L.b_ukus_s + v.tr_uk
 # [12.4] disposable income in US
 yd_us = (v.y_us + Lp.r_us * L.b_usus_d + v.xr_uk * Lp.r_uk * L.b_usuk_s) * (1 - p.theta_us) + (v.xr_uk - L.xr_uk) * L.b_usuk_s
 # [12.35] real Haig-Simons disposable income in UK
@@ -95,11 +99,11 @@ v_k_uk = v.v_uk / v.pds_uk
 # [12.34] real wealth in US
 v_k_us = v.v_us / v.pds_us
 # [12.11] profits of the central bank in UK
-f_cb_uk = Lp.r_uk * L.b_cb_ukuk_d + Lp.r_us * Lp.b_cb_ukus_s * v.xr_us
+f_cb_uk = Lp.r_uk * L.b_cb_ukuk_d + Lp.r_us * Lp.b_cb_ukus_s / (p.trend * p.infl_us) * v.xr_us
 # [12.12] profits of the central bank in US
 f_cb_us = Lp.r_us * L.b_cb_usus_d
 # [12.13] government budget constraint in UK
-b_uk_s = L.b_uk_s + v.g_uk + Lp.r_uk * L.b_uk_s - v.t_uk - v.f_cb_uk
+b_uk_s = L.b_uk_s + v.g_uk + v.tr_uk + Lp.r_uk * L.b_uk_s - v.t_uk - v.f_cb_uk
 # [12.14] government budget constraint in US
 b_us_s = L.b_us_s + v.g_us + Lp.r_us * L.b_us_s - v.t_us - v.f_cb_us
 # [12.67] demand for UK bills in UK
@@ -123,9 +127,9 @@ b_cb_ukuk_d = v.b_uk_s - v.b_ukuk_d - v.b_usuk_s
 # [12.90] US bills left for UK households
 b_ukus_s = v.b_us_s - v.b_usus_d - v.b_cb_usus_d - p.b_cb_ukus_s
 # [12.15] current account balance of UK
-cab_uk = v.x_uk - v.im_uk + v.xr_us * Lp.r_us * L.b_ukus_s - Lp.r_uk * L.b_usuk_s + Lp.r_us * Lp.b_cb_ukus_s * v.xr_us
+cab_uk = v.x_uk - v.im_uk + v.xr_us * Lp.r_us * L.b_ukus_s - Lp.r_uk * L.b_usuk_s + Lp.r_us * Lp.b_cb_ukus_s / (p.trend * p.infl_us) * v.xr_us
 # government deficit in UK
-psbr_uk = v.g_uk + Lp.r_uk * L.b_uk_s - v.t_uk - v.f_cb_uk
+psbr_uk = v.g_uk + v.tr_uk + Lp.r_uk * L.b_uk_s - v.t_uk - v.f_cb_uk
 # government deficit in US
 psbr_us = v.g_us + Lp.r_us * L.b_us_s - v.t_us - v.f_cb_us
 # [12.89FL] the exchange rate clears the market for US bills held in the UK

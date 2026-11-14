@@ -9,10 +9,8 @@ O arquivo `src/Model/OpenFlex.elm` é gerado a partir de uma única lista de equ
 | `model.js` | O protótipo: resolve os períodos, acha o estado estacionário e confere a contabilidade |
 | `emit.js` | Escreve o módulo Elm e imprime os números usados nos testes |
 | `steady.json` | O estado estacionário da linha de base, calculado pelo protótipo |
-| `explore-brazil.js` | Teste exploratório: leva os parâmetros aos poucos para proporções brasileiras e mostra onde o modelo repousa. Os resultados estão em `CALIBRATION.md`, seção 8 |
-| `calibrate.js` | Calcula um ponto de repouso diretamente, como um sistema de equações, com parâmetros livres escolhidos para reproduzir proporções-alvo. Com `node tools/openflex/calibrate.js`, imprime o repouso do livro e o de proporções brasileiras |
-| `brazil.js` | Calcula o ponto de partida brasileiro, confere que a economia fica parada nele com quaisquer premissas, imprime os números usados nos testes e escreve `src/Model/BrazilRest.elm` |
-| `growth.js`, `growth-rest.js` | Protótipo do próximo passo: as mesmas equações numa trajetória de crescimento, com transferências do governo. `node tools/openflex/growth-rest.js` imprime as trajetórias testadas. Ainda não está no código Elm |
+| `calibrate.js` | Calcula um ponto de repouso diretamente, como um sistema de equações, com parâmetros livres escolhidos para reproduzir proporções-alvo. Com `node tools/openflex/calibrate.js`, imprime o repouso do livro e o de proporções brasileiras sem crescimento |
+| `brazil.js` | Calcula o ponto de partida brasileiro, uma trajetória de crescimento, confere que a economia fica nela com quaisquer premissas, imprime os números usados nos testes e escreve `src/Model/BrazilRest.elm` |
 
 Para refazer tudo, com o Node instalado:
 
@@ -22,6 +20,10 @@ node tools/openflex/emit.js src/Model/OpenFlex.elm
 npx elm-format --yes src/Model/OpenFlex.elm
 node tools/openflex/brazil.js src/Model/BrazilRest.elm
 ```
+
+## Crescimento e transferências
+
+A lista de equações tem dois acréscimos em relação ao livro, ambos desligados na linha de base: transferências do governo às famílias (`tr_k_uk`) e tendências de crescimento (`trend`, `infl_uk`, `infl_us`). Cada valor é medido em relação à sua tendência, e os valores do período anterior chegam às equações já divididos por um período de crescimento (`carry`, em `gen.js`). Com as tendências em 1 e as transferências em 0, os números são idênticos aos de antes, bit a bit.
 
 ## De onde vêm as equações
 
