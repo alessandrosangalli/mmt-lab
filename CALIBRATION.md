@@ -41,6 +41,8 @@ A amostra de Schettini, Squeff e Gouvêa é trimestral, de 1995 a 2009. Os próp
 | 0,70, o valor do livro | 0,701 | −0,27 | A conta corrente volta a zero e a moeda se estabiliza em 0,64 |
 | 0,01, a estimativa brasileira | 0,535 | −1,36 | A moeda continua caindo e o modelo deixa de ter solução no período 108 |
 
+O mapa de premissas da tela mostra o quadro completo. No mesmo cenário, com 120 períodos, a economia se estabiliza quando a resposta das exportações ao câmbio e a resposta das importações ao preço somam bem mais que 1, e deixa de ter solução quando somam bem menos. A fronteira fica perto da soma 1, que é a condição de Marshall-Lerner dos livros-texto de economia internacional. Com a estimativa brasileira para as exportações, perto de zero, o desfecho passa a depender quase só da resposta das importações, que é justamente a lacuna deste levantamento.
+
 Isso mostra o que a premissa faz dentro deste modelo, com os demais parâmetros do livro. Não é um resultado sobre o Brasil: as importações, as carteiras e o tamanho relativo dos países ainda não foram calibrados, e qualquer um deles pode mudar o desfecho.
 
 ## 2. Repasse do câmbio aos preços

@@ -24,6 +24,8 @@ C  = α1 · YD + α2 · H(anterior)  consumo das famílias
 
 No modelo aberto, quatro **premissas** contestadas viram controles na tela: a resposta das exportações ao câmbio, a resposta das importações ao preço, o repasse do câmbio aos preços de importação e a reação das carteiras aos juros. Cada uma mostra o valor do livro e o que se sabe para o Brasil. Elas valem por cenário, então dá para comparar a mesma política sob duas premissas.
 
+O **mapa de premissas** roda o cenário para cada combinação de duas premissas, em uma grade de 11 por 11, e mostra em quais a economia se estabiliza, em quais ainda está se ajustando no último período e em quais o modelo deixa de ter solução. Tocar em um quadrado leva aquelas premissas para o cenário.
+
 Na tela você monta um **cenário**: a política inicial (gasto público G, alíquota θ e, no modelo PC, a taxa de juros r), mudanças de política datadas e o número de períodos. Os gráficos mostram o PIB, a riqueza das famílias e os saldos setoriais em cada período, e no modelo aberto também a taxa de câmbio e o nível de preços; ao escolher um período, você vê a tabela de Godley e o balanço dele. Dá para comparar dois cenários: as curvas aparecem sobrepostas, e uma tabela mostra a diferença entre eles no período escolhido.
 
 O modelo e o cenário ficam codificados em um link, que reproduz exatamente o mesmo experimento:
@@ -58,6 +60,7 @@ O código é em inglês; a interface é em português.
 | `Sfc.Matrix` | Matriz de transações. Cada fluxo sai de um setor e entra em outro, então as linhas somam zero por construção |
 | `Policy` | O que o governo e o banco central decidem em um período |
 | `Premise` | Uma premissa contestada de um modelo, com faixa, valor padrão e explicação |
+| `Multiverse` | Roda o mesmo cenário sob muitas combinações de premissas e classifica o desfecho de cada uma |
 | `Scenario` | Um experimento repetível: política inicial, mudanças datadas e horizonte |
 | `Engine` | A interface que todo modelo implementa e o laço que roda um cenário por ela |
 | `Model.Sim`, `Model.Pc` | Os modelos fechados, como funções puras |
