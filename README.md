@@ -16,7 +16,21 @@ C  = α1 · YD + α2 · H(anterior)  consumo das famílias
 ΔH = YD − C  =  G − T            o déficit vira dinheiro das famílias
 ```
 
-Na tela você controla o gasto público (G) e a alíquota de imposto (θ), avança os períodos e acompanha o PIB, o dinheiro guardado pelas famílias, a tabela de Godley do período e o balanço dos setores.
+Na tela você monta um **cenário**: a política inicial (gasto público G e alíquota θ), mudanças de política datadas e o número de períodos. O gráfico mostra o PIB e o dinheiro guardado pelas famílias em cada período; ao escolher um período, você vê a tabela de Godley e o balanço dele.
+
+O cenário inteiro fica codificado em um link, que reproduz exatamente o mesmo experimento:
+
+```
+?v=sim-1&g=20&t=20&n=80&p=16&c=15:30:20
+```
+
+| Campo | Significado |
+| --- | --- |
+| `v` | Versão do modelo. Muda sempre que o mesmo cenário passaria a dar números diferentes |
+| `g`, `t` | Gasto e alíquota iniciais |
+| `n` | Número de períodos |
+| `p` | Período em foco |
+| `c` | Mudanças de política, como `período:gasto:alíquota`, separadas por vírgula |
 
 ## Organização do código
 
@@ -26,6 +40,8 @@ O código é em inglês; a interface é em português.
 | --- | --- |
 | `Sfc.Matrix` | Matriz de transações. Cada fluxo sai de um setor e entra em outro, então as linhas somam zero por construção |
 | `Model.Sim` | O modelo SIM como funções puras |
+| `Scenario` | Um experimento repetível: política inicial, mudanças datadas e horizonte |
+| `Link` | Leitura e escrita de um cenário na URL |
 | `Format` | Formatação de números |
 | `Style` | Folha de estilo da página |
 | `Main` | Estado da tela e desenho |
@@ -53,7 +69,7 @@ Para rodar os testes:
 npx elm-test
 ```
 
-Os testes conferem os números do primeiro período, que as contas de todos os setores fecham em zero para qualquer política, e que o PIB converge para G ÷ θ.
+Os testes conferem os números do primeiro período, que as contas de todos os setores fecham em zero para qualquer política, e que o PIB converge para G ÷ θ. Conferem também que um cenário sobrevive intacto à ida e volta por um link, e que um link malformado nunca quebra a página.
 
 ## Integração contínua
 
