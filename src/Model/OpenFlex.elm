@@ -313,11 +313,11 @@ sweep laggedParams lagged params guess =
 
         -- [12.21] import prices in UK
         pm_uk =
-            exp (params.nu0m + params.nu1m * ln (guess.py_us) + (1 - params.nu1m) * ln (guess.py_uk) - params.nu1m * ln (guess.xr_uk))
+            exp (params.nu0m + params.nu1m * ln guess.py_us + (1 - params.nu1m) * ln guess.py_uk - params.nu1m * ln guess.xr_uk)
 
         -- [12.22] export prices in UK
         px_uk =
-            exp (params.nu0x + params.nu1x * ln (guess.py_us) + (1 - params.nu1x) * ln (guess.py_uk) - params.nu1x * ln (guess.xr_uk))
+            exp (params.nu0x + params.nu1x * ln guess.py_us + (1 - params.nu1x) * ln guess.py_uk - params.nu1x * ln guess.xr_uk)
 
         -- [12.23] export prices in US
         px_us =
@@ -329,11 +329,11 @@ sweep laggedParams lagged params guess =
 
         -- [12.25] real exports from UK
         x_k_uk =
-            exp (params.eps0 - params.eps1 * ln (pm_us / guess.py_us) + params.eps2 * ln (guess.y_k_us))
+            exp (params.eps0 - params.eps1 * ln (pm_us / guess.py_us) + params.eps2 * ln guess.y_k_us)
 
         -- [12.26] real imports of UK
         im_k_uk =
-            exp (params.mu0 - params.mu1 * ln (lagged.pm_uk / lagged.py_uk) + params.mu2 * ln (guess.y_k_uk))
+            exp (params.mu0 - params.mu1 * ln (lagged.pm_uk / lagged.py_uk) + params.mu2 * ln guess.y_k_uk)
 
         -- [12.27] real exports from US
         x_k_us =
