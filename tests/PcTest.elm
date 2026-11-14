@@ -2,7 +2,8 @@ module PcTest exposing (suite)
 
 import Expect exposing (FloatingPointTolerance(..))
 import Fuzz exposing (Fuzzer)
-import Model.Pc as Pc exposing (Policy)
+import Model.Pc as Pc
+import Policy exposing (Policy)
 import Sfc.Matrix as Matrix
 import Test exposing (Test, describe, fuzz, fuzz2, test)
 
@@ -116,6 +117,10 @@ suite =
                     , \_ -> Expect.within (Absolute 0.001) 110.0901 higher.income
                     ]
                     ()
+        , test "there is no steady state when interest outgrows tax revenue" <|
+            \_ ->
+                Pc.steadyStateIncome { spending = 20, taxRatePct = 5, interestRatePct = 6 }
+                    |> Expect.equal Nothing
         , test "a rate change moves the simulation to the new steady state" <|
             \_ ->
                 let

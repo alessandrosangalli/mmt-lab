@@ -2,25 +2,32 @@ module ScenarioTest exposing (suite)
 
 import Expect exposing (FloatingPointTolerance(..))
 import Fuzz
+import Engine
 import Model.Sim as Sim
+import Policy exposing (Policy)
 import Scenario exposing (Scenario)
 import Test exposing (Test, describe, fuzz, test)
 
 
+policy : Float -> Policy
+policy spending =
+    { spending = spending, taxRatePct = 20, interestRatePct = 2.5 }
+
+
 stimulus : Scenario
 stimulus =
-    { initial = { spending = 20, taxRatePct = 20 }
-    , changes = [ { period = 60, policy = { spending = 30, taxRatePct = 20 } } ]
+    { initial = policy 20
+    , changes = [ { period = 60, policy = policy 30 } ]
     , horizon = 120
     }
 
 
 incomeAt : Int -> Scenario -> Maybe Float
 incomeAt period scenario =
-    Scenario.run scenario
+    Engine.run Sim.model scenario
         |> List.drop (period - 1)
         |> List.head
-        |> Maybe.map (\found -> found.outcome.income)
+        |> Maybe.map .income
 
 
 suite : Test
@@ -32,13 +39,18 @@ suite =
                     base =
                         Scenario.default
                 in
-                Scenario.run { base | horizon = horizon }
+                Engine.run Sim.model { base | horizon = horizon }
                     |> List.length
                     |> Expect.equal horizon
         , test "without changes it matches stepping the model directly" <|
             \_ ->
-                Scenario.run Scenario.default
-                    |> Expect.equal (List.reverse (Sim.advanceBy Scenario.default.horizon Scenario.default.initial []))
+                Engine.run Sim.model Scenario.default
+                    |> List.map .income
+                    |> Expect.equal
+                        (Sim.advanceBy Scenario.default.horizon Scenario.default.initial []
+                            |> List.reverse
+                            |> List.map (\period -> period.outcome.income)
+                        )
         , test "the initial policy holds until the change" <|
             \_ ->
                 Scenario.policyAt stimulus 59
@@ -53,8 +65,8 @@ suite =
                     scenario =
                         { stimulus
                             | changes =
-                                [ { period = 10, policy = { spending = 1, taxRatePct = 20 } }
-                                , { period = 10, policy = { spending = 2, taxRatePct = 20 } }
+                                [ { period = 10, policy = policy 1 }
+                                , { period = 10, policy = policy 2 }
                                 ]
                         }
                 in
@@ -66,8 +78,8 @@ suite =
                     scenario =
                         { stimulus
                             | changes =
-                                [ { period = 30, policy = { spending = 3, taxRatePct = 20 } }
-                                , { period = 10, policy = { spending = 1, taxRatePct = 20 } }
+                                [ { period = 30, policy = policy 3 }
+                                , { period = 10, policy = policy 1 }
                                 ]
                         }
                 in
@@ -86,13 +98,13 @@ suite =
         , test "sanitize brings every value into range" <|
             \_ ->
                 Scenario.sanitize
-                    { initial = { spending = 999, taxRatePct = 0 }
-                    , changes = [ { period = -4, policy = { spending = -1, taxRatePct = 80 } } ]
+                    { initial = { spending = 999, taxRatePct = 0, interestRatePct = 40 }
+                    , changes = [ { period = -4, policy = { spending = -1, taxRatePct = 80, interestRatePct = -2 } } ]
                     , horizon = 100000
                     }
                     |> Expect.equal
-                        { initial = { spending = 50, taxRatePct = 5 }
-                        , changes = [ { period = 2, policy = { spending = 0, taxRatePct = 50 } } ]
+                        { initial = { spending = 50, taxRatePct = 5, interestRatePct = 6 }
+                        , changes = [ { period = 2, policy = { spending = 0, taxRatePct = 50, interestRatePct = 0 } } ]
                         , horizon = Scenario.maxHorizon
                         }
         , test "addChange appends a change ten periods after the latest" <|

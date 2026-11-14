@@ -2,7 +2,8 @@ module SimTest exposing (suite)
 
 import Expect exposing (FloatingPointTolerance(..))
 import Fuzz exposing (Fuzzer)
-import Model.Sim as Sim exposing (Policy)
+import Model.Sim as Sim
+import Policy exposing (Policy)
 import Sfc.Matrix as Matrix exposing (Sector(..))
 import Test exposing (Test, describe, fuzz, fuzz2, test)
 
@@ -11,7 +12,7 @@ import Test exposing (Test, describe, fuzz, fuzz2, test)
 -}
 policyFuzzer : Fuzzer Policy
 policyFuzzer =
-    Fuzz.map2 Policy
+    Fuzz.map2 (\spending taxRatePct -> { spending = spending, taxRatePct = taxRatePct, interestRatePct = 0 })
         (Fuzz.floatRange 0 50)
         (Fuzz.floatRange 5 50)
 
@@ -23,7 +24,7 @@ suite =
             \_ ->
                 let
                     outcome =
-                        Sim.step { spending = 20, taxRatePct = 20 } 0
+                        Sim.step { spending = 20, taxRatePct = 20, interestRatePct = 0 } 0
                 in
                 Expect.all
                     [ \o -> Expect.within (Absolute 0.001) 38.4615 o.income
