@@ -32,6 +32,14 @@ jobs:
       - name: Check formatting
         run: npx --yes elm-format@0.8.7 --validate src tests
 
+      - name: Show what the formatter would change
+        if: failure()
+        run: |
+          npx --yes elm-format@0.8.7 --yes src tests
+          echo "=====DIFF-BEGIN"
+          git diff
+          echo "=====DIFF-END"
+
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
         with:
