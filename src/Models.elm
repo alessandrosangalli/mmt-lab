@@ -4,6 +4,7 @@ module Models exposing (Info, ModelId(..), SteadyState(..), all, defaultScenario
 -}
 
 import Engine exposing (Run)
+import Model.Brazil as Brazil
 import Model.Open as Open
 import Model.Pc as Pc
 import Model.Sim as Sim
@@ -17,6 +18,7 @@ type ModelId
     = SimModel
     | PcModel
     | OpenModel
+    | BrazilModel
 
 
 {-| Where income settles under a constant policy: a known value, nowhere at
@@ -53,7 +55,7 @@ type alias Info =
 
 all : List ModelId
 all =
-    [ SimModel, PcModel, OpenModel ]
+    [ SimModel, PcModel, OpenModel, BrazilModel ]
 
 
 info : ModelId -> Info
@@ -130,6 +132,29 @@ info id =
                 ]
             }
 
+        BrazilModel ->
+            { version = "brazil-1"
+            , name = "BRASIL: ponto de partida brasileiro"
+            , summary = "O mesmo modelo OPENFLEX, com as equações do livro, mas partindo de um ponto de repouso com proporções brasileiras. Cada período é um trimestre. No início, as importações são 17,5% do PIB, a dívida pública é 82% do PIB anual e 9,9% dela está com o exterior. A política inicial é gasto 18, alíquota de 27% e juro de 3,5% por trimestre, cerca de 14,75% ao ano. As premissas começam nos valores brasileiros já conferidos. É uma calibração parcial, não uma previsão: o modelo ainda não tem crescimento, transferências nem investimento."
+            , incomeLabel = "PIB real em cada trimestre"
+            , wealthLabel = "Riqueza das famílias (dinheiro e títulos)"
+            , usesInterestRate = True
+            , hasForeignSector = True
+            , sectors = Brazil.sectors
+            , defaultPolicy = Brazil.defaultPolicy
+            , steadyStateIncome = \_ -> NotComputed
+            , premises = Brazil.premises
+            , notes =
+                [ "Sem mudança de política, nada se move: a economia começa em repouso, quaisquer que sejam as premissas."
+                , "Aumente o gasto de 18 para 19. Com as respostas brasileiras de comércio, a moeda cai sem parar e a conta corrente não fecha: o ponto de repouso existe, mas é instável."
+                , "Leve as duas respostas de comércio a 0,70, o valor do livro, e repita: a moeda cai cerca de 10% e a conta corrente volta a zero."
+                , "Suba o juro meio ponto por trimestre, que são dois pontos ao ano: a moeda se valoriza cerca de 6,5% de imediato, dentro da faixa medida no Brasil. Depois ela se desvaloriza, porque o juro maior aumenta os pagamentos ao exterior."
+                , "A alíquota de 27% não é a carga tributária brasileira. No repouso o orçamento fecha, então a arrecadação tem de cobrir o gasto e os juros. No Brasil há transferências e déficit."
+                , "O consumo das famílias a partir da riqueza, 5,5% por trimestre, e o juro externo, 1% por trimestre, não vêm de estimativas. O arquivo CALIBRATION.md, no repositório, diz de onde vem cada número e o que falta."
+                , "Nada aqui é resultado sobre o Brasil. Os critérios das teses ainda não foram pré-registrados."
+                ]
+            }
+
 
 run : ModelId -> Scenario -> Run
 run id scenario =
@@ -142,6 +167,9 @@ run id scenario =
 
         OpenModel ->
             Engine.run Open.model scenario
+
+        BrazilModel ->
+            Engine.run Brazil.model scenario
 
 
 {-| The scenario a model starts with.
@@ -168,6 +196,9 @@ fromVersion version =
 
     else if String.startsWith "open-" version then
         Just OpenModel
+
+    else if String.startsWith "brazil-" version then
+        Just BrazilModel
 
     else
         Nothing

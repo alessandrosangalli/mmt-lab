@@ -1,4 +1,16 @@
-module Model.Open exposing (State, defaultPolicy, model, premises, sectors)
+module Model.Open exposing
+    ( State
+    , defaultPolicy
+    , exportResponse
+    , importResponse
+    , model
+    , observe
+    , passThrough
+    , portfolioResponse
+    , premises
+    , sectors
+    , stepWith
+    )
 
 {-| Model OPENFLEX as the laboratory shows it: the home country, in its own
 currency, with the other country as the rest of the world.
@@ -138,16 +150,18 @@ model =
         , params = OpenFlex.bookParams
         , vars = OpenFlex.steadyState
         }
-    , step = step
+    , step = stepWith toParams
     , observe = observe
     }
 
 
-step : Premises -> Policy -> State -> Maybe State
-step chosen policy state =
+{-| One period, given how premises and policy turn into parameters.
+-}
+stepWith : (Premises -> Policy -> Params) -> Premises -> Policy -> State -> Maybe State
+stepWith paramsFor chosen policy state =
     let
         params =
-            toParams chosen policy
+            paramsFor chosen policy
 
         advance vars =
             { laggedParams = state.params

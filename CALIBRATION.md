@@ -273,14 +273,29 @@ Resultados exploratórios, com a reação das carteiras em 0,5, antes da correç
 
 O resultado da seção 1 se mantém no ponto de partida brasileiro: com as respostas brasileiras de comércio, o câmbio não corrige a conta corrente. O repasse aos preços continua abaixo do alvo da seção 2: com a moeda 9% mais fraca, os preços sobem 0,4%.
 
+### O modelo BRASIL na tela
+
+O repouso foi levado para o código como o modelo `brazil-1`. Para a política inicial cair nos passos dos controles, três valores foram fixados: gasto 18, alíquota de 27% e juro de 3,5% por trimestre (14,75% ao ano). Com eles fixos, os alvos são importações, dívida e parcela do exterior, e o consumo do governo vira resultado: 19,0% do PIB, contra 18,8% no Brasil. As exportações ficam em 17,9%.
+
+As premissas foram ancoradas no repouso. Cada uma muda a força com que a economia reage, e nenhuma muda o ponto de partida: quando a reação muda, a constante da mesma equação é deslocada para o valor no repouso continuar igual. Isso é conferido por teste com quatro combinações de premissas.
+
+Resultados a partir desse ponto, conferidos entre o protótipo e o código Elm:
+
+| Mudança | Comércio | Câmbio no período 120 | Conta corrente no período 120 |
+| --- | --- | --- | --- |
+| Gasto de 18 para 19 | Brasileiro | 0,607 | −0,54: continua abrindo |
+| Gasto de 18 para 19 | Do livro | 0,902 | −0,006: fechou |
+| Juro de 3,5% para 4% por trimestre | Brasileiro | 0,406, depois de subir a 1,065 no primeiro período | −1,42 |
+
+A alta de meio ponto por trimestre, que são dois pontos ao ano, valoriza a moeda em 6,5% de imediato: 3,3% por ponto ao ano, dentro da faixa medida.
+
 ### O que falta decidir e fazer
 
-1. **Levar o repouso brasileiro para o código Elm**, como um modelo novo, com versão própria no link.
-2. **O outro país.** O cálculo manteve o país doméstico do tamanho do livro, igual ao outro. Para o Brasil, o resto do mundo é muito maior.
-3. **Crescimento e transferências.** O repouso tem déficit zero e não tem transferências. É a maior distância que resta entre o modelo e as contas públicas brasileiras.
-4. **Repasse do câmbio aos preços.** Ajustar para a faixa de 0,10 a 0,16.
-5. **Defasagens.** O livro não tem defasagem nas exportações; a estimativa brasileira indica ajuste em três trimestres.
-6. **Juro externo.** Trocar o valor provisório por uma fonte lida.
+1. **O outro país.** O cálculo manteve o país doméstico do tamanho do livro, igual ao outro. Para o Brasil, o resto do mundo é muito maior.
+2. **Crescimento e transferências.** O repouso tem déficit zero e não tem transferências. É a maior distância que resta entre o modelo e as contas públicas brasileiras.
+3. **Repasse do câmbio aos preços.** Ajustar para a faixa de 0,10 a 0,16.
+4. **Defasagens.** O livro não tem defasagem nas exportações; a estimativa brasileira indica ajuste em três trimestres.
+5. **Juro externo.** Trocar o valor provisório por uma fonte lida.
 
 ## Referências
 

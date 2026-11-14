@@ -6,7 +6,7 @@ O projeto está no começo. A versão atual demonstra só a contabilidade básic
 
 ## Versão atual
 
-O laboratório roda três modelos de Godley e Lavoie (*Monetary Economics*, 2007), escolhidos na tela. Os parâmetros são os do livro: eles mostram como a contabilidade funciona, e não descrevem a economia brasileira.
+O laboratório roda quatro modelos, escolhidos na tela. Três usam os parâmetros de Godley e Lavoie (*Monetary Economics*, 2007): mostram como a contabilidade funciona, e não descrevem a economia brasileira. O quarto é o primeiro passo da calibração para o Brasil.
 
 **SIM (cap. 3).** Três setores (famílias, empresas e governo) e um único ativo: o dinheiro que o governo emite quando gasta.
 
@@ -22,6 +22,8 @@ C  = α1 · YD + α2 · H(anterior)  consumo das famílias
 
 **OPEN (cap. 12, modelo OPENFLEX).** Dois países trocam mercadorias e compram títulos um do outro, com câmbio flutuante. Há preços de importação e de exportação, então a taxa de câmbio chega ao nível de preços doméstico. Você controla a política do país doméstico; o outro não muda. São 65 variáveis por período, resolvidas por passadas sucessivas (`Sfc.Solver`). Com políticas extremas o modelo deixa de ter solução, e a tela diz em que período isso acontece. O código do modelo é gerado a partir de uma lista de equações; veja `tools/openflex/`.
 
+**BRASIL (o mesmo OPENFLEX, com ponto de partida brasileiro).** As equações são as do livro, mas a economia parte de um ponto de repouso com proporções brasileiras, e cada período é um trimestre: importações de 17,5% do PIB, dívida pública de 82% do PIB anual, 9,9% dela com o exterior e juro de 3,5% por trimestre. As premissas começam nos valores brasileiros já conferidos e estão ancoradas no repouso: mudam a força das reações, não o ponto de partida. É uma calibração parcial, sem crescimento, transferências nem investimento; o `CALIBRATION.md` diz de onde vem cada número e o que falta. O ponto de partida é calculado por `tools/openflex/brazil.js`.
+
 No modelo aberto, quatro **premissas** contestadas viram controles na tela: a resposta das exportações ao câmbio, a resposta das importações ao preço, o repasse do câmbio aos preços de importação e a reação das carteiras aos juros. Cada uma mostra o valor do livro e o que se sabe para o Brasil, e um botão aplica os valores brasileiros já conferidos: as duas estimativas de comércio e a reação das carteiras, calibrada para reproduzir a resposta do câmbio aos juros medida no Brasil, com o período do modelo lido como um trimestre. Elas valem por cenário, então dá para comparar a mesma política sob duas premissas.
 
 O **mapa de premissas** roda o cenário para cada combinação de duas premissas, em uma grade de 11 por 11, e mostra em quais a economia se estabiliza, em quais ainda está se ajustando no último período e em quais o modelo deixa de ter solução. Tocar em um quadrado leva aquelas premissas para o cenário.
@@ -36,7 +38,7 @@ O modelo e o cenário ficam codificados em um link, que reproduz exatamente o me
 
 | Campo | Significado |
 | --- | --- |
-| `v` | Modelo e versão (`sim-1`, `pc-1`, `open-1`). Muda sempre que o mesmo cenário passaria a dar números diferentes |
+| `v` | Modelo e versão (`sim-1`, `pc-1`, `open-1`, `brazil-1`). Muda sempre que o mesmo cenário passaria a dar números diferentes |
 | `g`, `t`, `i` | Gasto, alíquota e taxa de juros iniciais |
 | `n` | Número de períodos |
 | `p` | Período em foco |
@@ -66,6 +68,7 @@ O código é em inglês; a interface é em português.
 | `Model.Sim`, `Model.Pc` | Os modelos fechados, como funções puras |
 | `Model.OpenFlex` | Economia aberta com câmbio flutuante (cap. 12): dois países, comércio, títulos dos dois lados e preços. Código gerado |
 | `Model.Open` | O mesmo modelo como a tela o mostra: o país doméstico, com o outro país como resto do mundo |
+| `Model.Brazil`, `Model.BrazilRest` | O mesmo modelo partindo de um ponto de repouso com proporções brasileiras. O ponto de partida é código gerado |
 | `Sfc.Solver` | Resolve um período cujas equações dependem umas das outras, e devolve erro quando não há solução |
 | `Models` | O catálogo de modelos disponíveis na tela |
 | `Link` | Leitura e escrita do modelo e dos cenários na URL |
