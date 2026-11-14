@@ -29,11 +29,6 @@ jobs:
           elm make src/Main.elm --optimize --output=dist/elm.js
           cp public/index.html dist/index.html
 
-      - name: TEMP bundle
-        if: always()
-        run: |
-          echo "=====JS-BEGIN"; gzip -9c dist/elm.js | base64 -w 76; echo "=====JS-END"
-
       - name: Check formatting
         run: npx --yes elm-format@0.8.7 --validate src tests
 
