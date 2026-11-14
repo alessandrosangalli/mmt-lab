@@ -40,18 +40,35 @@ view config =
                 |> List.maximum
                 |> Maybe.withDefault 0
 
+        values =
+            List.concatMap .values config.series
+
         highest =
-            config.series
-                |> List.concatMap .values
+            values
                 |> List.maximum
                 |> Maybe.withDefault 1
                 |> max 1
 
+        lowest =
+            values
+                |> List.minimum
+                |> Maybe.withDefault 0
+                |> min 0
+
         step =
-            niceStep highest
+            niceStep (highest - lowest)
+
+        topIndex =
+            ceiling (highest / step)
+
+        bottomIndex =
+            floor (lowest / step)
 
         top =
-            step * toFloat (ceiling (highest / step))
+            step * toFloat topIndex
+
+        bottom =
+            step * toFloat bottomIndex
 
         xOf period =
             if count <= 1 then
@@ -61,11 +78,18 @@ view config =
                 100 * toFloat (period - 1) / toFloat (count - 1)
 
         yOf value =
-            100 - 100 * value / top
+            100 - 100 * (value - bottom) / (top - bottom)
 
         yTicks =
-            List.range 0 (round (top / step))
+            List.range bottomIndex topIndex
                 |> List.map (\index -> toFloat index * step)
+
+        zeroLine =
+            if bottomIndex < 0 then
+                [ viewHorizontal "zero" yOf 0 ]
+
+            else
+                []
 
         valueAtSelected series =
             series.values
@@ -79,7 +103,8 @@ view config =
                 [ SvgAttr.viewBox "0 0 100 100"
                 , SvgAttr.preserveAspectRatio "none"
                 ]
-                (List.map (viewGridLine yOf) yTicks
+                (List.map (viewHorizontal "grid" yOf) yTicks
+                    ++ zeroLine
                     ++ List.map (viewVertical "marker" xOf) config.markers
                     ++ [ viewVertical "cursor" xOf config.selected ]
                     ++ List.map (viewSeries xOf yOf) config.series
@@ -92,13 +117,13 @@ view config =
         ]
 
 
-{-| A round step that gives about four intervals up to the highest value.
+{-| A round step that gives about four intervals over the given span.
 -}
 niceStep : Float -> Float
-niceStep highest =
+niceStep span =
     let
         rough =
-            highest / 4
+            span / 4
 
         magnitude =
             10 ^ toFloat (floor (logBase 10 rough))
@@ -142,17 +167,28 @@ percent value =
 
 tickLabel : Float -> String
 tickLabel value =
-    if value == toFloat (round value) then
-        String.fromInt (round value)
+    let
+        size =
+            abs value
+
+        digits =
+            if size == toFloat (round size) then
+                String.fromInt (round size)
+
+            else
+                String.fromFloat size
+    in
+    if value < 0 then
+        "−" ++ digits
 
     else
-        String.fromFloat value
+        digits
 
 
-viewGridLine : (Float -> Float) -> Float -> Svg msg
-viewGridLine yOf value =
+viewHorizontal : String -> (Float -> Float) -> Float -> Svg msg
+viewHorizontal style yOf value =
     Svg.line
-        [ SvgAttr.class "grid"
+        [ SvgAttr.class style
         , SvgAttr.x1 "0"
         , SvgAttr.x2 "100"
         , SvgAttr.y1 (String.fromFloat (yOf value))

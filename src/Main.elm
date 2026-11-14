@@ -481,6 +481,41 @@ viewCharts model runA runB =
                 , onSelect = PeriodSelected
                 }
 
+        privateSurplus period =
+            period.outcome.disposableIncome - period.outcome.consumption
+
+        governmentBalance period =
+            period.outcome.taxes - period.outcome.spending
+
+        balanceSeries suffix periods =
+            [ { style = "private" ++ suffix, values = List.map privateSurplus periods }
+            , { style = "government" ++ suffix, values = List.map governmentBalance periods }
+            ]
+
+        balancesChart =
+            Chart.view
+                { series =
+                    balanceSeries "" runA
+                        ++ (runB
+                                |> Maybe.map (balanceSeries " dashed")
+                                |> Maybe.withDefault []
+                           )
+                , markers = markers
+                , selected = model.selected
+                , onSelect = PeriodSelected
+                }
+
+        balancesLegend =
+            List.filterMap identity
+                [ Just (span [ class "key private" ] [ text "Setor privado" ])
+                , Just (span [ class "key government" ] [ text "Governo" ])
+                , if runB /= Nothing then
+                    Just (span [ class "key dashed" ] [ text "Tracejado: cenário B" ])
+
+                  else
+                    Nothing
+                ]
+
         legend =
             List.filterMap identity
                 [ if runB /= Nothing then
@@ -507,6 +542,11 @@ viewCharts model runA runB =
         , chart (\period -> period.outcome.income)
         , h2 [ class "spaced" ] [ text "Dinheiro guardado pelas famílias" ]
         , chart .money
+        , h2 [ class "spaced" ] [ text "Saldos setoriais" ]
+        , div [ class "legend" ] balancesLegend
+        , balancesChart
+        , p [ class "hint" ]
+            [ text "As duas curvas são espelhadas: em cada período, o superávit do setor privado é igual ao déficit do governo. Neste modelo, as empresas ficam sempre em zero e não há setor externo." ]
         , viewSlider
             { id = "selected-period"
             , caption = "Período em foco"

@@ -146,6 +146,9 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 }
 .key.a::before { background: var(--blue); }
 .key.b::before { background: var(--amber); }
+.key.private::before { background: var(--blue); }
+.key.government::before { background: var(--red); }
+.key.dashed::before { width: 14px; height: 0; border-top: 2px dashed var(--muted); border-radius: 0; vertical-align: 3px; }
 .key.cursor::before { width: 0; height: 12px; border-left: 1px solid var(--ink); border-radius: 0; opacity: 0.55; vertical-align: -2px; }
 .key.changed::before { width: 0; height: 12px; border-left: 1px dashed var(--red); border-radius: 0; vertical-align: -2px; }
 .linechart { padding: 6px 10px 24px 40px; }
@@ -169,6 +172,10 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .plot .series { fill: none; stroke-width: 2; stroke-linejoin: round; }
 .plot .series.a { stroke: var(--blue); }
 .plot .series.b { stroke: var(--amber); stroke-dasharray: 6 4; }
+.plot .series.private { stroke: var(--blue); }
+.plot .series.government { stroke: var(--red); }
+.plot .series.dashed { stroke-dasharray: 6 4; }
+.plot .zero { stroke: var(--ink); stroke-width: 1; }
 .plot .hit { fill: transparent; cursor: pointer; }
 .ytick, .xtick {
   position: absolute;
@@ -190,6 +197,8 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 }
 .dot.a { background: var(--blue); }
 .dot.b { background: var(--amber); }
+.dot.private { background: var(--blue); }
+.dot.government { background: var(--red); }
 .block h2.spaced { margin-top: 18px; }
 .linechart + .control { margin-top: 8px; }
 .warning {
