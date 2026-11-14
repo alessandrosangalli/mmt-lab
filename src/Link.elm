@@ -167,7 +167,6 @@ fromQuery query =
 
             else
                 Nothing
-
     in
     { model = model
     , scenario = scenario
