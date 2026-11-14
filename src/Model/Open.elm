@@ -85,12 +85,12 @@ portfolioResponse : Premise
 portfolioResponse =
     { key = "port"
     , name = "Reação das carteiras aos juros"
-    , note = "Quantos pontos da riqueza trocam de título a cada ponto de diferença entre os juros dos dois países. O livro usa 5. Não há estimativa brasileira: é a maior lacuna da calibração."
+    , note = "Quantos pontos da riqueza trocam de título a cada ponto de diferença entre os juros dos dois países. O livro usa 5, e com isso um ponto de juro valoriza a moeda em 30% de imediato. Não há estimativa direta para o Brasil. O valor 0,5 é uma calibração indireta: faz o modelo reproduzir a valorização de 2,5% a 4,2% por ponto de juro medida por Vicente, Marins e Gaglianone (2021)."
     , lowest = 0
     , highest = 10
     , step = 0.5
     , default = OpenFlex.bookParams.lambda11
-    , brazil = Nothing
+    , brazil = Just 0.5
     }
 
 
