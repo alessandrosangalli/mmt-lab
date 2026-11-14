@@ -11,6 +11,7 @@ O arquivo `src/Model/OpenFlex.elm` é gerado a partir de uma única lista de equ
 | `steady.json` | O estado estacionário da linha de base, calculado pelo protótipo |
 | `explore-brazil.js` | Teste exploratório: leva os parâmetros aos poucos para proporções brasileiras e mostra onde o modelo repousa. Os resultados estão em `CALIBRATION.md`, seção 8 |
 | `calibrate.js` | Calcula um ponto de repouso diretamente, como um sistema de equações, com parâmetros livres escolhidos para reproduzir proporções-alvo. Com `node tools/openflex/calibrate.js`, imprime o repouso do livro e o de proporções brasileiras |
+| `brazil.js` | Calcula o ponto de partida brasileiro, confere que a economia fica parada nele com quaisquer premissas, imprime os números usados nos testes e escreve `src/Model/BrazilRest.elm` |
 
 Para refazer tudo, com o Node instalado:
 
@@ -18,6 +19,7 @@ Para refazer tudo, com o Node instalado:
 node tools/openflex/model.js
 node tools/openflex/emit.js src/Model/OpenFlex.elm
 npx elm-format --yes src/Model/OpenFlex.elm
+node tools/openflex/brazil.js src/Model/BrazilRest.elm
 ```
 
 ## De onde vêm as equações

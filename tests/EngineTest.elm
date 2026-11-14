@@ -4,6 +4,7 @@ import Dict
 import Engine exposing (Snapshot)
 import Expect exposing (FloatingPointTolerance(..))
 import Fuzz exposing (Fuzzer)
+import Model.BrazilRest as BrazilRest
 import Model.Pc as Pc
 import Models exposing (ModelId(..))
 import Policy exposing (Policy)
@@ -323,10 +324,117 @@ suite =
                 , List.all (\snapshot -> abs (snapshot.income - 97.394) < 0.01) result.snapshots
                 )
                     |> Expect.equal ( Nothing, True )
+        , test "the Brazilian starting point has Brazilian proportions" <|
+            \_ ->
+                let
+                    at =
+                        BrazilRest.vars
+                in
+                Expect.all
+                    [ \_ -> Expect.within (Absolute 1.0e-6) 0.175 (at.im_uk / at.y_uk)
+                    , \_ -> Expect.within (Absolute 1.0e-6) 3.28 (at.b_uk_s / at.y_uk)
+                    , \_ -> Expect.within (Absolute 1.0e-6) 0.099 (at.b_usuk_s / at.b_uk_s)
+                    , \_ -> Expect.within (Absolute 1.0e-6) 1 at.xr_uk
+                    , \_ -> Expect.within (Absolute 0.001) 0.179 (at.x_uk / at.y_uk)
+                    , \_ -> Expect.within (Absolute 0.001) 0.19 (at.g_uk / at.y_uk)
+                    ]
+                    ()
+        , test "the Brazilian economy stays at rest under its default policy, whatever the premises" <|
+            \_ ->
+                let
+                    base =
+                        Models.defaultScenario BrazilModel
+
+                    still premises =
+                        let
+                            result =
+                                Models.run BrazilModel { base | horizon = 60, premises = Dict.fromList premises }
+                        in
+                        ( result.failedAt
+                        , List.length result.snapshots
+                        , List.all
+                            (\snapshot ->
+                                (abs (snapshot.income - 94.8344) < 0.0001)
+                                    && List.all (\series -> abs (series.value - 1) < 0.06) snapshot.charts
+                                    && (abs snapshot.foreignBalance < 1.0e-6)
+                            )
+                            result.snapshots
+                        )
+                in
+                [ still []
+                , still [ ( "eps1", 0.7 ), ( "mu1", 0.7 ), ( "port", 5 ) ]
+                , still [ ( "eps1", 0 ), ( "mu1", 1 ), ( "nu1m", 0.3 ), ( "port", 0 ) ]
+                , still [ ( "eps1", 0.5 ), ( "mu1", 0.8 ), ( "nu1m", 1 ), ( "port", 10 ) ]
+                ]
+                    |> Expect.equal (List.repeat 4 ( Nothing, 60, True ))
+        , test "from the Brazilian starting point, more spending is corrected by the currency only with the book's trade responses, matching the prototype" <|
+            \_ ->
+                let
+                    base =
+                        Models.defaultScenario BrazilModel
+
+                    ending premises =
+                        (Models.run BrazilModel
+                            { base
+                                | initial = { spending = 19, taxRatePct = 27, interestRatePct = 3.5 }
+                                , horizon = 120
+                                , premises = Dict.fromList premises
+                            }
+                        ).snapshots
+                            |> List.reverse
+                            |> List.head
+                            |> Maybe.map (\snapshot -> ( List.head snapshot.charts |> Maybe.map .value |> Maybe.withDefault 0, negate snapshot.foreignBalance ))
+                            |> Maybe.withDefault ( 0, 0 )
+
+                    ( brazilRate, brazilAccount ) =
+                        ending []
+
+                    ( bookRate, bookAccount ) =
+                        ending [ ( "eps1", 0.7 ), ( "mu1", 0.7 ) ]
+                in
+                Expect.all
+                    [ \_ -> Expect.within (Absolute 1.0e-7) 0.6072268535 brazilRate
+                    , \_ -> Expect.within (Absolute 1.0e-7) -0.5377301955 brazilAccount
+                    , \_ -> Expect.within (Absolute 1.0e-7) 0.9021725335 bookRate
+                    , \_ -> Expect.within (Absolute 1.0e-7) -0.0059460614 bookAccount
+                    ]
+                    ()
+        , test "from the Brazilian starting point, half a point of interest a quarter lifts the currency at once by what Brazilian studies measure for two points a year" <|
+            \_ ->
+                let
+                    base =
+                        Models.defaultScenario BrazilModel
+
+                    result =
+                        Models.run BrazilModel
+                            { base | initial = { spending = 18, taxRatePct = 27, interestRatePct = 4 }, horizon = 120 }
+
+                    rateAt number =
+                        result.snapshots
+                            |> List.filter (\snapshot -> snapshot.number == number)
+                            |> List.head
+                            |> Maybe.andThen (\snapshot -> List.head snapshot.charts)
+                            |> Maybe.map .value
+                            |> Maybe.withDefault 0
+                in
+                Expect.all
+                    [ \_ -> Expect.within (Absolute 1.0e-7) 1.0651711151 (rateAt 1)
+                    , \_ -> rateAt 1 |> Expect.all [ Expect.atLeast (1 + 2 * 0.025), Expect.atMost (1 + 2 * 0.042) ]
+                    , \_ -> Expect.within (Absolute 1.0e-7) 0.4062443353 (rateAt 120)
+                    ]
+                    ()
+        , test "from the Brazilian starting point, an interest rate of 6% a quarter has no solution in period 45, as in the prototype" <|
+            \_ ->
+                let
+                    base =
+                        Models.defaultScenario BrazilModel
+                in
+                (Models.run BrazilModel { base | initial = { spending = 18, taxRatePct = 27, interestRatePct = 6 }, horizon = 120 }).failedAt
+                    |> Expect.equal (Just 45)
         , test "a version string names its model" <|
             \_ ->
-                List.map Models.fromVersion [ "sim-1", "pc-1", "pc-7", "open-1", "other-1", "" ]
-                    |> Expect.equal [ Just SimModel, Just PcModel, Just PcModel, Just OpenModel, Nothing, Nothing ]
+                List.map Models.fromVersion [ "sim-1", "pc-1", "pc-7", "open-1", "brazil-1", "other-1", "" ]
+                    |> Expect.equal [ Just SimModel, Just PcModel, Just PcModel, Just OpenModel, Just BrazilModel, Nothing, Nothing ]
         , test "every model's current version names itself" <|
             \_ ->
                 List.map (\model -> Models.fromVersion (Models.info model).version) Models.all

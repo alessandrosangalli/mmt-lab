@@ -1470,7 +1470,7 @@ viewNotes info =
         [ h2 [] [ text "O que observar" ]
         , ol [] (List.map (\note -> li [] [ text note ]) info.notes)
         , p [ class "hint" ]
-            [ text "Os parâmetros destes modelos são os do livro. Eles mostram como a contabilidade funciona, e não são uma descrição da economia brasileira." ]
+            [ text "Os modelos SIM, PC e OPEN usam os parâmetros do livro. O modelo BRASIL é uma calibração parcial. Todos mostram como a contabilidade funciona, e nenhum é uma previsão para a economia brasileira." ]
         ]
 
 
