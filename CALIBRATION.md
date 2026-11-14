@@ -91,15 +91,22 @@ O livro usa `alpha1` de 0,75. As estimativas brasileiras cobrem de 0,37 a 1,00 c
 | Carga tributária bruta do governo geral, 2025 (preliminar) | 32,40% do PIB; 32,22% em 2024 | Tesouro Nacional, Boletim da Carga Tributária de 2025 | Texto |
 | Carga por base, 2025 | Bens e serviços 13,78%; renda, lucros e ganhos de capital 9,16%; contribuições sociais 6,72%; propriedade 1,73% do PIB | A mesma | Texto |
 | Consumo do governo, 2024 | 18,8% do PIB | IBGE, Contas Nacionais Trimestrais do 2º trimestre de 2025 | Texto |
-| Dívida Pública Federal, setembro de 2026 | R$ 9,383 trilhões, dos quais R$ 345 bilhões de dívida externa | Tesouro Nacional, citado pela Agência Brasil | Secundária |
-| Parcela da dívida federal ligada ao câmbio | 3,67% | A mesma | Secundária |
-| Parcela ligada à Selic | 51,6% | A mesma | Secundária |
-| Parcela ligada a índices de preços | 23,59% | A mesma | Secundária |
-| Parcela prefixada | 21,14% | A mesma | Secundária |
-| Dívida interna em poder de não residentes | 9,58% | A mesma | Secundária |
-| Dívida bruta do governo geral, setembro de 2026 | 82,9% do PIB, ou R$ 11,1 trilhões | Banco Central, citado pela imprensa | Secundária |
-| Juros nominais do setor público em 12 meses, até setembro de 2026 | 8,99% do PIB | A mesma | Secundária |
-| Déficit nominal do setor público em 12 meses | 9,51% do PIB | A mesma | Secundária |
+| Dívida Pública Federal, setembro de 2026 | R$ 9,383 trilhões: R$ 9,037 trilhões de dívida interna e R$ 345,4 bilhões de externa | Ministério da Fazenda, nota de novembro de 2026 sobre o Relatório Mensal da Dívida | Texto |
+| Parcela externa da dívida federal | 3,68% em setembro; 3,75% em agosto | A mesma nota; Tesouro Nacional, Relatório Mensal da Dívida de agosto de 2026, tabela 2.1 | Texto |
+| Parcela ligada à Selic | 51,60% em setembro; 52,74% em agosto | As mesmas | Texto |
+| Parcela ligada a índices de preços | 23,59% em setembro; 23,22% em agosto | As mesmas | Texto |
+| Parcela prefixada | 21,14% em setembro; 20,31% em agosto | As mesmas | Texto |
+| Dívida interna em poder de não residentes | 9,91% em agosto. A nota de setembro traz 9,58% sem dizer a base | Relatório Mensal da Dívida de agosto de 2026, seção 2.3.2 | Texto |
+| Custo médio da dívida federal em 12 meses | 12,63% ao ano em setembro: 13,03% a interna e 2,49% a externa | Ministério da Fazenda, nota de novembro de 2026 | Texto |
+| Prazo médio da dívida federal | 4,10 anos | A mesma | Texto |
+| Dívida bruta do governo geral, junho de 2026 | 81,9% do PIB, ou R$ 10,8 trilhões | Banco Central, nota de estatísticas fiscais de 31 de julho de 2026 | Texto |
+| Dívida líquida do setor público, junho de 2026 | 68,5% do PIB | A mesma | Texto |
+| Juros nominais do setor público em 12 meses, até junho de 2026 | 8,80% do PIB, ou R$ 1.160,5 bilhões | A mesma | Texto |
+| Déficit nominal do setor público em 12 meses, até junho de 2026 | 9,99% do PIB | A mesma | Texto |
+| Déficit primário do setor público em 12 meses, até junho de 2026 | 1,19% do PIB | A mesma | Texto |
+| Os mesmos números fiscais em setembro de 2026 | Dívida bruta de 82,9% do PIB; juros de 8,99%; déficit nominal de 9,51% | Banco Central, citado pela imprensa | Secundária |
+
+Os números da dívida federal foram conferidos na nota oficial do Ministério da Fazenda e no relatório de agosto do Tesouro. O relatório de setembro, em PDF, não foi localizado. A nota fiscal do Banco Central de setembro não pôde ser aberta nesta sessão; a de junho foi lida e é a que vale até lá.
 
 A alíquota `theta` do modelo incide sobre a renda e os juros recebidos, então a carga tributária em % do PIB é o alvo certo para ela. O livro usa 20%.
 
@@ -122,7 +129,7 @@ No estado estacionário do livro, as importações são cerca de 12% da renda e 
 | Conta corrente em 12 meses, até junho de 2026 | déficit de US$ 61,4 bilhões, ou 2,46% do PIB | Banco Central, nota para a imprensa de 28 de julho de 2026 | Texto |
 | Reservas internacionais, fim de junho de 2026 | US$ 367,6 bilhões | A mesma | Texto |
 
-**Sobre a tese T2.** A parcela cambial de 3,67% é o tipo de dado que o critério de T2 vai testar. O protocolo já declarava que quem redigiu o critério sabia que essa parcela é pequena. Este número foi visto depois de o critério ser escrito, em fonte secundária, e não substitui a análise com a série do Tesouro.
+**Sobre a tese T2.** A parcela externa de 3,68% é o tipo de dado que o critério de T2 vai testar. O protocolo já declarava que quem redigiu o critério sabia que essa parcela é pequena. Este número foi visto depois de o critério ser escrito e não substitui a análise com a série de dez anos do Tesouro.
 
 ## 5. Carteiras e mobilidade de capital
 
@@ -130,7 +137,7 @@ No modelo, oito parâmetros `lambda` dizem como as famílias de cada país divid
 
 | Medida | Livro | Indicação para o Brasil | Fonte | Lida |
 | --- | --- | --- | --- | --- |
-| Parcela dos títulos domésticos em poder do exterior | cerca de 25% | 9,58% da dívida federal interna | Tesouro Nacional, citado pela Agência Brasil | Secundária |
+| Parcela dos títulos domésticos em poder do exterior | cerca de 25% | 9,91% da dívida federal interna em agosto de 2026 | Tesouro Nacional, Relatório Mensal da Dívida de agosto de 2026 | Texto |
 | Parcela da riqueza das famílias em títulos estrangeiros | 25% | Lacuna. A posição internacional de investimento do Banco Central é a fonte a consultar | | Não lida |
 | Reação da carteira a um ponto de juro | 5 pontos da riqueza | Sem estimativa direta. Calibração indireta: 0,5, na faixa de 0,15 a 0,8 (ver abaixo) | Este levantamento | |
 | Reação do câmbio ao diferencial de juros | não se aplica | Coeficiente de 1,90 na equação de paridade do modelo do BC, com intervalo de 0,77 a 3,22 | Banco Central (2024), boxe do Relatório de Inflação de junho | Texto |
@@ -188,7 +195,17 @@ O boxe do Banco Central de junho de 2024 traz os coeficientes do modelo semiestr
 | Câmbio (paridade) | Diferencial de juros | 1,90 | 0,77 a 3,22 |
 | Expectativas | Inércia | 0,75 | 0,68 a 0,82 |
 
-A leitura automática do boxe perdeu os símbolos matemáticos, então os sinais e a forma exata de cada equação não estão registrados aqui. Eles precisam ser copiados do documento original antes de o modelo rival ser escrito.
+O modelo é trimestral e foi estimado do quarto trimestre de 2003 ao quarto de 2023. Uma segunda leitura do boxe recuperou a estrutura de cada equação:
+
+| Equação | O que explica | Com o quê |
+| --- | --- | --- |
+| Demanda (IS) | Hiato do produto | As próprias defasagens, o hiato do juro real esperado em 12 meses, o resultado primário ajustado pelo ciclo e o hiato do produto mundial |
+| Preços livres (Phillips) | Inflação trimestral dos preços livres | Inércia, expectativas de quatro trimestres à frente, inflação importada das commodities em reais, variação do câmbio defasada em um trimestre, hiato do produto e clima |
+| Regra de juros | Meta da Selic | As duas defasagens da própria Selic (1,48 e −0,58) e o desvio das expectativas em relação à meta. Não há termo de hiato |
+| Câmbio (paridade) | Variação trimestral do câmbio | Diferencial entre o juro doméstico e o dos Estados Unidos, anualizados e ajustados pelo risco-país (CDS de cinco anos), e a depreciação de longo prazo dada pela diferença entre as metas de inflação |
+| Expectativas | Expectativa de inflação quatro trimestres à frente | A própria defasagem (0,75), o termo consistente com o modelo (0,11) e a inflação passada (0,021) |
+
+A leitura automática continua perdendo os símbolos matemáticos, então os sinais de cada termo e a posição exata das defasagens ainda precisam ser copiados do documento original antes de o modelo rival ser escrito.
 
 ## 7. O que falta
 
@@ -198,17 +215,45 @@ A leitura automática do boxe perdeu os símbolos matemáticos, então os sinais
 | Composição das carteiras (`lambda`) | Posição internacional de investimento do Banco Central (a nota mensal só traz fluxos) |
 | Resposta do câmbio aos juros em horizonte de trimestres | Os estudos lidos medem o dia da decisão ou o mês. Falta a resposta ao longo de um ano |
 | Margem e participação dos salários (`phi`) | IBGE, Contas Econômicas Integradas |
-| Juros doméstico e externo e duração do período do modelo | Séries do Banco Central; decisão de usar trimestre ou ano |
-| Números marcados como "Secundária" | Relatório Mensal da Dívida do Tesouro Nacional e nota de estatísticas fiscais do Banco Central, nos originais |
+| Juros doméstico e externo por trimestre | Séries do Banco Central |
+| Números fiscais de setembro de 2026, ainda "Secundária" | Nota de estatísticas fiscais do Banco Central de outubro de 2026, no original |
 | Resposta do comércio no longo prazo | Estudos que separem curto e longo prazo; as estimativas lidas são de poucos trimestres |
-| Sinais e forma das equações do modelo do BC | Boxe de junho de 2024, no original |
+| Sinais e defasagens exatas das equações do modelo do BC | Boxe de junho de 2024, no original |
 
-## 8. Decisões que a calibração exige
+## 8. Decisões da calibração
 
-1. **Período do modelo.** As estimativas brasileiras são trimestrais. O modelo do livro não diz se o período é um trimestre ou um ano. A escolha muda a leitura de juros e de velocidades de ajuste.
+### Decidido: o período do modelo é um trimestre
+
+Três razões, todas tiradas das fontes lidas:
+
+1. As estimativas brasileiras de comércio são trimestrais, e o modelo do Banco Central, que será o rival, também.
+2. A Selic cabe no modelo. Uma taxa de 15% ao ano é cerca de 3,6% por trimestre, dentro da faixa em que o modelo tem solução. Com período anual, ela ficaria fora.
+3. A dívida fica na escala certa. Uma dívida bruta de 82% do PIB anual é cerca de 3,3 vezes o PIB de um trimestre.
+
+A consequência é que juros, velocidades de ajuste e a razão entre estoques e fluxos passam a ser lidos por trimestre.
+
+### Primeiro teste: o modelo consegue repousar em proporções brasileiras
+
+Teste exploratório no protótipo, com o período lido como trimestre. Os parâmetros foram levados aos poucos do livro para: carga tributária de 32,4%, juro doméstico de 3,6% e externo de 1% por trimestre, reação das carteiras de 0,5 e consumo de 5% da riqueza por trimestre. O modelo chegou a um ponto de repouso:
+
+| Proporção | No repouso encontrado | Brasil |
+| --- | --- | --- |
+| Dívida pública sobre o PIB trimestral | 3,2 | cerca de 3,3 |
+| Parcela da dívida em poder do exterior | 11% | 9,9% |
+| Importações sobre o PIB | 11% | 17,5% |
+| Consumo do governo sobre o PIB | 25% | 18,8% |
+| Arrecadação sobre o PIB | 36% | 32,4% |
+
+A dívida e a parcela do exterior ficam perto das brasileiras sem terem sido alvo direto, o que é um bom sinal. As outras três proporções ainda estão fora. O teste também mostra o limite do método: várias combinações de parâmetros perderam a solução no caminho, e com as respostas brasileiras de comércio nenhuma chegou ao repouso. Isso não prova que o repouso não existe. Prova que deixar o modelo correr não serve para achá-lo.
+
+O valor de 5% para o consumo da riqueza não vem de estimativa. Ele sai da contabilidade: no repouso, a razão entre riqueza e renda disponível é fixada pelos dois parâmetros de consumo, e 5% é o valor que leva a dívida à escala brasileira. É calibração por razão entre estoque e fluxo, e precisa ser declarada assim.
+
+### O que falta decidir e fazer
+
+1. **Calcular o repouso diretamente.** Resolver o estado estacionário como um sistema de equações, com as proporções brasileiras como alvo, em vez de esperar o modelo convergir.
 2. **O outro país.** No livro, os dois países são iguais. Para o Brasil, o resto do mundo é muito maior. Isso exige reescalar o segundo país ou torná-lo exógeno.
 3. **Defasagens.** O livro não tem defasagem nas exportações; a estimativa brasileira indica ajuste em três trimestres.
-4. **Estado estacionário.** O modelo calibrado precisa reproduzir as proporções brasileiras (carga tributária, peso dos importados, dívida sobre o PIB) no ponto de partida.
+4. **Crescimento.** O modelo do livro repousa com déficit zero. O Brasil tem déficit nominal perto de 10% do PIB, com a economia e os preços crescendo. Um repouso sem crescimento não reproduz isso.
 
 ## Referências
 
@@ -226,5 +271,7 @@ A leitura automática do boxe perdeu os símbolos matemáticos, então os sinais
 - Schettini, B. P., Squeff, G. C. e Gouvêa, R. R. (2012). [Estimativas da função exportações brasileiras agregadas com dados das Contas Nacionais Trimestrais, 1995-2009](https://revistas.usp.br/ecoa/article/view/46197). *Economia Aplicada*, 16(1), 167-196.
 - Vicente, J. V. M., Marins, J. T. M. e Gaglianone, W. P. (2021). [Impacts of the Monetary Policy Committee Decisions on the Foreign Exchange Rate in Brazil](https://www.bcb.gov.br/pec/wps/ingl/wps552.pdf). Banco Central do Brasil, Working Paper 552. Publicado na *Brazilian Review of Finance*, 20(2), 2022.
 - Tesouro Nacional. [Estimativa da Carga Tributária Bruta do Governo Geral, 2025](https://cdn.tesouro.gov.br/sistemas-internos/apex/producao/sistemas/thot/arquivos/publicacoes/54334_1699660/Boletim_CTB_2025.pdf).
-- Tesouro Nacional. Relatório Mensal da Dívida de setembro de 2026, citado em [notícia da Agência Brasil de 29 de outubro de 2026](https://www.acessa.com/economia/2026/10/343297-divida-publica-sobe-097-em-setembro-e-encosta-em-rs-94-trilhoes.html).
+- Ministério da Fazenda (2026). [Dívida Pública Federal totaliza R$ 9,383 trilhões em setembro](https://www.gov.br/fazenda/pt-br/assuntos/noticias/2026/novembro/divida-publica-federal-totaliza-r-9-383-trilhoes-em-setembro).
+- Tesouro Nacional (2026). [Relatório Mensal da Dívida, agosto de 2026](https://cdn.tesouro.gov.br/sistemas-internos/apex/producao/sistemas/thot/arquivos/publicacoes/55919_1762808/Texto_RMD_Ago_26.pdf).
+- Banco Central do Brasil (2026). [Estatísticas fiscais, nota para a imprensa de 31 de julho de 2026](https://www.bcb.gov.br/content/estatisticas/hist_estatisticasfiscais/202607_Texto_de_estatisticas_fiscais.pdf).
 - Banco Central do Brasil. Estatísticas fiscais de setembro de 2026, citadas em [notícia de 29 de outubro de 2026](https://sbtnews.sbt.com.br/noticia/economia/bc-divida-publica-chega-a-82-9-do-pib-em-setembro).
