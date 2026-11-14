@@ -12,13 +12,15 @@ function solveLinear(A, b) { const n = b.length; const M = A.map((r, i) => [...r
   return M.map((r, i) => Math.abs(r[i]) < 1e-300 ? 0 : r[n] / r[i]); }
 
 // free: names of parameters to solve for. targets: functions (v, p) -> residual that must be zero.
-function rest(params, start, free = [], targets = []) {
+// anchored: without growth the split of bills between each central bank and the public is not pinned down
+// by the equations, so it is pinned here. With growth the equations pin it, and the anchor must be left out.
+function rest(params, start, free = [], targets = [], sweepWith = sweep, anchored = true) {
   const n = KEYS.length, N = n + free.length;
   const unpack = x => { const v = {}; KEYS.forEach((k, i) => v[k] = x[i]); const p = { ...params }; free.forEach((k, i) => p[k] = x[n + i]); return { v, p }; };
-  const residual = x => { const { v, p } = unpack(x); const w = sweep({ ...v }, v, p, p);
+  const residual = x => { const { v, p } = unpack(x); const w = sweepWith({ ...v }, v, p, p);
     const r = KEYS.map(k => (w[k] - v[k]) / Math.max(1, Math.abs(v[k])));
     // each central bank holds bills against the money it issued (no accumulated revaluation gains)
-    r.push((v.b_cb_usus_d - v.h_us_d) / 10, (v.b_cb_ukuk_d - (v.h_uk_d - p.b_cb_ukus_s * v.xr_us)) / 10);
+    if (anchored) r.push((v.b_cb_usus_d - v.h_us_d) / 10, (v.b_cb_ukuk_d - (v.h_uk_d - p.b_cb_ukus_s * v.xr_us)) / 10);
     for (const t of targets) r.push(t(v, p)); return r; };
   let x = [...KEYS.map(k => start[k]), ...free.map(k => params[k])], lambda = 1e-3;
   const norm = r => Math.sqrt(r.reduce((s, e) => s + e * e, 0));

@@ -289,13 +289,49 @@ Resultados a partir desse ponto, conferidos entre o protótipo e o código Elm:
 
 A alta de meio ponto por trimestre, que são dois pontos ao ano, valoriza a moeda em 6,5% de imediato: 3,3% por ponto ao ano, dentro da faixa medida.
 
+### Crescimento e transferências: desenho testado no protótipo
+
+O modelo `brazil-1` repousa com déficit zero e sem transferências. Para chegar às contas públicas brasileiras, o desenho proposto muda duas coisas nas equações, e foi testado no protótipo (`tools/openflex/growth.js` e `growth-rest.js`) antes de ir para o código Elm.
+
+**Crescimento.** Cada grandeza passa a ser medida em relação à sua tendência. As quantidades reais crescem a uma taxa por trimestre, os preços de cada país à sua inflação, e os valores em dinheiro às duas. Na prática, todo valor do período anterior que aparece numa equação é dividido pelo crescimento da sua tendência. Um ponto de repouso desse sistema é uma trajetória de crescimento equilibrado: a dívida cresce junto com a economia, e o governo tem o déficit que mantém a dívida constante como proporção do PIB. Com crescimento e inflação iguais a zero, o sistema é idêntico ao do livro, o que foi conferido número a número.
+
+**Transferências.** Um pagamento do governo às famílias, fixo em termos reais, que entra na renda disponível e no déficit.
+
+Valores usados:
+
+| Grandeza | Valor | Fonte | Lida |
+| --- | --- | --- | --- |
+| Crescimento real do PIB | 2,3% ao ano (2025) | IBGE, Contas Nacionais Trimestrais | Título |
+| Inflação doméstica | 4,5% ao ano; o IPCA-15 acumulava 4,62% em 12 meses em outubro de 2026 | IBGE, citado pela Agência Gov | Secundária |
+| Inflação externa | 2,7% ao ano | Sem fonte lida | Não lida |
+| Juro externo | 3,75% a 4% ao ano, cerca de 0,96% por trimestre | Federal Reserve, comunicado de 28 de outubro de 2026 | Texto |
+
+As contas do governo geral, que servem de alvo e de conferência, vêm de uma única fonte, o boletim de Estatísticas Fiscais do Governo Geral do Tesouro para o primeiro trimestre de 2026 (lido no texto). Os números são de um trimestre só, sem ajuste sazonal.
+
+| Conta do governo, em % do PIB | Modelo na trajetória | Brasil, 1º trimestre de 2026 | Como entra |
+| --- | --- | --- | --- |
+| Receita total | 41,9% | 41,90% | Escolhida pela alíquota de 38% |
+| Consumo do governo | 18,8% | 18,8% nas contas nacionais; 15,85% de pessoal e bens e serviços no boletim | Alvo |
+| Juros | 11,3% | 11,10% | Resultado |
+| Transferências | 17,9% | 16,18% de benefícios, mais 4,41% de demais gastos | Resultado |
+| Déficit | 5,4% | 5,73% | Resultado |
+
+Os alvos de importações, dívida e parcela do exterior continuam os mesmos. Juros, transferências e déficit não foram alvos e caem perto dos números brasileiros. É o primeiro ponto de partida em que a carga, o gasto, a dívida e o juro brasileiros cabem ao mesmo tempo.
+
+**O que não bate.** Na trajetória, a conta corrente é positiva, 0,4% do PIB. O modelo trata as famílias brasileiras como donas de muitos títulos estrangeiros, cerca de um quinto da riqueza, proporção herdada do livro. O Brasil tem déficit em conta corrente e passivo externo líquido. Falta um alvo para os ativos externos dos residentes, com a posição internacional de investimento do Banco Central.
+
+**O que muda no comportamento.** Resultados exploratórios, com alíquota de 29,4% e antes do ajuste final: um gasto 5% maior leva a moeda a 0,798 no período 120, com a conta corrente estável; no `brazil-1` a queda continuava sem parar. Isso precisa ser refeito no ponto de partida final, com testes.
+
+**Decisões embutidas, a confirmar.** As transferências entram como parâmetro fixo, não como controle na tela: virar controle muda o formato do link e a política de todos os modelos. A tela mostraria as séries em relação à tendência, de modo que uma linha reta significa crescer na tendência.
+
 ### O que falta decidir e fazer
 
-1. **O outro país.** O cálculo manteve o país doméstico do tamanho do livro, igual ao outro. Para o Brasil, o resto do mundo é muito maior.
-2. **Crescimento e transferências.** O repouso tem déficit zero e não tem transferências. É a maior distância que resta entre o modelo e as contas públicas brasileiras.
-3. **Repasse do câmbio aos preços.** Ajustar para a faixa de 0,10 a 0,16.
-4. **Defasagens.** O livro não tem defasagem nas exportações; a estimativa brasileira indica ajuste em três trimestres.
-5. **Juro externo.** Trocar o valor provisório por uma fonte lida.
+1. **Levar crescimento e transferências para o código Elm**, como `brazil-2`, com os valores acima conferidos nos originais.
+2. **Ativos externos dos residentes.** Um alvo que leve a conta corrente da trajetória ao sinal brasileiro.
+3. **O outro país.** O cálculo manteve o país doméstico do tamanho do livro. Para o Brasil, o resto do mundo é muito maior.
+4. **Repasse do câmbio aos preços.** Ajustar para a faixa de 0,10 a 0,16.
+5. **Defasagens.** O livro não tem defasagem nas exportações; a estimativa brasileira indica ajuste em três trimestres.
+6. **Investimento.** O modelo não tem, e por isso o consumo das famílias fica em 80% do PIB.
 
 ## Referências
 
@@ -314,6 +350,10 @@ A alta de meio ponto por trimestre, que são dois pontos ao ano, valoriza a moed
 - Vicente, J. V. M., Marins, J. T. M. e Gaglianone, W. P. (2021). [Impacts of the Monetary Policy Committee Decisions on the Foreign Exchange Rate in Brazil](https://www.bcb.gov.br/pec/wps/ingl/wps552.pdf). Banco Central do Brasil, Working Paper 552. Publicado na *Brazilian Review of Finance*, 20(2), 2022.
 - Tesouro Nacional. [Estimativa da Carga Tributária Bruta do Governo Geral, 2025](https://cdn.tesouro.gov.br/sistemas-internos/apex/producao/sistemas/thot/arquivos/publicacoes/54334_1699660/Boletim_CTB_2025.pdf).
 - Ministério da Fazenda (2026). [Dívida Pública Federal totaliza R$ 9,383 trilhões em setembro](https://www.gov.br/fazenda/pt-br/assuntos/noticias/2026/novembro/divida-publica-federal-totaliza-r-9-383-trilhoes-em-setembro).
+- Tesouro Nacional (2026). [Estatísticas Fiscais do Governo Geral, 1º trimestre de 2026](https://cdn.tesouro.gov.br/sistemas-internos/apex/producao/sistemas/thot/arquivos/publicacoes/55011_1842181/Boletim_EFGG_2026-I.pdf).
+- Federal Reserve (2026). [Federal Reserve issues FOMC statement, 28 de outubro de 2026](https://www.federalreserve.gov/newsevents/pressreleases/monetary20261028a.htm).
+- IBGE (2026). [PIB cresce 2,3% em 2025 e fecha o ano em R$ 12,7 trilhões](https://agenciadenoticias.ibge.gov.br/agencia-sala-de-imprensa/45968-pib-cresce-2-3-em-2025-e-fecha-o-ano-em-r-12-7-trilhoes.html). Só o título foi lido.
+- Agência Gov (2026). [Prévia da inflação de outubro é menor com queda de preços de água e luz](https://agenciagov.ebc.com.br/noticias/202610/previa-da-inflacao-de-outubro-e-menor-com-queda-de-precos-de-agua-e-luz).
 - Tesouro Nacional (2026). [Relatório Mensal da Dívida, agosto de 2026](https://cdn.tesouro.gov.br/sistemas-internos/apex/producao/sistemas/thot/arquivos/publicacoes/55919_1762808/Texto_RMD_Ago_26.pdf).
 - Banco Central do Brasil (2026). [Estatísticas fiscais, nota para a imprensa de 31 de julho de 2026](https://www.bcb.gov.br/content/estatisticas/hist_estatisticasfiscais/202607_Texto_de_estatisticas_fiscais.pdf).
 - Banco Central do Brasil. Estatísticas fiscais de setembro de 2026, citadas em [notícia de 29 de outubro de 2026](https://sbtnews.sbt.com.br/noticia/economia/bc-divida-publica-chega-a-82-9-do-pib-em-setembro).
