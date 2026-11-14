@@ -10,6 +10,7 @@ O arquivo `src/Model/OpenFlex.elm` é gerado a partir de uma única lista de equ
 | `emit.js` | Escreve o módulo Elm e imprime os números usados nos testes |
 | `steady.json` | O estado estacionário da linha de base, calculado pelo protótipo |
 | `explore-brazil.js` | Teste exploratório: leva os parâmetros aos poucos para proporções brasileiras e mostra onde o modelo repousa. Os resultados estão em `CALIBRATION.md`, seção 8 |
+| `calibrate.js` | Calcula um ponto de repouso diretamente, como um sistema de equações, com parâmetros livres escolhidos para reproduzir proporções-alvo. Com `node tools/openflex/calibrate.js`, imprime o repouso do livro e o de proporções brasileiras |
 
 Para refazer tudo, com o Node instalado:
 
