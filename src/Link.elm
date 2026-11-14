@@ -100,8 +100,8 @@ encodeChange change =
         ]
 
 
-{-| Never fails: anything missing or malformed falls back to the default,
-and every value is brought into range.
+{-| Never fails: anything missing or malformed falls back to the default of
+the model the link names, and every value is brought into range.
 -}
 fromQuery : String -> Link
 fromQuery query =
@@ -109,8 +109,16 @@ fromQuery query =
         fields =
             parseFields query
 
+        version =
+            Dict.get "v" fields
+
+        model =
+            version
+                |> Maybe.andThen Models.fromVersion
+                |> Maybe.withDefault SimModel
+
         base =
-            Scenario.default
+            Models.defaultScenario model
 
         floatField key fallback =
             Dict.get key fields
@@ -160,13 +168,8 @@ fromQuery query =
             else
                 Nothing
 
-        version =
-            Dict.get "v" fields
     in
-    { model =
-        version
-            |> Maybe.andThen Models.fromVersion
-            |> Maybe.withDefault SimModel
+    { model = model
     , scenario = scenario
     , comparison = comparison
     , selected = clamp 1 scenario.horizon (intField "p" scenario.horizon)

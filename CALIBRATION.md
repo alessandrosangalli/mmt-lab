@@ -34,6 +34,15 @@ A amostra de Schettini, Squeff e Gouvêa é trimestral, de 1995 a 2009. Os próp
 
 **Por que isso importa.** A diferença em `eps1` é a maior encontrada até aqui. No livro, uma moeda 10% mais fraca aumenta as exportações em 7%; pela estimativa brasileira, quase não aumenta. No modelo, é esse aumento das exportações que faz o câmbio flutuante corrigir a conta corrente. Se ele é fraco, a correção depende mais da queda das importações e da renda. Isso pesa diretamente na tese T5. É uma consequência a testar no modelo calibrado, não uma conclusão.
 
+**O que o modelo faz com essa estimativa.** A premissa já pode ser trocada na tela. Com todos os outros parâmetros no valor do livro e um aumento do gasto público de 16 para 20:
+
+| Resposta das exportações ao câmbio | Câmbio no período 40 | Conta corrente no período 40 | Desfecho em 120 períodos |
+| --- | --- | --- | --- |
+| 0,70, o valor do livro | 0,701 | −0,27 | A conta corrente volta a zero e a moeda se estabiliza em 0,64 |
+| 0,01, a estimativa brasileira | 0,535 | −1,36 | A moeda continua caindo e o modelo deixa de ter solução no período 108 |
+
+Isso mostra o que a premissa faz dentro deste modelo, com os demais parâmetros do livro. Não é um resultado sobre o Brasil: as importações, as carteiras e o tamanho relativo dos países ainda não foram calibrados, e qualquer um deles pode mudar o desfecho.
+
 ## 2. Repasse do câmbio aos preços
 
 No modelo, o câmbio chega aos preços de importação por `nu1m` e daí ao nível de preços doméstico, na proporção do peso dos importados.

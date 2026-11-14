@@ -152,6 +152,10 @@ suite =
                         ( [ ( "eps1", 0.01 ), ( "port", 2 ) ]
                         , Just [ ( "mu1", 0.3 ) ]
                         )
+        , test "a link that only names a model opens that model's default scenario" <|
+            \_ ->
+                (Link.fromQuery "v=open-1").scenario
+                    |> Expect.equal (Models.defaultScenario OpenModel)
         , test "a comparison scenario takes the horizon of the main one" <|
             \_ ->
                 (Link.fromQuery "n=30&bg=10").comparison
