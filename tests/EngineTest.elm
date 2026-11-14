@@ -276,9 +276,9 @@ suite =
                 in
                 Expect.all
                     [ \_ -> Expect.within (Absolute 1.0e-7) 0.8853728586 bookRate
-                    , \_ -> Expect.within (Absolute 1.0e-7) (-0.003219239662) bookAccount
+                    , \_ -> Expect.within (Absolute 1.0e-7) -0.003219239662 bookAccount
                     , \_ -> Expect.within (Absolute 1.0e-7) 0.4639329734 brazilRate
-                    , \_ -> Expect.within (Absolute 1.0e-7) (-0.8874863289) brazilAccount
+                    , \_ -> Expect.within (Absolute 1.0e-7) -0.8874863289 brazilAccount
                     ]
                     ()
         , test "premises do not move the starting point of the open economy" <|
