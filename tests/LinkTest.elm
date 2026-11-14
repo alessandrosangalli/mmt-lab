@@ -32,14 +32,25 @@ scenarioFuzzer =
         (Fuzz.intRange Scenario.minHorizon Scenario.maxHorizon)
 
 
+{-| A scenario with an optional second one on the same time axis.
+-}
+pairFuzzer : Fuzzer ( Scenario, Maybe Scenario )
+pairFuzzer =
+    Fuzz.map2
+        (\scenario other -> ( scenario, Maybe.map (\found -> { found | horizon = scenario.horizon }) other ))
+        scenarioFuzzer
+        (Fuzz.maybe scenarioFuzzer)
+
+
 suite : Test
 suite =
     describe "Link"
-        [ fuzz2 scenarioFuzzer (Fuzz.intRange 1 Scenario.minHorizon) "a scenario survives the round trip through a link" <|
-            \scenario selected ->
-                Link.fromQuery (Link.toQuery scenario selected)
+        [ fuzz2 pairFuzzer (Fuzz.intRange 1 Scenario.minHorizon) "scenarios survive the round trip through a link" <|
+            \( scenario, comparison ) selected ->
+                Link.fromQuery (Link.toQuery scenario comparison selected)
                     |> Expect.equal
                         { scenario = scenario
+                        , comparison = comparison
                         , selected = selected
                         , version = Just Link.modelVersion
                         }
@@ -48,6 +59,7 @@ suite =
                 Link.fromQuery ""
                     |> Expect.equal
                         { scenario = Scenario.default
+                        , comparison = Nothing
                         , selected = Scenario.default.horizon
                         , version = Nothing
                         }
@@ -64,6 +76,7 @@ suite =
                             , changes = []
                             , horizon = Scenario.minHorizon
                             }
+                        , comparison = Nothing
                         , selected = Scenario.minHorizon
                         , version = Nothing
                         }
@@ -78,4 +91,14 @@ suite =
             \_ ->
                 (Link.fromQuery "v=sim-0").version
                     |> Expect.equal (Just "sim-0")
+        , test "a comparison scenario takes the horizon of the main one" <|
+            \_ ->
+                (Link.fromQuery "n=30&bg=10").comparison
+                    |> Expect.equal
+                        (Just
+                            { initial = { spending = 10, taxRatePct = Scenario.default.initial.taxRatePct }
+                            , changes = []
+                            , horizon = 30
+                            }
+                        )
         ]

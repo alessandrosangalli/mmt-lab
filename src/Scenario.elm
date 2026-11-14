@@ -1,13 +1,16 @@
 module Scenario exposing
     ( Change
     , Scenario
+    , addChange
     , default
     , maxChanges
     , maxHorizon
     , minHorizon
     , policyAt
+    , removeChange
     , run
     , sanitize
+    , updateChange
     )
 
 {-| A scenario is an experiment that can be repeated exactly: the policy the
@@ -108,3 +111,55 @@ run scenario =
     List.range 1 scenario.horizon
         |> List.foldl (\period history -> Sim.advance (policyAt scenario period) history) []
         |> List.reverse
+
+
+
+-- EDITING
+
+
+{-| Append a change ten periods after the latest one, raising spending a
+little so that it is visible at once. Does nothing once the list is full.
+-}
+addChange : Scenario -> Scenario
+addChange scenario =
+    if List.length scenario.changes >= maxChanges then
+        scenario
+
+    else
+        let
+            latest =
+                scenario.changes
+                    |> List.map .period
+                    |> List.maximum
+                    |> Maybe.withDefault 0
+
+            period =
+                clamp 2 scenario.horizon (latest + 10)
+
+            current =
+                policyAt scenario period
+
+            added =
+                { period = period
+                , policy = { current | spending = min 50 (current.spending + 5) }
+                }
+        in
+        { scenario | changes = scenario.changes ++ [ added ] }
+
+
+updateChange : Int -> (Change -> Change) -> Scenario -> Scenario
+updateChange index edit scenario =
+    let
+        apply position change =
+            if position == index then
+                edit change
+
+            else
+                change
+    in
+    { scenario | changes = List.indexedMap apply scenario.changes }
+
+
+removeChange : Int -> Scenario -> Scenario
+removeChange index scenario =
+    { scenario | changes = List.take index scenario.changes ++ List.drop (index + 1) scenario.changes }

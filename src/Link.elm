@@ -6,7 +6,8 @@ a link reproduces an experiment exactly.
     v=sim-1&g=20&t=20&n=40&p=40&c=10:25:20,20:25:30
 
 `g` and `t` are the initial spending and tax rate, `n` the horizon, `p` the
-period in focus, and `c` the changes as `period:spending:taxRate`.
+period in focus, and `c` the changes as `period:spending:taxRate`. A second
+scenario to compare against uses `bg`, `bt` and `bc`, and shares the horizon.
 
 -}
 
@@ -17,6 +18,7 @@ import Url
 
 type alias Link =
     { scenario : Scenario
+    , comparison : Maybe Scenario
     , selected : Int
     , version : Maybe String
     }
@@ -30,8 +32,8 @@ modelVersion =
     "sim-1"
 
 
-toQuery : Scenario -> Int -> String
-toQuery scenario selected =
+toQuery : Scenario -> Maybe Scenario -> Int -> String
+toQuery scenario comparison selected =
     String.join "&"
         ([ "v=" ++ modelVersion
          , "g=" ++ String.fromFloat scenario.initial.spending
@@ -39,17 +41,31 @@ toQuery scenario selected =
          , "n=" ++ String.fromInt scenario.horizon
          , "p=" ++ String.fromInt selected
          ]
-            ++ changesField scenario.changes
+            ++ changesField "c" scenario.changes
+            ++ comparisonFields comparison
         )
 
 
-changesField : List Change -> List String
-changesField changes =
+comparisonFields : Maybe Scenario -> List String
+comparisonFields comparison =
+    case comparison of
+        Just other ->
+            [ "bg=" ++ String.fromFloat other.initial.spending
+            , "bt=" ++ String.fromFloat other.initial.taxRatePct
+            ]
+                ++ changesField "bc" other.changes
+
+        Nothing ->
+            []
+
+
+changesField : String -> List Change -> List String
+changesField key changes =
     if List.isEmpty changes then
         []
 
     else
-        [ "c=" ++ String.join "," (List.map encodeChange changes) ]
+        [ key ++ "=" ++ String.join "," (List.map encodeChange changes) ]
 
 
 encodeChange : Change -> String
@@ -83,20 +99,39 @@ fromQuery query =
                 |> Maybe.andThen String.toInt
                 |> Maybe.withDefault fallback
 
+        changesOf key =
+            Dict.get key fields
+                |> Maybe.map decodeChanges
+                |> Maybe.withDefault []
+
         scenario =
             Scenario.sanitize
                 { initial =
                     { spending = floatField "g" base.initial.spending
                     , taxRatePct = floatField "t" base.initial.taxRatePct
                     }
-                , changes =
-                    Dict.get "c" fields
-                        |> Maybe.map decodeChanges
-                        |> Maybe.withDefault []
+                , changes = changesOf "c"
                 , horizon = intField "n" base.horizon
                 }
+
+        comparison =
+            if List.any (\key -> Dict.member key fields) [ "bg", "bt", "bc" ] then
+                Just
+                    (Scenario.sanitize
+                        { initial =
+                            { spending = floatField "bg" base.initial.spending
+                            , taxRatePct = floatField "bt" base.initial.taxRatePct
+                            }
+                        , changes = changesOf "bc"
+                        , horizon = scenario.horizon
+                        }
+                    )
+
+            else
+                Nothing
     in
     { scenario = scenario
+    , comparison = comparison
     , selected = clamp 1 scenario.horizon (intField "p" scenario.horizon)
     , version = Dict.get "v" fields
     }
