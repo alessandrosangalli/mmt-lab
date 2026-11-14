@@ -1,8 +1,8 @@
 // Finds a resting point of the model directly, as a system of equations, instead of waiting for the
 // economy to converge. Some parameters are left free and chosen so that the resting point reproduces
 // target proportions (taxes, government consumption, imports, debt and foreign holdings over output).
-const m = require('./model.js'); const gen = require('./gen.js');
-const sweep = new Function('v', 'L', 'p', 'LP', gen.js());
+const m = require('./model.js');
+const sweep = m.sweepFn;
 const KEYS = m.KEYS;
 
 function solveLinear(A, b) { const n = b.length; const M = A.map((r, i) => [...r, b[i]]);
@@ -14,10 +14,10 @@ function solveLinear(A, b) { const n = b.length; const M = A.map((r, i) => [...r
 // free: names of parameters to solve for. targets: functions (v, p) -> residual that must be zero.
 // anchored: without growth the split of bills between each central bank and the public is not pinned down
 // by the equations, so it is pinned here. With growth the equations pin it, and the anchor must be left out.
-function rest(params, start, free = [], targets = [], sweepWith = sweep, anchored = true) {
+function rest(params, start, free = [], targets = [], anchored = true) {
   const n = KEYS.length, N = n + free.length;
   const unpack = x => { const v = {}; KEYS.forEach((k, i) => v[k] = x[i]); const p = { ...params }; free.forEach((k, i) => p[k] = x[n + i]); return { v, p }; };
-  const residual = x => { const { v, p } = unpack(x); const w = sweepWith({ ...v }, v, p, p);
+  const residual = x => { const { v, p } = unpack(x); const w = sweep({ ...v }, m.carry(v, p), p, p);
     const r = KEYS.map(k => (w[k] - v[k]) / Math.max(1, Math.abs(v[k])));
     // each central bank holds bills against the money it issued (no accumulated revaluation gains)
     if (anchored) r.push((v.b_cb_usus_d - v.h_us_d) / 10, (v.b_cb_ukuk_d - (v.h_uk_d - p.b_cb_ukus_s * v.xr_us)) / 10);

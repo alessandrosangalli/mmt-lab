@@ -82,6 +82,21 @@ suite =
             \_ ->
                 Multiverse.classify { snapshots = [ snapshot 100 0, snapshot 100 0.2 ], failedAt = Nothing }
                     |> Expect.equal StillAdjusting
+        , test "a run whose exchange rate has stopped moving has settled, even with the external balance open" <|
+            \_ ->
+                let
+                    at rate =
+                        let
+                            base =
+                                snapshot 100 0.4
+                        in
+                        { base | charts = [ { name = "rate", value = rate } ] }
+                in
+                [ Multiverse.classify { snapshots = List.map at (List.repeat 10 0.9 ++ [ 0.895 ]), failedAt = Nothing }
+                , Multiverse.classify { snapshots = List.map at (List.repeat 10 0.9 ++ [ 0.88 ]), failedAt = Nothing }
+                , Multiverse.classify { snapshots = List.map at [ 0.9, 0.9 ], failedAt = Nothing }
+                ]
+                    |> Expect.equal [ Settles, StillAdjusting, StillAdjusting ]
         , test "an axis covers the whole range of the premise in even steps" <|
             \_ ->
                 Multiverse.axisValues share

@@ -133,11 +133,11 @@ info id =
             }
 
         BrazilModel ->
-            { version = "brazil-1"
+            { version = "brazil-2"
             , name = "BRASIL: ponto de partida brasileiro"
-            , summary = "O mesmo modelo OPENFLEX, com as equações do livro, mas partindo de um ponto de repouso com proporções brasileiras. Cada período é um trimestre. No início, as importações são 17,5% do PIB, a dívida pública é 82% do PIB anual e 9,9% dela está com o exterior. A política inicial é gasto 18, alíquota de 27% e juro de 3,5% por trimestre, cerca de 14,75% ao ano. As premissas começam nos valores brasileiros já conferidos. É uma calibração parcial, não uma previsão: o modelo ainda não tem crescimento, transferências nem investimento."
-            , incomeLabel = "PIB real em cada trimestre"
-            , wealthLabel = "Riqueza das famílias (dinheiro e títulos)"
+            , summary = "O modelo OPENFLEX do livro, com dois acréscimos: transferências do governo às famílias e crescimento. Cada período é um trimestre, e tudo é mostrado em relação à tendência: uma linha reta significa crescer no ritmo normal, com o PIB real subindo 2,3% ao ano e os preços 4,5%. Na partida, a receita do governo é 41,9% do PIB, o consumo do governo 18,8%, os juros 11,3%, as transferências 17,9% e o déficit 5,4%; a dívida pública é 82% do PIB anual, com 9,9% dela no exterior. A política inicial é gasto 18, alíquota de 38% e juro de 3,5% por trimestre, cerca de 14,75% ao ano. É uma calibração parcial, não uma previsão."
+            , incomeLabel = "PIB real em relação à tendência, por trimestre"
+            , wealthLabel = "Riqueza das famílias em relação à tendência"
             , usesInterestRate = True
             , hasForeignSector = True
             , sectors = Brazil.sectors
@@ -145,12 +145,13 @@ info id =
             , steadyStateIncome = \_ -> NotComputed
             , premises = Brazil.premises
             , notes =
-                [ "Sem mudança de política, nada se move: a economia começa em repouso, quaisquer que sejam as premissas."
-                , "Aumente o gasto de 18 para 19. Com as respostas brasileiras de comércio, a moeda cai sem parar e a conta corrente não fecha: o ponto de repouso existe, mas é instável."
-                , "Leve as duas respostas de comércio a 0,70, o valor do livro, e repita: a moeda cai cerca de 10% e a conta corrente volta a zero."
-                , "Suba o juro meio ponto por trimestre, que são dois pontos ao ano: a moeda se valoriza cerca de 6,5% de imediato, dentro da faixa medida no Brasil. Depois ela se desvaloriza, porque o juro maior aumenta os pagamentos ao exterior."
-                , "A alíquota de 27% não é a carga tributária brasileira. No repouso o orçamento fecha, então a arrecadação tem de cobrir o gasto e os juros. No Brasil há transferências e déficit."
-                , "O consumo das famílias a partir da riqueza, 5,5% por trimestre, e o juro externo, 1% por trimestre, não vêm de estimativas. O arquivo CALIBRATION.md, no repositório, diz de onde vem cada número e o que falta."
+                [ "Sem mudança de política, nada se move: a economia segue na tendência, quaisquer que sejam as premissas. O déficit de 5,4% do PIB não é desequilíbrio. É o que mantém a dívida constante como proporção de um PIB que cresce."
+                , "Aumente o gasto de 18 para 19. O PIB fica acima da tendência e a moeda perde valor aos poucos, até se acomodar cerca de 25% abaixo. A dívida sobe de 3,28 para perto de 3,35 vezes o PIB trimestral e para."
+                , "Leve as duas respostas de comércio a 0,70, o valor do livro, e repita: a moeda se acomoda só 5% abaixo, e muito mais rápido."
+                , "Suba o juro meio ponto por trimestre, que são dois pontos ao ano: a moeda se valoriza cerca de 6% de imediato, dentro da faixa medida no Brasil. Depois se desvaloriza, e a dívida sobe em proporção ao PIB."
+                , "As transferências, 17,9% do PIB, são um valor fixo do modelo, e não um controle. Elas saem da conta: é o que sobra depois de fixados a receita, o gasto, a dívida e o juro."
+                , "Na partida, a conta corrente é positiva. O Brasil tem déficit. O modelo dá às famílias um quinto da riqueza em títulos estrangeiros, proporção herdada do livro e ainda sem fonte brasileira."
+                , "O modelo não tem investimento, o outro país tem o tamanho do Brasil, e o consumo a partir da riqueza não vem de estimativa. O arquivo CALIBRATION.md, no repositório, diz de onde vem cada número e o que falta."
                 , "Nada aqui é resultado sobre o Brasil. Os critérios das teses ainda não foram pré-registrados."
                 ]
             }

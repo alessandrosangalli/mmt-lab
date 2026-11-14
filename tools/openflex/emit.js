@@ -10,6 +10,7 @@ let out = `module Model.OpenFlex exposing
     , Params
     , Vars
     , bookParams
+    , carry
     , flows
     , sectors
     , simulate
@@ -37,6 +38,12 @@ this version of the model, so it only added a constant to each central
 bank's balance sheet. And the home central bank's bill holdings follow the
 book's own alternative equation 12.82A (it holds the bills nobody else
 does), which keeps the accounts from drifting apart over long runs.
+
+Two things are added, and both are switched off in the book's baseline. The
+home government can pay transfers to households (\`tr_k_uk\`). And the economy
+can sit on a growth path: every value is measured relative to its trend, where
+real quantities grow at \`trend\` a period and each country's prices at its
+\`infl\`. See \`carry\`.
 
 The body of \`sweep\`, the list of fields and the steady state are generated
 from one list of equations, the same list that produced the prototype these
@@ -79,6 +86,24 @@ ${rec(names, k => '= ' + lit(steady[k]), '    ')}
 
 
 
+-- TRENDS
+
+
+{-| Last period's values, measured against this period's trend.
+
+Real quantities grow at \`trend\` a period, each country's prices at its
+\`infl\`, amounts of money at both, and an exchange rate at the ratio of the
+two inflations. So relative to this period's trend, last period's value is
+smaller by one period of growth. With no growth and no inflation this
+changes nothing.
+
+-}
+carry : Params -> Vars -> Vars
+carry params vars =
+${rec(names, k => '= vars.' + k + ' / ' + gen.factor(k, 'params'), '    ')}
+
+
+
 -- EQUATIONS
 
 
@@ -94,7 +119,8 @@ ln x =
 
 {-| One pass over every equation, in order. Each one uses the values already
 computed in this pass where there are any, and the previous guess otherwise.
-A period is solved by repeating the pass until nothing changes.
+A period is solved by repeating the pass until nothing changes. \`lagged\` is
+the previous period as \`carry\` returns it.
 
 The comment above each line is the equation's number in the book.
 
@@ -141,7 +167,7 @@ now. Fails, rather than returning nonsense, when the passes do not settle.
 step : Params -> Vars -> Params -> Result Solver.Error Vars
 step laggedParams lagged params =
     Solver.fixedPoint
-        { sweep = sweep laggedParams lagged params
+        { sweep = sweep laggedParams (carry params lagged) params
         , distance = distance
         , tolerance = 1.0e-12
         , maxSweeps = 500
@@ -189,7 +215,7 @@ sectors =
 {-| The home country's payments in a period, in its own currency, with the
 foreign country as a single sector. Capital gains from the exchange rate are
 not payments, so they do not appear: foreign bills enter at what was paid for
-them in the period.
+them in the period. \`lagged\` is the previous period as \`carry\` returns it.
 -}
 flows : Params -> Vars -> Params -> Vars -> List Flow
 flows laggedParams lagged params vars =
@@ -199,18 +225,19 @@ flows laggedParams lagged params vars =
     , Flow "Importações" Firms RestOfWorld vars.im_uk
     , Flow "Renda" Firms Households vars.y_uk
     , Flow "Impostos" Households Government vars.t_uk
+    , Flow "Transferências" Government Households vars.tr_uk
     , Flow "Juros dos títulos domésticos das famílias" Government Households (laggedParams.r_uk * lagged.b_ukuk_d)
     , Flow "Juros dos títulos domésticos do banco central" Government CentralBank (laggedParams.r_uk * lagged.b_cb_ukuk_d)
     , Flow "Juros dos títulos domésticos do exterior" Government RestOfWorld (laggedParams.r_uk * lagged.b_usuk_s)
     , Flow "Juros dos títulos estrangeiros das famílias" RestOfWorld Households (vars.xr_us * laggedParams.r_us * lagged.b_ukus_s)
-    , Flow "Juros dos títulos estrangeiros do banco central" RestOfWorld CentralBank (vars.xr_us * laggedParams.r_us * laggedParams.b_cb_ukus_s)
+    , Flow "Juros dos títulos estrangeiros do banco central" RestOfWorld CentralBank (vars.xr_us * laggedParams.r_us * laggedParams.b_cb_ukus_s / (params.trend * params.infl_us))
     , Flow "Lucro do banco central" CentralBank Government vars.f_cb_uk
     , Flow "Variação do dinheiro" Households CentralBank (vars.h_uk_d - lagged.h_uk_d)
     , Flow "Variação dos títulos domésticos das famílias" Households Government (vars.b_ukuk_d - lagged.b_ukuk_d)
     , Flow "Variação dos títulos domésticos do banco central" CentralBank Government (vars.b_cb_ukuk_d - lagged.b_cb_ukuk_d)
     , Flow "Variação dos títulos domésticos do exterior" RestOfWorld Government (vars.b_usuk_s - lagged.b_usuk_s)
     , Flow "Variação dos títulos estrangeiros das famílias" Households RestOfWorld ((vars.b_ukus_s - lagged.b_ukus_s) * vars.xr_us)
-    , Flow "Variação dos títulos estrangeiros do banco central" CentralBank RestOfWorld ((params.b_cb_ukus_s - laggedParams.b_cb_ukus_s) * vars.xr_us)
+    , Flow "Variação dos títulos estrangeiros do banco central" CentralBank RestOfWorld ((params.b_cb_ukus_s - laggedParams.b_cb_ukus_s / (params.trend * params.infl_us)) * vars.xr_us)
     ]
 `;
 fs.writeFileSync(process.argv[2], out);

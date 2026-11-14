@@ -56,7 +56,13 @@ axisValues premise =
 
 
 {-| A run has settled when, in its last period, the balance with the rest of
-the world is within a thousandth of income.
+the world is within a thousandth of income, or when its first extra series
+(the exchange rate, in the open models) has moved less than 1% over the last
+ten periods.
+
+The second test is for economies on a growth path, where the balance with the
+rest of the world does not rest at zero.
+
 -}
 classify : Run -> Outcome
 classify run =
@@ -65,9 +71,24 @@ classify run =
             NoSolution period
 
         Nothing ->
-            case List.head (List.reverse run.snapshots) of
+            let
+                recent =
+                    List.reverse run.snapshots
+
+                firstSeries snapshot =
+                    Maybe.map .value (List.head snapshot.charts)
+
+                steady latest =
+                    case ( firstSeries latest, Maybe.andThen firstSeries (List.head (List.drop 10 recent)) ) of
+                        ( Just now, Just before ) ->
+                            abs (now - before) <= 0.01 * abs before
+
+                        _ ->
+                            False
+            in
+            case List.head recent of
                 Just latest ->
-                    if abs latest.foreignBalance <= 0.001 * abs latest.income then
+                    if abs latest.foreignBalance <= 0.001 * abs latest.income || steady latest then
                         Settles
 
                     else

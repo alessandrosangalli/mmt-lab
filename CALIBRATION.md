@@ -273,29 +273,17 @@ Resultados exploratórios, com a reação das carteiras em 0,5, antes da correç
 
 O resultado da seção 1 se mantém no ponto de partida brasileiro: com as respostas brasileiras de comércio, o câmbio não corrige a conta corrente. O repasse aos preços continua abaixo do alvo da seção 2: com a moeda 9% mais fraca, os preços sobem 0,4%.
 
-### O modelo BRASIL na tela
+### O modelo BRASIL na tela, versão `brazil-1` (substituída)
 
-O repouso foi levado para o código como o modelo `brazil-1`. Para a política inicial cair nos passos dos controles, três valores foram fixados: gasto 18, alíquota de 27% e juro de 3,5% por trimestre (14,75% ao ano). Com eles fixos, os alvos são importações, dívida e parcela do exterior, e o consumo do governo vira resultado: 19,0% do PIB, contra 18,8% no Brasil. As exportações ficam em 17,9%.
+O repouso sem crescimento foi levado para o código como o modelo `brazil-1`, com gasto 18, alíquota de 27% e juro de 3,5% por trimestre. Nele, com as respostas brasileiras de comércio, um gasto de 18 para 19 levava a moeda a 0,607 no período 120, com a conta corrente ainda abrindo. Esse resultado não se sustentou com crescimento, como se vê abaixo.
 
-As premissas foram ancoradas no repouso. Cada uma muda a força com que a economia reage, e nenhuma muda o ponto de partida: quando a reação muda, a constante da mesma equação é deslocada para o valor no repouso continuar igual. Isso é conferido por teste com quatro combinações de premissas.
+### Crescimento e transferências: o modelo `brazil-2`
 
-Resultados a partir desse ponto, conferidos entre o protótipo e o código Elm:
+O `brazil-1` repousava com déficit zero e sem transferências. Para chegar às contas públicas brasileiras, duas coisas mudaram nas equações.
 
-| Mudança | Comércio | Câmbio no período 120 | Conta corrente no período 120 |
-| --- | --- | --- | --- |
-| Gasto de 18 para 19 | Brasileiro | 0,607 | −0,54: continua abrindo |
-| Gasto de 18 para 19 | Do livro | 0,902 | −0,006: fechou |
-| Juro de 3,5% para 4% por trimestre | Brasileiro | 0,406, depois de subir a 1,065 no primeiro período | −1,42 |
+**Crescimento.** Cada grandeza passa a ser medida em relação à sua tendência. As quantidades reais crescem a uma taxa por trimestre, os preços de cada país à sua inflação, e os valores em dinheiro às duas. Na prática, todo valor do período anterior que aparece numa equação é dividido pelo crescimento da sua tendência. Um ponto de repouso desse sistema é uma trajetória de crescimento equilibrado: a dívida cresce junto com a economia, e o governo tem o déficit que mantém a dívida constante como proporção do PIB. Com crescimento e inflação iguais a zero, o sistema é idêntico ao do livro, bit a bit.
 
-A alta de meio ponto por trimestre, que são dois pontos ao ano, valoriza a moeda em 6,5% de imediato: 3,3% por ponto ao ano, dentro da faixa medida.
-
-### Crescimento e transferências: desenho testado no protótipo
-
-O modelo `brazil-1` repousa com déficit zero e sem transferências. Para chegar às contas públicas brasileiras, o desenho proposto muda duas coisas nas equações, e foi testado no protótipo (`tools/openflex/growth.js` e `growth-rest.js`) antes de ir para o código Elm.
-
-**Crescimento.** Cada grandeza passa a ser medida em relação à sua tendência. As quantidades reais crescem a uma taxa por trimestre, os preços de cada país à sua inflação, e os valores em dinheiro às duas. Na prática, todo valor do período anterior que aparece numa equação é dividido pelo crescimento da sua tendência. Um ponto de repouso desse sistema é uma trajetória de crescimento equilibrado: a dívida cresce junto com a economia, e o governo tem o déficit que mantém a dívida constante como proporção do PIB. Com crescimento e inflação iguais a zero, o sistema é idêntico ao do livro, o que foi conferido número a número.
-
-**Transferências.** Um pagamento do governo às famílias, fixo em termos reais, que entra na renda disponível e no déficit.
+**Transferências.** Um pagamento do governo às famílias, fixo em termos reais, que entra na renda disponível e no déficit. É um valor fixo do modelo, não um controle na tela.
 
 Valores usados:
 
@@ -306,9 +294,11 @@ Valores usados:
 | Inflação externa | 2,7% ao ano | Sem fonte lida | Não lida |
 | Juro externo | 3,75% a 4% ao ano, cerca de 0,96% por trimestre | Federal Reserve, comunicado de 28 de outubro de 2026 | Texto |
 
+Três desses quatro valores ainda não cumprem a regra do início deste documento, que pede leitura no original antes de entrar no modelo. Eles entraram porque o modelo na tela é declarado como calibração parcial, e precisam ser conferidos antes de qualquer veredito.
+
 As contas do governo geral, que servem de alvo e de conferência, vêm de uma única fonte, o boletim de Estatísticas Fiscais do Governo Geral do Tesouro para o primeiro trimestre de 2026 (lido no texto). Os números são de um trimestre só, sem ajuste sazonal.
 
-| Conta do governo, em % do PIB | Modelo na trajetória | Brasil, 1º trimestre de 2026 | Como entra |
+| Conta do governo, em % do PIB | Modelo na partida | Brasil, 1º trimestre de 2026 | Como entra |
 | --- | --- | --- | --- |
 | Receita total | 41,9% | 41,90% | Escolhida pela alíquota de 38% |
 | Consumo do governo | 18,8% | 18,8% nas contas nacionais; 15,85% de pessoal e bens e serviços no boletim | Alvo |
@@ -316,22 +306,36 @@ As contas do governo geral, que servem de alvo e de conferência, vêm de uma ú
 | Transferências | 17,9% | 16,18% de benefícios, mais 4,41% de demais gastos | Resultado |
 | Déficit | 5,4% | 5,73% | Resultado |
 
-Os alvos de importações, dívida e parcela do exterior continuam os mesmos. Juros, transferências e déficit não foram alvos e caem perto dos números brasileiros. É o primeiro ponto de partida em que a carga, o gasto, a dívida e o juro brasileiros cabem ao mesmo tempo.
+Os alvos de importações (17,5%), dívida (3,28 vezes o PIB trimestral) e parcela do exterior (9,9%) continuam os mesmos, e as exportações saem em 18,3%, contra 18,0%. Juros, transferências e déficit não foram alvos e caem perto dos números brasileiros. É o primeiro ponto de partida em que a receita, o gasto, a dívida e o juro brasileiros cabem ao mesmo tempo.
 
-**O que não bate.** Na trajetória, a conta corrente é positiva, 0,4% do PIB. O modelo trata as famílias brasileiras como donas de muitos títulos estrangeiros, cerca de um quinto da riqueza, proporção herdada do livro. O Brasil tem déficit em conta corrente e passivo externo líquido. Falta um alvo para os ativos externos dos residentes, com a posição internacional de investimento do Banco Central.
+**O que não bate.** Na partida, a conta corrente é positiva, 0,4% do PIB. O modelo trata as famílias brasileiras como donas de muitos títulos estrangeiros, cerca de um quinto da riqueza, proporção herdada do livro. O Brasil tem déficit em conta corrente e passivo externo líquido. Falta um alvo para os ativos externos dos residentes, com a posição internacional de investimento do Banco Central.
 
-**O que muda no comportamento.** Resultados exploratórios, com alíquota de 29,4% e antes do ajuste final: um gasto 5% maior leva a moeda a 0,798 no período 120, com a conta corrente estável; no `brazil-1` a queda continuava sem parar. Isso precisa ser refeito no ponto de partida final, com testes.
+As premissas continuam ancoradas na partida: mudam a força das reações, e não o ponto de partida, o que é conferido por teste com quatro combinações.
 
-**Decisões embutidas, a confirmar.** As transferências entram como parâmetro fixo, não como controle na tela: virar controle muda o formato do link e a política de todos os modelos. A tela mostraria as séries em relação à tendência, de modo que uma linha reta significa crescer na tendência.
+### O que o `brazil-2` faz, e o que mudou em relação ao `brazil-1`
+
+Números em relação à tendência, conferidos entre o protótipo e o código Elm.
+
+| Mudança | Comércio | Câmbio no período 120 | Câmbio no período 600 | Dívida sobre o PIB trimestral no período 600 |
+| --- | --- | --- | --- | --- |
+| Gasto de 18 para 19 | Brasileiro | 0,827 | 0,742 | 3,35 |
+| Gasto de 18 para 19 | Do livro | 0,951 | 0,951 | 3,27 |
+
+**A instabilidade do `brazil-1` desaparece com crescimento.** Sem crescimento, com as respostas brasileiras de comércio, a moeda caía sem parar depois de um aumento de gasto. Com crescimento, ela cai mais e mais devagar do que com as respostas do livro, mas se acomoda: cerca de 26% abaixo, depois de mais de cem anos de trimestres. A explicação mais provável é que o crescimento dilui os estoques de dívida externa a cada período, o que falta num modelo parado. O resultado anterior era, em boa parte, consequência de o modelo não crescer. Isso vale para as seções 1 e 5 deste documento, que usam o modelo do livro sem crescimento.
+
+Uma alta de meio ponto no juro por trimestre, que são dois pontos ao ano, valoriza a moeda em 6,2% de imediato: 3,1% por ponto ao ano, dentro da faixa medida. No período 120 a moeda está em 0,761 e a dívida subiu de 3,28 para 3,43 vezes o PIB trimestral. Com juro de 6% por trimestre, o modelo deixa de ter solução no período 80.
+
+Esses resultados foram vistos antes de os critérios de T4 a T6 serem pré-registrados, e isso terá de ser declarado.
 
 ### O que falta decidir e fazer
 
-1. **Levar crescimento e transferências para o código Elm**, como `brazil-2`, com os valores acima conferidos nos originais.
-2. **Ativos externos dos residentes.** Um alvo que leve a conta corrente da trajetória ao sinal brasileiro.
-3. **O outro país.** O cálculo manteve o país doméstico do tamanho do livro. Para o Brasil, o resto do mundo é muito maior.
+1. **Conferir nos originais** o crescimento, a inflação doméstica e a inflação externa.
+2. **Ativos externos dos residentes.** Um alvo que leve a conta corrente da partida ao sinal brasileiro.
+3. **O outro país.** O cálculo manteve o país doméstico perto do tamanho do livro. Para o Brasil, o resto do mundo é muito maior.
 4. **Repasse do câmbio aos preços.** Ajustar para a faixa de 0,10 a 0,16.
 5. **Defasagens.** O livro não tem defasagem nas exportações; a estimativa brasileira indica ajuste em três trimestres.
 6. **Investimento.** O modelo não tem, e por isso o consumo das famílias fica em 80% do PIB.
+7. **Transferências como controle na tela**, para simular mudanças em benefícios.
 
 ## Referências
 

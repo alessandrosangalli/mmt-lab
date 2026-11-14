@@ -30,6 +30,10 @@ import Sfc.Matrix exposing (Flow, Sector(..))
 
 {-| The period just solved and the one before it. Both are needed to tell
 payments from holdings: a payment is a change in a holding.
+
+`lagged` is the previous period measured against this period's trend
+(`OpenFlex.carry`), so that the two can be compared on a growth path.
+
 -}
 type alias State =
     { laggedParams : Params
@@ -165,7 +169,7 @@ stepWith paramsFor chosen policy state =
 
         advance vars =
             { laggedParams = state.params
-            , lagged = state.vars
+            , lagged = OpenFlex.carry params state.vars
             , params = params
             , vars = vars
             }
@@ -191,7 +195,7 @@ observe number state =
     { number = number
     , income = vars.y_k_uk
     , householdWealth = vars.v_uk
-    , privateSurplus = vars.y_uk + interestReceived - vars.t_uk - vars.cons_uk
+    , privateSurplus = vars.y_uk + interestReceived + vars.tr_uk - vars.t_uk - vars.cons_uk
     , governmentBalance = negate vars.psbr_uk
     , foreignBalance = negate vars.cab_uk
     , indicators =
@@ -199,6 +203,7 @@ observe number state =
         , { name = "Taxa de câmbio", value = vars.xr_uk }
         , { name = "Nível de preços", value = vars.pds_uk }
         , { name = "Déficit do governo", value = vars.psbr_uk }
+        , { name = "Dívida pública ÷ PIB", value = vars.b_uk_s / vars.y_uk }
         , { name = "Conta corrente", value = vars.cab_uk }
         , { name = "Exportações", value = vars.x_uk }
         , { name = "Importações", value = vars.im_uk }
