@@ -318,7 +318,7 @@ As contas do governo geral, que servem de alvo e de conferência, vêm de uma ú
 
 Os alvos de importações, dívida e parcela do exterior continuam os mesmos. Juros, transferências e déficit não foram alvos e caem perto dos números brasileiros. É o primeiro ponto de partida em que a carga, o gasto, a dívida e o juro brasileiros cabem ao mesmo tempo.
 
-**O que não bate.** Na trajetória, a conta corrente é positiva, 0,4% do PIB. O modelo trata as famílias brasileiras como donas de muitos títulos estrangeiros, 24% da riqueza, que é o valor do livro. O Brasil tem déficit em conta corrente e passivo externo líquido. Falta um alvo para os ativos externos dos residentes, com a posição internacional de investimento do Banco Central.
+**O que não bate.** Na trajetória, a conta corrente é positiva, 0,4% do PIB. O modelo trata as famílias brasileiras como donas de muitos títulos estrangeiros, cerca de um quinto da riqueza, proporção herdada do livro. O Brasil tem déficit em conta corrente e passivo externo líquido. Falta um alvo para os ativos externos dos residentes, com a posição internacional de investimento do Banco Central.
 
 **O que muda no comportamento.** Resultados exploratórios, com alíquota de 29,4% e antes do ajuste final: um gasto 5% maior leva a moeda a 0,798 no período 120, com a conta corrente estável; no `brazil-1` a queda continuava sem parar. Isso precisa ser refeito no ponto de partida final, com testes.
 
