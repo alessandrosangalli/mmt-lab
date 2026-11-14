@@ -1356,7 +1356,7 @@ viewMapGrid premises horizontal vertical job finished =
                 NoSolution period ->
                     "sem solução a partir do período " ++ String.fromInt period
 
-        viewCell cell =
+        viewMapCell cell =
             let
                 ( style, content ) =
                     case cell.outcome of
@@ -1400,7 +1400,7 @@ viewMapGrid premises horizontal vertical job finished =
             div [ class "map-tick" ] [ text (Format.fixed 2 y) ]
                 :: (case line of
                         Just cells ->
-                            List.map viewCell cells
+                            List.map viewMapCell cells
 
                         Nothing ->
                             List.map (\_ -> div [ class "cell pending" ] []) xs
