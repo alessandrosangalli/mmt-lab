@@ -160,7 +160,7 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .bar.money { background: var(--amber); }
 .column { cursor: pointer; }
 .column.changed { box-shadow: inset 0 0 0 1px var(--red); background: color-mix(in srgb, var(--red) 12%, transparent); }
-.column.selected { background: color-mix(in srgb, var(--ink) 16%, transparent); }
+.column.selected { background: color-mix(in srgb, var(--ink) 38%, transparent); }
 .chart + .control { margin-top: 12px; }
 .warning {
   margin: 0;
