@@ -191,11 +191,16 @@ observe number state =
         interestReceived =
             (state.laggedParams.r_uk * lagged.b_ukuk_d)
                 + (vars.xr_us * state.laggedParams.r_us * lagged.b_ukus_s)
+
+        -- Rows that only exist when the model has transfers or direct
+        -- investment are left out when it has neither.
+        used row =
+            row.amount /= 0 || not (List.member row.label [ "Transferências", "Lucros remetidos ao exterior", "Investimento direto recebido", "Empresas de propriedade estrangeira" ])
     in
     { number = number
     , income = vars.y_k_uk
     , householdWealth = vars.v_uk
-    , privateSurplus = vars.y_uk + interestReceived + vars.tr_uk - vars.t_uk - vars.cons_uk
+    , privateSurplus = vars.y_uk - vars.remit_uk + interestReceived + vars.tr_uk - vars.t_uk - vars.cons_uk
     , governmentBalance = negate vars.psbr_uk
     , foreignBalance = negate vars.cab_uk
     , indicators =
@@ -213,7 +218,7 @@ observe number state =
         [ { name = "Taxa de câmbio (valor da moeda doméstica)", value = vars.xr_uk }
         , { name = "Nível de preços doméstico", value = vars.pds_uk }
         ]
-    , flows = OpenFlex.flows state.laggedParams lagged state.params vars
+    , flows = List.filter used (OpenFlex.flows state.laggedParams lagged state.params vars)
     , stocks =
         [ Flow "Dinheiro" CentralBank Households vars.h_uk_d
         , Flow "Títulos domésticos das famílias" Government Households vars.b_ukuk_d
@@ -221,5 +226,7 @@ observe number state =
         , Flow "Títulos domésticos do exterior" Government RestOfWorld vars.b_usuk_s
         , Flow "Títulos estrangeiros das famílias" RestOfWorld Households vars.b_ukus_d
         , Flow "Reservas do banco central" RestOfWorld CentralBank (state.params.b_cb_ukus_s * vars.xr_us)
+        , Flow "Empresas de propriedade estrangeira" Firms RestOfWorld vars.fdi_uk
         ]
+            |> List.filter used
     }

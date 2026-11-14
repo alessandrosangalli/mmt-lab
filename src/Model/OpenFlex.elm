@@ -32,11 +32,13 @@ bank's balance sheet. And the home central bank's bill holdings follow the
 book's own alternative equation 12.82A (it holds the bills nobody else
 does), which keeps the accounts from drifting apart over long runs.
 
-Two things are added, and both are switched off in the book's baseline. The
-home government can pay transfers to households (`tr_k_uk`). And the economy
-can sit on a growth path: every value is measured relative to its trend, where
-real quantities grow at `trend` a period and each country's prices at its
-`infl`. See `carry`.
+Three things are added, and all are switched off in the book's baseline. The
+home government can pay transfers to households (`tr_k_uk`). Foreigners can
+buy a share of home firms from home households every period (`fdi_flow_uk`,
+as a share of output) and receive profits on what they own (`rho_uk`). And
+the economy can sit on a growth path: every value is measured relative to its
+trend, where real quantities grow at `trend` a period and each country's
+prices at its `infl`. See `carry`.
 
 The body of `sweep`, the list of fields and the steady state are generated
 from one list of equations, the same list that produced the prototype these
@@ -98,6 +100,8 @@ type alias Params =
     , infl_uk : Float
     , infl_us : Float
     , tr_k_uk : Float
+    , rho_uk : Float
+    , fdi_flow_uk : Float
     }
 
 
@@ -150,6 +154,8 @@ bookParams =
     , infl_uk = 1
     , infl_us = 1
     , tr_k_uk = 0
+    , rho_uk = 0
+    , fdi_flow_uk = 0
     }
 
 
@@ -171,6 +177,7 @@ type alias Vars =
     , x_us : Float
     , im_uk : Float
     , im_us : Float
+    , remit_uk : Float
     , t_uk : Float
     , t_us : Float
     , tr_uk : Float
@@ -202,6 +209,8 @@ type alias Vars =
     , cons_us : Float
     , g_uk : Float
     , g_us : Float
+    , fdi_in_uk : Float
+    , fdi_uk : Float
     , v_uk : Float
     , v_us : Float
     , v_k_uk : Float
@@ -244,6 +253,7 @@ steadyState =
     , x_us = 11.410184024528371
     , im_uk = 11.40676181591973
     , im_us = 11.40938062724784
+    , remit_uk = 0
     , t_uk = 19.46320060295118
     , t_us = 19.46558933831728
     , tr_uk = 0
@@ -275,6 +285,8 @@ steadyState =
     , cons_us = 77.86235735326913
     , g_uk = 15.303640621312908
     , g_us = 15.303912198127824
+    , fdi_in_uk = 0
+    , fdi_uk = 0
     , v_uk = 145.97765396348274
     , v_us = 145.99556992662787
     , v_k_uk = 152.6200543524883
@@ -328,6 +340,7 @@ carry params vars =
     , x_us = vars.x_us / (params.trend * params.infl_us)
     , im_uk = vars.im_uk / (params.trend * params.infl_uk)
     , im_us = vars.im_us / (params.trend * params.infl_us)
+    , remit_uk = vars.remit_uk / (params.trend * params.infl_uk)
     , t_uk = vars.t_uk / (params.trend * params.infl_uk)
     , t_us = vars.t_us / (params.trend * params.infl_us)
     , tr_uk = vars.tr_uk / (params.trend * params.infl_uk)
@@ -359,6 +372,8 @@ carry params vars =
     , cons_us = vars.cons_us / (params.trend * params.infl_us)
     , g_uk = vars.g_uk / (params.trend * params.infl_uk)
     , g_us = vars.g_us / (params.trend * params.infl_us)
+    , fdi_in_uk = vars.fdi_in_uk / (params.trend * params.infl_uk)
+    , fdi_uk = vars.fdi_uk / (params.trend * params.infl_uk)
     , v_uk = vars.v_uk / (params.trend * params.infl_uk)
     , v_us = vars.v_us / (params.trend * params.infl_us)
     , v_k_uk = vars.v_k_uk / params.trend
@@ -461,13 +476,17 @@ sweep laggedParams lagged params guess =
         im_us =
             im_k_us * pm_us
 
-        -- [12.7] taxes in UK
+        -- profits that foreign-owned firms in the UK send abroad (not in the book)
+        remit_uk =
+            laggedParams.rho_uk * lagged.fdi_uk
+
+        -- [12.7] taxes in UK; household income is output less the profits sent abroad
         t_uk =
-            params.theta_uk * (guess.y_uk + laggedParams.r_uk * lagged.b_ukuk_d + xr_us * laggedParams.r_us * lagged.b_ukus_s)
+            params.theta_uk * (guess.y_uk - remit_uk + laggedParams.r_uk * lagged.b_ukuk_d + xr_us * laggedParams.r_us * lagged.b_ukus_s)
 
         -- [12.8] taxes in US
         t_us =
-            params.theta_us * (guess.y_us + laggedParams.r_us * lagged.b_usus_d + guess.xr_uk * laggedParams.r_uk * lagged.b_usuk_s)
+            params.theta_us * (guess.y_us + guess.xr_uk * remit_uk + laggedParams.r_us * lagged.b_usus_d + guess.xr_uk * laggedParams.r_uk * lagged.b_usuk_s)
 
         -- government transfers to UK households, fixed in real terms (not in the book)
         tr_uk =
@@ -475,11 +494,11 @@ sweep laggedParams lagged params guess =
 
         -- [12.1] disposable income in UK, plus transfers
         yd_uk =
-            (guess.y_uk + laggedParams.r_uk * lagged.b_ukuk_d + xr_us * laggedParams.r_us * lagged.b_ukus_s) * (1 - params.theta_uk) + (xr_us - lagged.xr_us) * lagged.b_ukus_s + tr_uk
+            (guess.y_uk - remit_uk + laggedParams.r_uk * lagged.b_ukuk_d + xr_us * laggedParams.r_us * lagged.b_ukus_s) * (1 - params.theta_uk) + (xr_us - lagged.xr_us) * lagged.b_ukus_s + tr_uk
 
         -- [12.4] disposable income in US
         yd_us =
-            (guess.y_us + laggedParams.r_us * lagged.b_usus_d + guess.xr_uk * laggedParams.r_uk * lagged.b_usuk_s) * (1 - params.theta_us) + (guess.xr_uk - lagged.xr_uk) * lagged.b_usuk_s
+            (guess.y_us + guess.xr_uk * remit_uk + laggedParams.r_us * lagged.b_usus_d + guess.xr_uk * laggedParams.r_uk * lagged.b_usuk_s) * (1 - params.theta_us) + (guess.xr_uk - lagged.xr_uk) * lagged.b_usuk_s
 
         -- [12.35] real Haig-Simons disposable income in UK
         ydhs_k_uk =
@@ -585,13 +604,21 @@ sweep laggedParams lagged params guess =
         g_us =
             params.g_k_us * pds_us
 
-        -- [12.3] wealth accumulation in UK
+        -- foreign direct investment into the UK: what foreigners pay UK households for a share of UK firms (not in the book)
+        fdi_in_uk =
+            params.fdi_flow_uk * y_uk
+
+        -- the stock of UK firms owned abroad
+        fdi_uk =
+            lagged.fdi_uk + fdi_in_uk
+
+        -- [12.3] wealth accumulation in UK, plus the proceeds of direct investment
         v_uk =
-            lagged.v_uk + yd_uk - cons_uk
+            lagged.v_uk + yd_uk - cons_uk + fdi_in_uk
 
         -- [12.6] wealth accumulation in US
         v_us =
-            lagged.v_us + yd_us - cons_us
+            lagged.v_us + yd_us - cons_us - fdi_in_uk * guess.xr_uk
 
         -- [12.33] real wealth in UK
         v_k_uk =
@@ -659,7 +686,7 @@ sweep laggedParams lagged params guess =
 
         -- [12.15] current account balance of UK
         cab_uk =
-            x_uk - im_uk + xr_us * laggedParams.r_us * lagged.b_ukus_s - laggedParams.r_uk * lagged.b_usuk_s + laggedParams.r_us * laggedParams.b_cb_ukus_s / (params.trend * params.infl_us) * xr_us
+            x_uk - im_uk + xr_us * laggedParams.r_us * lagged.b_ukus_s - laggedParams.r_uk * lagged.b_usuk_s + laggedParams.r_us * laggedParams.b_cb_ukus_s / (params.trend * params.infl_us) * xr_us - remit_uk
 
         -- government deficit in UK
         psbr_uk =
@@ -686,6 +713,7 @@ sweep laggedParams lagged params guess =
     , x_us = x_us
     , im_uk = im_uk
     , im_us = im_us
+    , remit_uk = remit_uk
     , t_uk = t_uk
     , t_us = t_us
     , tr_uk = tr_uk
@@ -717,6 +745,8 @@ sweep laggedParams lagged params guess =
     , cons_us = cons_us
     , g_uk = g_uk
     , g_us = g_us
+    , fdi_in_uk = fdi_in_uk
+    , fdi_uk = fdi_uk
     , v_uk = v_uk
     , v_us = v_us
     , v_k_uk = v_k_uk
@@ -775,6 +805,7 @@ distance before after =
         , relativeChange before.x_us after.x_us
         , relativeChange before.im_uk after.im_uk
         , relativeChange before.im_us after.im_us
+        , relativeChange before.remit_uk after.remit_uk
         , relativeChange before.t_uk after.t_uk
         , relativeChange before.t_us after.t_us
         , relativeChange before.tr_uk after.tr_uk
@@ -806,6 +837,8 @@ distance before after =
         , relativeChange before.cons_us after.cons_us
         , relativeChange before.g_uk after.g_uk
         , relativeChange before.g_us after.g_us
+        , relativeChange before.fdi_in_uk after.fdi_in_uk
+        , relativeChange before.fdi_uk after.fdi_uk
         , relativeChange before.v_uk after.v_uk
         , relativeChange before.v_us after.v_us
         , relativeChange before.v_k_uk after.v_k_uk
@@ -897,7 +930,9 @@ flows laggedParams lagged params vars =
     , Flow "Gasto público" Government Firms vars.g_uk
     , Flow "Exportações" RestOfWorld Firms vars.x_uk
     , Flow "Importações" Firms RestOfWorld vars.im_uk
-    , Flow "Renda" Firms Households vars.y_uk
+    , Flow "Renda" Firms Households (vars.y_uk - vars.remit_uk)
+    , Flow "Lucros remetidos ao exterior" Firms RestOfWorld vars.remit_uk
+    , Flow "Investimento direto recebido" RestOfWorld Households vars.fdi_in_uk
     , Flow "Impostos" Households Government vars.t_uk
     , Flow "Transferências" Government Households vars.tr_uk
     , Flow "Juros dos títulos domésticos das famílias" Government Households (laggedParams.r_uk * lagged.b_ukuk_d)

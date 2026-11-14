@@ -39,11 +39,13 @@ bank's balance sheet. And the home central bank's bill holdings follow the
 book's own alternative equation 12.82A (it holds the bills nobody else
 does), which keeps the accounts from drifting apart over long runs.
 
-Two things are added, and both are switched off in the book's baseline. The
-home government can pay transfers to households (\`tr_k_uk\`). And the economy
-can sit on a growth path: every value is measured relative to its trend, where
-real quantities grow at \`trend\` a period and each country's prices at its
-\`infl\`. See \`carry\`.
+Three things are added, and all are switched off in the book's baseline. The
+home government can pay transfers to households (\`tr_k_uk\`). Foreigners can
+buy a share of home firms from home households every period (\`fdi_flow_uk\`,
+as a share of output) and receive profits on what they own (\`rho_uk\`). And
+the economy can sit on a growth path: every value is measured relative to its
+trend, where real quantities grow at \`trend\` a period and each country's
+prices at its \`infl\`. See \`carry\`.
 
 The body of \`sweep\`, the list of fields and the steady state are generated
 from one list of equations, the same list that produced the prototype these
@@ -223,7 +225,9 @@ flows laggedParams lagged params vars =
     , Flow "Gasto público" Government Firms vars.g_uk
     , Flow "Exportações" RestOfWorld Firms vars.x_uk
     , Flow "Importações" Firms RestOfWorld vars.im_uk
-    , Flow "Renda" Firms Households vars.y_uk
+    , Flow "Renda" Firms Households (vars.y_uk - vars.remit_uk)
+    , Flow "Lucros remetidos ao exterior" Firms RestOfWorld vars.remit_uk
+    , Flow "Investimento direto recebido" RestOfWorld Households vars.fdi_in_uk
     , Flow "Impostos" Households Government vars.t_uk
     , Flow "Transferências" Government Households vars.tr_uk
     , Flow "Juros dos títulos domésticos das famílias" Government Households (laggedParams.r_uk * lagged.b_ukuk_d)

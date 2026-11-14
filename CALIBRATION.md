@@ -277,9 +277,9 @@ O resultado da seção 1 se mantém no ponto de partida brasileiro: com as respo
 
 O repouso sem crescimento foi levado para o código como o modelo `brazil-1`, com gasto 18, alíquota de 27% e juro de 3,5% por trimestre. Nele, com as respostas brasileiras de comércio, um gasto de 18 para 19 levava a moeda a 0,607 no período 120, com a conta corrente ainda abrindo. Esse resultado não se sustentou com crescimento, como se vê abaixo.
 
-### Crescimento e transferências: o modelo `brazil-3`
+### Crescimento, transferências e investimento direto: o modelo `brazil-4`
 
-O `brazil-1` repousava com déficit zero e sem transferências. Para chegar às contas públicas brasileiras, duas coisas mudaram nas equações.
+O `brazil-1` repousava com déficit zero e sem transferências. Para chegar às contas públicas e externas brasileiras, três coisas mudaram nas equações.
 
 **Crescimento.** Cada grandeza passa a ser medida em relação à sua tendência. As quantidades reais crescem a uma taxa por trimestre, os preços de cada país à sua inflação, e os valores em dinheiro às duas. Na prática, todo valor do período anterior que aparece numa equação é dividido pelo crescimento da sua tendência. Um ponto de repouso desse sistema é uma trajetória de crescimento equilibrado: a dívida cresce junto com a economia, e o governo tem o déficit que mantém a dívida constante como proporção do PIB. Com crescimento e inflação iguais a zero, o sistema é idêntico ao do livro, bit a bit.
 
@@ -299,46 +299,65 @@ Valores usados:
 
 **Sobre a inflação doméstica.** As contas nacionais dão um PIB de R$ 12,74 trilhões em 2025 contra R$ 11,78 trilhões em 2024, o que implica preços do PIB subindo cerca de 5,7%. O modelo usa o IPCA, 4,6%, que é mais recente. A diferença entre os dois é uma incerteza a registrar.
 
-A primeira versão com crescimento, `brazil-2`, ficou no ar por cerca de uma hora com valores ainda não conferidos (inflação de 4,5% e 2,7%, consumo do governo de 18,8%). O `brazil-3` troca esses valores pelos da tabela acima.
+**Investimento estrangeiro direto.** Todo período, estrangeiros compram das famílias uma parte das empresas, numa proporção fixa do PIB, e passam a receber lucros sobre o que têm. A compra aumenta a riqueza financeira das famílias, e os lucros remetidos saem da renda delas e entram na conta corrente. O modelo não tem capital produtivo, então o que os estrangeiros compram é uma participação nas empresas sem ativo correspondente no balanço. A contabilidade fecha: a conta corrente é igual à variação dos ativos externos líquidos em todos os períodos testados.
 
-As contas do governo geral, que servem de alvo e de conferência, vêm de uma única fonte, o boletim de Estatísticas Fiscais do Governo Geral do Tesouro para o primeiro trimestre de 2026 (lido no texto). Os números são de um trimestre só, sem ajuste sazonal.
+Histórico das versões, todas do mesmo dia: o `brazil-2` trouxe crescimento e transferências com valores ainda não conferidos; o `brazil-3` trocou esses valores pelos da tabela abaixo; o `brazil-4` acrescentou o investimento direto.
 
-| Conta do governo, em % do PIB | Modelo na partida | Brasil | Como entra |
+Valores das contas externas:
+
+| Grandeza | Valor | Fonte | Lida |
 | --- | --- | --- | --- |
-| Receita total | 41,9% | 41,90% no 1º trimestre de 2026 | Escolhida pela alíquota de 38% |
+| Entrada de investimento direto | 3,58% do PIB em 12 meses até junho de 2026 | Banco Central, nota do setor externo de 28 de julho de 2026 | Texto |
+| Conta corrente | Déficit de 2,46% do PIB em 12 meses até junho de 2026 | A mesma nota | Texto |
+| Exportações e importações | 17,8% e 17,5% do PIB em 2025 | IBGE, Contas Nacionais Trimestrais do 4º trimestre de 2025, calculado dos valores correntes | Texto |
+
+As contas do governo geral vêm de uma única fonte, o boletim de Estatísticas Fiscais do Governo Geral do Tesouro para o primeiro trimestre de 2026 (lido no texto). Os números são de um trimestre só, sem ajuste sazonal.
+
+| Em % do PIB | Modelo na partida | Brasil | Como entra |
+| --- | --- | --- | --- |
 | Consumo do governo | 19,1% | 19,1% em 2025 | Alvo |
-| Juros | 11,3% | 11,10% no 1º trimestre de 2026 | Resultado |
-| Transferências | 17,7% | 16,18% de benefícios, mais 4,41% de demais gastos | Resultado |
-| Déficit | 5,5% | 5,73% no 1º trimestre de 2026 | Resultado |
+| Importações | 17,5% | 17,5% em 2025 | Alvo |
+| Exportações | 17,8% | 17,8% em 2025 | Alvo, pela taxa de lucro remetido |
+| Entrada de investimento direto | 3,58% | 3,58% | Valor fixado |
+| Receita do governo | 41,8% | 41,90% no 1º trimestre de 2026 | Escolhida pela alíquota de 39% |
+| Juros do governo | 11,3% | 11,10% | Resultado |
+| Transferências | 17,5% | 16,18% de benefícios, mais 4,41% de demais gastos | Resultado |
+| Déficit do governo | 5,5% | 5,73% | Resultado |
+| Déficit da conta corrente | 3,3% | 2,46% | Resultado |
+| Lucros remetidos ao exterior | 3,2% | Não lido | Resultado |
 
-Os alvos de importações (17,5%), dívida (3,28 vezes o PIB trimestral) e parcela do exterior (9,9%) continuam os mesmos, e as exportações saem em 18,2%, contra 17,8% em 2025. Juros, transferências e déficit não foram alvos e caem perto dos números brasileiros. É o primeiro ponto de partida em que a receita, o gasto, a dívida e o juro brasileiros cabem ao mesmo tempo.
+Os alvos de dívida (3,28 vezes o PIB trimestral) e de parcela do exterior (9,9%) continuam os mesmos. Juros, transferências, déficit do governo e déficit da conta corrente não foram alvos e caem perto dos números brasileiros.
 
-**O que não bate: as contas externas.** Na partida, a conta corrente do modelo é positiva, 0,3% do PIB. No Brasil ela é negativa: déficit de 2,46% do PIB em 12 meses até junho de 2026 (Banco Central, nota do setor externo de 28 de julho de 2026, lida no texto). Numa trajetória de crescimento, um déficit desse tamanho exige um passivo externo líquido perto de 1,4 vez o PIB trimestral, cerca de 36% do PIB anual. No modelo, o único passivo externo é a dívida pública em poder de estrangeiros, 0,32 vez o PIB trimestral, e as famílias ainda têm um quinto da riqueza em títulos estrangeiros, proporção herdada do livro. O passivo externo brasileiro é sobretudo investimento direto: a entrada líquida foi de 3,58% do PIB em 12 meses, segundo a mesma nota. O modelo não tem esse tipo de ativo. Sem ele, não dá para acertar ao mesmo tempo a parcela da dívida pública no exterior e a conta corrente. É uma limitação de estrutura, não de parâmetro, e pesa na tese T5.
+**Por que a conta corrente não pode ser alvo.** Numa trajetória de crescimento, a conta corrente é fixada pelos estoques: é o que mantém o passivo externo líquido constante como proporção do PIB. Fixadas a entrada de investimento direto, a parcela da dívida pública no exterior e a carteira das famílias, o déficit de 3,3% é consequência. A primeira tentativa, com a conta corrente como alvo, não tinha solução. O parâmetro livre das contas externas, a taxa de lucro remetido, foi usado para acertar as exportações, e sai em 1,5% por trimestre, cerca de 6,3% ao ano. O estoque de empresas de propriedade estrangeira fica em 2,1 vezes o PIB trimestral, 53% do PIB anual. Nenhum desses dois números foi conferido contra a posição internacional de investimento do Banco Central, que não pôde ser aberta nesta sessão.
+
+**O que ainda não bate nas contas externas.** As famílias têm um quinto da riqueza em títulos estrangeiros, proporção herdada do livro e sem fonte brasileira. E o déficit da conta corrente do modelo é 0,8 ponto maior que o brasileiro.
 
 As premissas continuam ancoradas na partida: mudam a força das reações, e não o ponto de partida, o que é conferido por teste com quatro combinações.
 
-### O que o `brazil-3` faz, e o que mudou em relação ao `brazil-1`
+### O que o `brazil-4` faz, e o que mudou em relação ao `brazil-1`
 
 Números em relação à tendência, conferidos entre o protótipo e o código Elm.
 
 | Mudança | Comércio | Câmbio no período 120 | Câmbio no período 600 | Dívida sobre o PIB trimestral no período 600 |
 | --- | --- | --- | --- | --- |
-| Gasto de 18 para 19 | Brasileiro | 0,822 | 0,724 | 3,35 |
-| Gasto de 18 para 19 | Do livro | 0,950 | 0,950 | 3,27 |
+| Gasto de 18 para 19 | Brasileiro | 0,845 | 0,740 | 3,37 |
+| Gasto de 18 para 19 | Do livro | 0,953 | 0,953 | 3,27 |
 
-**A instabilidade do `brazil-1` desaparece com crescimento.** Sem crescimento, com as respostas brasileiras de comércio, a moeda caía sem parar depois de um aumento de gasto. Com crescimento, ela cai mais e mais devagar do que com as respostas do livro, mas se acomoda: cerca de 28% abaixo, depois de mais de cem anos de trimestres. A explicação mais provável é que o crescimento dilui os estoques de dívida externa a cada período, o que falta num modelo parado; isso ainda não foi testado isoladamente. O resultado anterior era, em boa parte, consequência de o modelo não crescer. Isso vale para as seções 1 e 5 deste documento, que usam o modelo do livro sem crescimento.
+**A instabilidade do `brazil-1` desaparece com crescimento.** Sem crescimento, com as respostas brasileiras de comércio, a moeda caía sem parar depois de um aumento de gasto. Com crescimento, ela cai mais e mais devagar do que com as respostas do livro, mas se acomoda: cerca de 26% abaixo, depois de mais de cem anos de trimestres. A explicação mais provável é que o crescimento dilui os estoques de dívida externa a cada período, o que falta num modelo parado; isso ainda não foi testado isoladamente. O resultado anterior era, em boa parte, consequência de o modelo não crescer. Isso vale para as seções 1 e 5 deste documento, que usam o modelo do livro sem crescimento.
 
-Uma alta de meio ponto no juro por trimestre, que são dois pontos ao ano, valoriza a moeda em 6,2% de imediato: 3,1% por ponto ao ano, dentro da faixa medida. No período 120 a moeda está em 0,754 e a dívida subiu de 3,28 para 3,43 vezes o PIB trimestral. Com juro de 6% por trimestre, o modelo deixa de ter solução no período 80.
+O investimento direto mudou pouco esse comportamento: sem ele, no `brazil-3`, os mesmos números eram 0,822 e 0,724.
+
+Uma alta de meio ponto no juro por trimestre, que são dois pontos ao ano, valoriza a moeda em 5,9% de imediato: 3,0% por ponto ao ano, dentro da faixa medida. No período 120 a moeda está em 0,782 e a dívida subiu de 3,28 para 3,43 vezes o PIB trimestral. Com juro de 6% por trimestre, o modelo deixa de ter solução no período 90.
 
 Esses resultados foram vistos antes de os critérios de T4 a T6 serem pré-registrados, e isso terá de ser declarado.
 
 ### O que falta decidir e fazer
 
-1. **Passivo externo privado.** Um ativo que represente o investimento estrangeiro no país, para o modelo acertar a conta corrente sem errar a parcela da dívida pública no exterior. Muda as equações.
+1. **Conferir o lado externo** contra a posição internacional de investimento do Banco Central: o estoque de investimento direto, os lucros remetidos e os ativos dos residentes no exterior.
 2. **O outro país.** O cálculo manteve o país doméstico perto do tamanho do livro. Para o Brasil, o resto do mundo é muito maior.
 3. **Repasse do câmbio aos preços.** Ajustar para a faixa de 0,10 a 0,16.
 4. **Defasagens.** O livro não tem defasagem nas exportações; a estimativa brasileira indica ajuste em três trimestres.
-5. **Investimento.** O modelo não tem, e por isso o consumo das famílias fica em 80% do PIB, contra 63,4% no Brasil, mais 16,8% de investimento.
+5. **Investimento produtivo.** O modelo não tem, e por isso o consumo das famílias fica em 80% do PIB, contra 63,4% no Brasil, mais 16,8% de investimento.
 6. **Transferências como controle na tela**, para simular mudanças em benefícios.
 7. **Testar isoladamente** por que o crescimento estabiliza o câmbio.
 
