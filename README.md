@@ -50,6 +50,8 @@ O código é em inglês; a interface é em português.
 | `Scenario` | Um experimento repetível: política inicial, mudanças datadas e horizonte |
 | `Engine` | A interface que todo modelo implementa e o laço que roda um cenário por ela |
 | `Model.Sim`, `Model.Pc` | Os modelos, como funções puras |
+| `Model.OpenFlex` | Economia aberta com câmbio flutuante (cap. 12): dois países, comércio, títulos dos dois lados e preços. Ainda sem tela |
+| `Sfc.Solver` | Resolve um período cujas equações dependem umas das outras, e devolve erro quando não há solução |
 | `Models` | O catálogo de modelos disponíveis na tela |
 | `Link` | Leitura e escrita do modelo e dos cenários na URL |
 | `Chart` | Gráfico de linhas responsivo |
