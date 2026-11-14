@@ -41,6 +41,11 @@ O modelo e o cenário ficam codificados em um link, que reproduz exatamente o me
 
 Links antigos, sem o campo de juros, continuam abrindo.
 
+## Documentos do projeto
+
+- [`PROTOCOL.md`](PROTOCOL.md): as sete teses, as regras do pré-registro e o padrão de evidência.
+- [`CALIBRATION.md`](CALIBRATION.md): as estimativas publicadas para o Brasil que vão definir os parâmetros, com o que já foi conferido e o que falta.
+
 ## Organização do código
 
 O código é em inglês; a interface é em português.
