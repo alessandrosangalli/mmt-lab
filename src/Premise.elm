@@ -9,9 +9,11 @@ import Dict exposing (Dict)
 
 
 {-| `key` names the premise in a link. `note` says what it means, what the
-book assumes and what has been estimated for Brazil. `brazil` is the central
-published estimate for Brazil, where this project has read one in the
-original.
+book assumes and what has been estimated for Brazil. `brazil` is the value for Brazil,
+where this project has read a source in the original: either the central
+published estimate of the premise itself, or the value that makes the model
+reproduce a published estimate of something the premise drives. The note says
+which.
 -}
 type alias Premise =
     { key : String

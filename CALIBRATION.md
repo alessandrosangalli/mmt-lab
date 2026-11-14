@@ -1,6 +1,6 @@
 # Calibração para o Brasil
 
-**Status: levantamento em andamento, de 14 de novembro de 2026.** Este arquivo reúne as estimativas publicadas que vão definir as faixas dos parâmetros do modelo do Brasil. O modelo aberto continua partindo dos parâmetros do livro; as duas estimativas de comércio já lidas no original podem ser aplicadas na tela, pelo botão "Usar as estimativas brasileiras disponíveis".
+**Status: levantamento em andamento, de 14 de novembro de 2026.** Este arquivo reúne as estimativas publicadas que vão definir as faixas dos parâmetros do modelo do Brasil. O modelo aberto continua partindo dos parâmetros do livro; as duas estimativas de comércio já lidas no original e a reação das carteiras calibrada na seção 5 podem ser aplicadas na tela, pelo botão "Usar as estimativas brasileiras disponíveis".
 
 O levantamento segue as regras do `PROTOCOL.md`: cada faixa vem de uma estimativa publicada, com a fonte, e valem como evidência estudos revisados por pares e estudos técnicos de bancos centrais e de institutos de pesquisa. Dados oficiais descrevem a economia, mas não são estimativas de comportamento.
 
@@ -78,7 +78,9 @@ No modelo, as famílias gastam uma fração `alpha1` da renda disponível espera
 | A mesma medida em estudos anteriores | de 0,70 a 0,90 (Reis e coautores, 1998); cerca de 0,85 (Gomes, 2004) | Citados em Lopes (2017) | Citação indireta |
 | Propensão a consumir de longo prazo | cerca de 0,9 | Lopes (2017) | Resumo e tabelas descritas no texto |
 | Propensão a consumir de curto prazo | cerca de 1,00 de 1947 a 1987; cerca de 0,37 de 1988 a 2012 | Lopes (2017) | Resumo e tabelas descritas no texto |
-| `alpha2`, consumo e riqueza | Lacuna: nenhuma estimativa brasileira localizada | | |
+| `alpha2`, consumo e riqueza | Sem estimativa do consumo total. Evidência parcial: a cada R$ 1 de riqueza liberada no saque do FGTS de 2017, o gasto no cartão de crédito sobe cerca de R$ 0,04 | Brunelli, Martins e Carvalho (2025) | Resumo |
+
+O estudo do FGTS acompanha cerca de 164 mil trabalhadores formais endividados, de agosto de 2016 a maio de 2018, e só enxerga o que passa pelo registro de crédito do Banco Central. O número mede gasto no cartão, não consumo total, e os próprios resultados agregados não são estatisticamente significativos. Serve como indicação de que o efeito existe e é pequeno, não como valor para `alpha2`, que no livro é 0,13333.
 
 O livro usa `alpha1` de 0,75. As estimativas brasileiras cobrem de 0,37 a 1,00 conforme o período e o método, então a faixa plausível é larga, e essa largura tem de aparecer no resultado.
 
@@ -130,10 +132,42 @@ No modelo, oito parâmetros `lambda` dizem como as famílias de cada país divid
 | --- | --- | --- | --- | --- |
 | Parcela dos títulos domésticos em poder do exterior | cerca de 25% | 9,58% da dívida federal interna | Tesouro Nacional, citado pela Agência Brasil | Secundária |
 | Parcela da riqueza das famílias em títulos estrangeiros | 25% | Lacuna. A posição internacional de investimento do Banco Central é a fonte a consultar | | Não lida |
-| Reação da carteira a um ponto de juro | 5 pontos da riqueza | Lacuna: nenhuma estimativa direta localizada | | |
+| Reação da carteira a um ponto de juro | 5 pontos da riqueza | Sem estimativa direta. Calibração indireta: 0,5, na faixa de 0,15 a 0,8 (ver abaixo) | Este levantamento | |
 | Reação do câmbio ao diferencial de juros | não se aplica | Coeficiente de 1,90 na equação de paridade do modelo do BC, com intervalo de 0,77 a 3,22 | Banco Central (2024), boxe do Relatório de Inflação de junho | Texto |
 
-**Esta é a maior lacuna.** A reação da carteira aos juros é o parâmetro que mais mexe nos resultados do modelo aberto: com o valor do livro, um ponto de juro valoriza a moeda em 30%. Não há estimativa direta para o Brasil neste levantamento. O coeficiente de paridade do Banco Central dá uma disciplina indireta: no modelo calibrado, a reação do câmbio ao diferencial de juros deveria ficar na faixa que o BC estima.
+### Quanto o câmbio responde aos juros no Brasil
+
+| Medida | Estimativa | Fonte | Lida |
+| --- | --- | --- | --- |
+| Câmbio no dia da decisão do Copom, por ponto de surpresa na Selic | Valorização de 3,4%, significativa a 10%; de 2,5% a 4,2% entre as especificações | Vicente, Marins e Gaglianone (2021), tabelas 1 e 2 | Texto |
+| A mesma medida, com juros de um dígito | Sem efeito significativo, com poucas observações | A mesma | Texto |
+| Câmbio mensal e diferencial de juros, 2000 a 2014 | Coeficiente de −2,94, com intervalo de 95% de −5,18 a −0,70: juro maior, moeda mais forte, o contrário do que a paridade descoberta prevê | Cieplinski, Braga e Summa (2017), p. 413 | Texto |
+| A mesma relação, por regime | Períodos calmos: cerca de −1,5, pouco significativo. Crises (2002, 2008, 2011): positivo, de 1,4 a 6,8 | A mesma, tabela 5 | Texto |
+| Câmbio e choques de juros identificados em dados diários | Altas de juros valorizam a moeda; tamanho não lido | Gonçalves, Rodrigues e Genta (2025) | Resumo |
+| Entrada de estrangeiros na bolsa, 1995 a 2005 | Responde ao retorno das ações, ao risco-país, ao câmbio e à Selic; sem coeficientes lidos, e os autores dizem que o modelo não serve para previsão | Franzen, Meurer, Gonçalves e Seabra (2009) | Resumo |
+
+A amostra de Vicente, Marins e Gaglianone é diária, de janeiro de 2006 a agosto de 2020, com 116 reuniões do Copom, das quais só 29 tiveram surpresa diferente de zero. A estimativa se apoia em poucos eventos.
+
+O estudo de Ebeke e Lu (2014), do FMI, foi aberto e descartado: trata a participação de estrangeiros como causa dos juros, não como resposta a eles, e não traz resultado para o Brasil.
+
+### A calibração indireta
+
+Nenhum estudo lido mede o parâmetro do modelo, que é quanto da riqueza troca de título. Os estudos medem a consequência: quanto o câmbio se move. Então o valor foi escolhido para o modelo reproduzir essa consequência. Com os demais parâmetros no valor do livro e o juro doméstico subindo de 3% para 4%:
+
+| Reação das carteiras | Câmbio no 1º período | No 4º | No 20º | No 40º |
+| --- | --- | --- | --- | --- |
+| 0 | 0,0% | −2,6% | −12,0% | −18,0% |
+| 0,5 | +2,7% | −0,5% | −11,9% | −19,0% |
+| 1 | +5,4% | +1,7% | −11,8% | −20,0% |
+| 5, o valor do livro | +30,1% | +20,5% | −11,2% | −27,8% |
+
+A resposta imediata é quase proporcional ao parâmetro, cerca de 5,3% por unidade. A faixa medida no dia do Copom, de 2,5% a 4,2%, corresponde a valores entre 0,5 e 0,8. O limite inferior do coeficiente de paridade do Banco Central, 0,77, lido como percentual por ponto, corresponde a 0,15. O valor adotado é 0,5, com faixa de 0,15 a 0,8. O valor do livro, 5, está dez vezes acima do que os dados brasileiros sustentam.
+
+**O que muda nos resultados.** Com 0,5, o modelo deixa de ser hipersensível aos juros: um juro de 5% passa a ter solução nos 120 períodos, onde com o valor do livro deixava de ter no período 30. Um juro de 6% ainda deixa de ter solução, no período 84. Os resultados do gasto público não mudam em nada, porque o gasto não mexe no diferencial de juros: a tabela da seção 1 vale igual.
+
+**Um resultado do modelo a registrar.** Em todas as linhas, a alta de juros acaba desvalorizando a moeda, entre 18% e 28% no período 40, qualquer que seja a reação das carteiras. O juro maior aumenta os pagamentos ao exterior e a renda das famílias, e as duas coisas abrem a conta corrente. É uma propriedade do modelo com os parâmetros do livro, não um resultado sobre o Brasil, e pesa na tese T6.
+
+**Limites desta calibração.** São quatro. A medida é do dia da decisão, e o período do modelo é um trimestre ou um ano. A medida é de uma surpresa, e o modelo não distingue surpresa de mudança esperada. Os oito parâmetros de carteira foram movidos juntos, com o mesmo valor para os dois países. E Cieplinski, Braga e Summa mostram que a relação muda de sinal nas crises, o que um parâmetro fixo não reproduz. A calibração foi feita com os resultados do modelo à vista, e isso tem de ser declarado quando o critério de T5 e T6 for pré-registrado.
 
 ## 6. Parâmetros do modelo rival (marco M5)
 
@@ -160,8 +194,9 @@ A leitura automática do boxe perdeu os símbolos matemáticos, então os sinais
 
 | Lacuna | Onde procurar |
 | --- | --- |
-| Efeito da riqueza no consumo (`alpha2`) | Literatura brasileira de consumo; pode não existir estimativa |
-| Composição e sensibilidade das carteiras (`lambda`) | Posição internacional de investimento do Banco Central (a nota mensal só traz fluxos); literatura de paridade de juros para o Brasil |
+| Efeito da riqueza no consumo (`alpha2`) | Só há evidência parcial, de gasto no cartão. Falta uma estimativa do consumo total |
+| Composição das carteiras (`lambda`) | Posição internacional de investimento do Banco Central (a nota mensal só traz fluxos) |
+| Resposta do câmbio aos juros em horizonte de trimestres | Os estudos lidos medem o dia da decisão ou o mês. Falta a resposta ao longo de um ano |
 | Margem e participação dos salários (`phi`) | IBGE, Contas Econômicas Integradas |
 | Juros doméstico e externo e duração do período do modelo | Séries do Banco Central; decisão de usar trimestre ou ano |
 | Números marcados como "Secundária" | Relatório Mensal da Dívida do Tesouro Nacional e nota de estatísticas fiscais do Banco Central, nos originais |
@@ -180,11 +215,16 @@ A leitura automática do boxe perdeu os símbolos matemáticos, então os sinais
 - Banco Central do Brasil (2018). [Repasse cambial sob a ótica de um modelo semiestrutural](https://www.bcb.gov.br/conteudo/relatorioinflacao/EstudosEspeciais/Repasse_cambial_sob_a_otica_de_um_modelo_semiestrutural.pdf). Estudo Especial 26/2018.
 - Banco Central do Brasil (2024). [Atualização dos modelos semiestruturais de pequeno porte](https://www.bcb.gov.br/content/ri/relatorioinflacao/202406/ri202406b12p.pdf). Boxe do Relatório de Inflação, junho de 2024, p. 97-107.
 - Banco Central do Brasil (2026). [Repasse cambial: estimativas por projeções locais](https://www.bcb.gov.br/content/ri/relatorioinflacao/202603/rpm202603b8p.pdf). Boxe do Relatório de Política Monetária, março de 2026, p. 65-69.
+- Brunelli, A., Martins, B. e Carvalho, C. (2025). [Liquidity or Wealth? Consumption, Debt, and Financial Fragility After a Windfall](https://www.bcb.gov.br/content/publicacoes/WorkingPaperSeries/WP634.pdf). Banco Central do Brasil, Working Paper 634.
+- Cieplinski, A., Braga, J. e Summa, R. (2017). [Uma avaliação acerca da falha empírica do teorema da paridade descoberta da taxa de juros entre o Real e o Dólar](https://www.eco.unicamp.br/images/arquivos/artigos/3546/05Cieplinski.pdf). *Economia e Sociedade*, 26(2), 401-426.
+- Franzen, A., Meurer, R., Gonçalves, C. E. S. e Seabra, F. (2009). [Determinantes do fluxo de investimentos de portfólio para o mercado acionário brasileiro](https://revistas.usp.br/ee/pt_BR/article/view/35973). *Estudos Econômicos*, 39(2), 301-328.
+- Gonçalves, C., Rodrigues, M. e Genta, F. (2025). [Monetary Policy and Inflation Expectations: High-Frequency Evidence from Brazil](https://www.imf.org/en/publications/wp/issues/2025/02/28/monetary-policy-and-inflation-expectations-high-frequency-evidence-from-brazil-562685). IMF Working Paper 2025/048.
 - Lopes, L. S. (2017). [Testando teorias para o consumo agregado no Brasil](https://www.scielo.br/j/neco/a/jhrqCyvzyVBHLnMmCj6XVtb/?lang=pt). *Nova Economia*, 27(1), 209-240.
 - Banco Central do Brasil (2026). [Estatísticas do setor externo, nota para a imprensa de 28 de julho de 2026](https://www.bcb.gov.br/content/estatisticas/hist_estatisticassetorexterno/202607_Texto_de_estatisticas_do_setor_externo.pdf).
 - IBGE (2025). [Contas Nacionais Trimestrais, 2º trimestre de 2025](https://agenciadenoticias.ibge.gov.br/media/com_mediaibge/arquivos/568f71479261775bd98e8c2a84ae9f32.pdf).
 - Santos, C. H. M., Cieplinski, A., Pimentel, D. M. e Bhering, G. (2017). [Por que a elasticidade-preço das importações é baixa no Brasil? Evidências a partir das desagregações das importações por categorias de uso](https://www.eco.unicamp.br/images/arquivos/artigos/3517/05Santos.pdf). *Economia e Sociedade*, 26(1), 141-164.
 - Schettini, B. P., Squeff, G. C. e Gouvêa, R. R. (2012). [Estimativas da função exportações brasileiras agregadas com dados das Contas Nacionais Trimestrais, 1995-2009](https://revistas.usp.br/ecoa/article/view/46197). *Economia Aplicada*, 16(1), 167-196.
+- Vicente, J. V. M., Marins, J. T. M. e Gaglianone, W. P. (2021). [Impacts of the Monetary Policy Committee Decisions on the Foreign Exchange Rate in Brazil](https://www.bcb.gov.br/pec/wps/ingl/wps552.pdf). Banco Central do Brasil, Working Paper 552. Publicado na *Brazilian Review of Finance*, 20(2), 2022.
 - Tesouro Nacional. [Estimativa da Carga Tributária Bruta do Governo Geral, 2025](https://cdn.tesouro.gov.br/sistemas-internos/apex/producao/sistemas/thot/arquivos/publicacoes/54334_1699660/Boletim_CTB_2025.pdf).
 - Tesouro Nacional. Relatório Mensal da Dívida de setembro de 2026, citado em [notícia da Agência Brasil de 29 de outubro de 2026](https://www.acessa.com/economia/2026/10/343297-divida-publica-sobe-097-em-setembro-e-encosta-em-rs-94-trilhoes.html).
 - Banco Central do Brasil. Estatísticas fiscais de setembro de 2026, citadas em [notícia de 29 de outubro de 2026](https://sbtnews.sbt.com.br/noticia/economia/bc-divida-publica-chega-a-82-9-do-pib-em-setembro).
