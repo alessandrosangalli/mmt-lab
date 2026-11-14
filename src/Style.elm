@@ -55,6 +55,8 @@ h1 {
   max-width: 62ch;
   line-height: 1.5;
 }
+.controls.b { border-color: var(--amber); }
+.controls.a { border-color: var(--rule); }
 .controls {
   background: var(--sheet);
   border: 1px solid var(--rule);
@@ -142,26 +144,54 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
   border-radius: 2px;
   vertical-align: -1px;
 }
-.key.income::before { background: var(--blue); }
-.key.money::before { background: var(--amber); }
-.key.changed::before { background: transparent; box-shadow: inset 0 0 0 1px var(--red); }
-.chart {
+.key.a::before { background: var(--blue); }
+.key.b::before { background: var(--amber); }
+.key.cursor::before { width: 0; height: 12px; border-left: 1px solid var(--ink); border-radius: 0; opacity: 0.55; vertical-align: -2px; }
+.key.changed::before { width: 0; height: 12px; border-left: 1px dashed var(--red); border-radius: 0; vertical-align: -2px; }
+.linechart { padding: 6px 10px 24px 40px; }
+.plot {
   position: relative;
-  height: 180px;
-  display: flex;
-  align-items: flex-end;
-  gap: 3px;
+  height: 170px;
+  border-left: 1px solid var(--rule);
   border-bottom: 1px solid var(--ink);
-  background: repeating-linear-gradient(to top, transparent 0, transparent 35px, var(--rule) 35px, var(--rule) 36px);
 }
-.column { flex: 1; min-width: 0; height: 100%; display: flex; align-items: flex-end; gap: 1px; }
-.bar { flex: 1; min-height: 1px; border-radius: 2px 2px 0 0; }
-.bar.income { background: var(--blue); }
-.bar.money { background: var(--amber); }
-.column { cursor: pointer; }
-.column.changed { box-shadow: inset 0 0 0 1px var(--red); background: color-mix(in srgb, var(--red) 12%, transparent); }
-.column.selected { background: color-mix(in srgb, var(--ink) 38%, transparent); }
-.chart + .control { margin-top: 12px; }
+.plot svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.plot line, .plot polyline { vector-effect: non-scaling-stroke; }
+.plot .grid { stroke: var(--rule); stroke-width: 1; }
+.plot .marker { stroke: var(--red); stroke-width: 1; stroke-dasharray: 3 3; }
+.plot .cursor { stroke: var(--ink); stroke-width: 1; opacity: 0.55; }
+.plot .series { fill: none; stroke-width: 2; stroke-linejoin: round; }
+.plot .series.a { stroke: var(--blue); }
+.plot .series.b { stroke: var(--amber); stroke-dasharray: 6 4; }
+.plot .hit { fill: transparent; cursor: pointer; }
+.ytick, .xtick {
+  position: absolute;
+  font-size: 0.7rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+.ytick { left: -40px; width: 34px; text-align: right; transform: translateY(-50%); }
+.xtick { top: 100%; margin-top: 5px; transform: translateX(-50%); }
+.dot {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 2px solid var(--sheet);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.dot.a { background: var(--blue); }
+.dot.b { background: var(--amber); }
+.block h2.spaced { margin-top: 18px; }
+.linechart + .control { margin-top: 8px; }
 .warning {
   margin: 0;
   padding: 10px 12px;

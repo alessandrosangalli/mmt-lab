@@ -16,7 +16,7 @@ C  = α1 · YD + α2 · H(anterior)  consumo das famílias
 ΔH = YD − C  =  G − T            o déficit vira dinheiro das famílias
 ```
 
-Na tela você monta um **cenário**: a política inicial (gasto público G e alíquota θ), mudanças de política datadas e o número de períodos. O gráfico mostra o PIB e o dinheiro guardado pelas famílias em cada período; ao escolher um período, você vê a tabela de Godley e o balanço dele.
+Na tela você monta um **cenário**: a política inicial (gasto público G e alíquota θ), mudanças de política datadas e o número de períodos. Os gráficos mostram o PIB e o dinheiro guardado pelas famílias em cada período; ao escolher um período, você vê a tabela de Godley e o balanço dele. Dá para comparar dois cenários: as curvas aparecem sobrepostas, e uma tabela mostra a diferença entre eles no período escolhido.
 
 O cenário inteiro fica codificado em um link, que reproduz exatamente o mesmo experimento:
 
@@ -31,6 +31,7 @@ O cenário inteiro fica codificado em um link, que reproduz exatamente o mesmo e
 | `n` | Número de períodos |
 | `p` | Período em foco |
 | `c` | Mudanças de política, como `período:gasto:alíquota`, separadas por vírgula |
+| `bg`, `bt`, `bc` | O mesmo para o cenário B, quando há comparação. O número de períodos é compartilhado |
 
 ## Organização do código
 
@@ -42,6 +43,7 @@ O código é em inglês; a interface é em português.
 | `Model.Sim` | O modelo SIM como funções puras |
 | `Scenario` | Um experimento repetível: política inicial, mudanças datadas e horizonte |
 | `Link` | Leitura e escrita de um cenário na URL |
+| `Chart` | Gráfico de linhas responsivo |
 | `Format` | Formatação de números |
 | `Style` | Folha de estilo da página |
 | `Main` | Estado da tela e desenho |

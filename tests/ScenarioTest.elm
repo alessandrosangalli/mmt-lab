@@ -95,4 +95,29 @@ suite =
                         , changes = [ { period = 2, policy = { spending = 0, taxRatePct = 50 } } ]
                         , horizon = Scenario.maxHorizon
                         }
+        , test "addChange appends a change ten periods after the latest" <|
+            \_ ->
+                (Scenario.addChange stimulus).changes
+                    |> List.map .period
+                    |> Expect.equal [ 60, 70 ]
+        , test "addChange stops when the list is full" <|
+            \_ ->
+                List.foldl (\_ scenario -> Scenario.addChange scenario) Scenario.default (List.range 1 20)
+                    |> .changes
+                    |> List.length
+                    |> Expect.equal Scenario.maxChanges
+        , test "updateChange edits only the change at the index" <|
+            \_ ->
+                Scenario.addChange stimulus
+                    |> Scenario.updateChange 1 (\change -> { change | period = 99 })
+                    |> .changes
+                    |> List.map .period
+                    |> Expect.equal [ 60, 99 ]
+        , test "removeChange drops only the change at the index" <|
+            \_ ->
+                Scenario.addChange stimulus
+                    |> Scenario.removeChange 0
+                    |> .changes
+                    |> List.map .period
+                    |> Expect.equal [ 70 ]
         ]
