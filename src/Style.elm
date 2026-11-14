@@ -70,6 +70,24 @@ h1 {
   font-size: 0.9rem;
   margin-bottom: 4px;
 }
+.controls h2 { font-size: 1rem; margin: 0; }
+.policy, .changes { display: grid; gap: 14px; }
+.changes:empty { display: none; }
+.change {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border: 1px dashed var(--rule);
+  border-radius: 8px;
+}
+.change-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
 .value { font-variant-numeric: tabular-nums; font-weight: 600; }
 input[type=range] { width: 100%; accent-color: var(--blue); }
 .buttons { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -84,6 +102,8 @@ button {
   cursor: pointer;
 }
 button.secondary { background: transparent; color: var(--blue); }
+button.small { padding: 4px 10px; font-size: 0.8rem; }
+button:disabled { opacity: 0.45; cursor: default; }
 button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .content { display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px; }
 .summary {
@@ -124,13 +144,7 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 }
 .key.income::before { background: var(--blue); }
 .key.money::before { background: var(--amber); }
-.key.steady::before {
-  width: 14px;
-  height: 0;
-  border-top: 2px dashed var(--ink);
-  border-radius: 0;
-  vertical-align: 3px;
-}
+.key.changed::before { background: transparent; box-shadow: inset 0 0 0 1px var(--red); }
 .chart {
   position: relative;
   height: 180px;
@@ -144,14 +158,33 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .bar { flex: 1; min-height: 1px; border-radius: 2px 2px 0 0; }
 .bar.income { background: var(--blue); }
 .bar.money { background: var(--amber); }
-.steady-line {
-  position: absolute;
-  left: 0;
-  right: 0;
-  border-top: 2px dashed var(--ink);
-  opacity: 0.55;
-  pointer-events: none;
+.column { cursor: pointer; }
+.column.changed { box-shadow: inset 0 0 0 1px var(--red); background: color-mix(in srgb, var(--red) 12%, transparent); }
+.column.selected { background: color-mix(in srgb, var(--ink) 16%, transparent); }
+.chart + .control { margin-top: 12px; }
+.warning {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--amber);
+  border-radius: 8px;
+  color: var(--ink);
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
+.share input {
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.8rem;
+  padding: 8px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--sheet);
+  color: var(--ink);
+}
+.share a { color: var(--blue); font-size: 0.9rem; }
+.share p { margin: 8px 0 0; }
 .scroll { overflow-x: auto; }
 table.godley {
   width: 100%;

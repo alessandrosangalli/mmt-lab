@@ -9,7 +9,13 @@
     <div id="app"></div>
     <script src="elm.js"></script>
     <script>
-      Elm.Main.init({ node: document.getElementById("app") });
+      Elm.Main.init({
+        node: document.getElementById("app"),
+        flags: {
+          search: window.location.search,
+          base: window.location.origin + window.location.pathname
+        }
+      });
     </script>
   </body>
 </html>
