@@ -11,7 +11,7 @@ import Sfc.Matrix as Matrix
 import Test exposing (Test, describe, fuzz2, test)
 
 
-{-| Policies inside the range where both models stay well behaved.
+{-| Policies inside the range where the closed models stay well behaved.
 -}
 policyFuzzer : Fuzzer Policy
 policyFuzzer =
@@ -37,14 +37,22 @@ scenarioFuzzer =
         (Fuzz.intRange 2 40)
 
 
+{-| Every model. The open economy stops having a solution under some of
+these policies; the properties must hold for every period it does solve.
+-}
 modelFuzzer : Fuzzer ModelId
 modelFuzzer =
     Fuzz.oneOfValues Models.all
 
 
+closedModelFuzzer : Fuzzer ModelId
+closedModelFuzzer =
+    Fuzz.oneOfValues [ SimModel, PcModel ]
+
+
 everySnapshot : (Snapshot -> Bool) -> ModelId -> Scenario -> Expect.Expectation
 everySnapshot holds model scenario =
-    Models.run model scenario
+    (Models.run model scenario).snapshots
         |> List.all holds
         |> Expect.equal True
 
@@ -73,17 +81,31 @@ suite =
                         List.member claim.from sectors && List.member claim.to sectors
                 in
                 everySnapshot (\snapshot -> List.all inside snapshot.stocks) model scenario
-        , fuzz2 modelFuzzer scenarioFuzzer "the private surplus mirrors the government balance, in every model" <|
+        , fuzz2 modelFuzzer scenarioFuzzer "the three sectoral balances add up to zero, in every model" <|
             \model scenario ->
                 everySnapshot
-                    (\snapshot -> closeToZero snapshot.income (snapshot.privateSurplus + snapshot.governmentBalance))
+                    (\snapshot ->
+                        closeToZero snapshot.income
+                            (snapshot.privateSurplus + snapshot.governmentBalance + snapshot.foreignBalance)
+                    )
                     model
                     scenario
-        , fuzz2 modelFuzzer scenarioFuzzer "household wealth is the sum of the private surpluses so far" <|
+        , fuzz2 closedModelFuzzer scenarioFuzzer "a closed model has no foreign balance and always has a solution" <|
+            \model scenario ->
+                let
+                    result =
+                        Models.run model scenario
+                in
+                ( List.all (\snapshot -> snapshot.foreignBalance == 0) result.snapshots
+                , List.length result.snapshots
+                , result.failedAt
+                )
+                    |> Expect.equal ( True, 40, Nothing )
+        , fuzz2 closedModelFuzzer scenarioFuzzer "in a closed model, household wealth is the sum of the private surpluses so far" <|
             \model scenario ->
                 let
                     snapshots =
-                        Models.run model scenario
+                        (Models.run model scenario).snapshots
 
                     accumulated =
                         List.sum (List.map .privateSurplus snapshots)
@@ -96,17 +118,68 @@ suite =
                         Expect.fail "no periods"
         , test "the engine reproduces model PC stepped by hand" <|
             \_ ->
-                Models.run PcModel Scenario.default
+                (Models.run PcModel Scenario.default).snapshots
                     |> List.map .income
                     |> Expect.equal
                         (Pc.advanceBy Scenario.default.horizon Pc.bookBehaviour Scenario.default.initial []
                             |> List.reverse
                             |> List.map (\period -> period.outcome.income)
                         )
+        , test "the open economy stays at rest under its default policy" <|
+            \_ ->
+                let
+                    result =
+                        Models.run OpenModel (Models.defaultScenario OpenModel)
+
+                    incomes =
+                        List.map .income result.snapshots
+                in
+                ( result.failedAt
+                , List.length incomes
+                , List.all (\income -> abs (income - 97.394) < 0.001) incomes
+                )
+                    |> Expect.equal ( Nothing, 40, True )
+        , test "in the open economy, more government spending weakens the currency and raises prices" <|
+            \_ ->
+                let
+                    base =
+                        Models.defaultScenario OpenModel
+
+                    expansion =
+                        { base | initial = { spending = 20, taxRatePct = 20, interestRatePct = 3 } }
+
+                    exchangeRateAndPrices snapshot =
+                        List.map .value snapshot.charts
+                in
+                case List.head (List.reverse (Models.run OpenModel expansion).snapshots) of
+                    Just latest ->
+                        case exchangeRateAndPrices latest of
+                            [ exchangeRate, prices ] ->
+                                ( exchangeRate < 0.8, prices > 0.96, latest.income > 110 )
+                                    |> Expect.equal ( True, True, True )
+
+                            _ ->
+                                Expect.fail "expected two extra series"
+
+                    Nothing ->
+                        Expect.fail "no periods"
+        , test "the open economy reports the period where it stops having a solution" <|
+            \_ ->
+                let
+                    base =
+                        Models.defaultScenario OpenModel
+
+                    result =
+                        Models.run OpenModel { base | initial = { spending = 16, taxRatePct = 20, interestRatePct = 6 } }
+                in
+                ( result.failedAt /= Nothing
+                , Maybe.map (\period -> List.length result.snapshots == period - 1) result.failedAt
+                )
+                    |> Expect.equal ( True, Just True )
         , test "a version string names its model" <|
             \_ ->
-                List.map Models.fromVersion [ "sim-1", "pc-1", "pc-7", "other-1", "" ]
-                    |> Expect.equal [ Just SimModel, Just PcModel, Just PcModel, Nothing, Nothing ]
+                List.map Models.fromVersion [ "sim-1", "pc-1", "pc-7", "open-1", "other-1", "" ]
+                    |> Expect.equal [ Just SimModel, Just PcModel, Just PcModel, Just OpenModel, Nothing, Nothing ]
         , test "every model's current version names itself" <|
             \_ ->
                 List.map (\model -> Models.fromVersion (Models.info model).version) Models.all

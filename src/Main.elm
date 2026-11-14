@@ -20,7 +20,7 @@ import Html.Attributes as Attr exposing (class)
 import Html.Events exposing (onClick, onInput)
 import Json.Decode as Decode
 import Link
-import Models exposing (Info, ModelId)
+import Models exposing (Info, ModelId, SteadyState(..))
 import Policy exposing (Policy)
 import Scenario exposing (Change, Scenario)
 import Sfc.Matrix as Matrix exposing (Sector(..))
@@ -119,7 +119,7 @@ apply : Msg -> Model -> Model
 apply msg model =
     case msg of
         ModelSelected modelId ->
-            { model | modelId = modelId, linkVersion = Nothing }
+            startOver modelId model
 
         InitialChanged target field raw ->
             case String.toFloat raw of
@@ -191,12 +191,25 @@ apply msg model =
                     model
 
         Reset ->
-            { model
-                | scenario = Scenario.default
-                , comparison = Nothing
-                , selected = Scenario.default.horizon
-                , linkVersion = Nothing
-            }
+            startOver model.modelId model
+
+
+{-| Each model starts from its own default scenario, so choosing a model
+discards the scenario on screen.
+-}
+startOver : ModelId -> Model -> Model
+startOver modelId model =
+    let
+        scenario =
+            Models.defaultScenario modelId
+    in
+    { model
+        | modelId = modelId
+        , scenario = scenario
+        , comparison = Nothing
+        , selected = scenario.horizon
+        , linkVersion = Nothing
+    }
 
 
 edit : Target -> (Scenario -> Scenario) -> Model -> Model
@@ -238,14 +251,37 @@ view model =
         runB =
             Maybe.map (Models.run model.modelId) model.comparison
 
+        snapshotsA =
+            runA.snapshots
+
+        snapshotsB =
+            Maybe.map .snapshots runB
+
         at snapshots =
             List.head (List.drop (model.selected - 1) snapshots)
+
+        failures =
+            List.filterMap identity
+                [ Maybe.map
+                    (viewFailure
+                        (if comparing then
+                            "No cenário A, o"
+
+                         else
+                            "O"
+                        )
+                    )
+                    runA.failedAt
+                , runB
+                    |> Maybe.andThen .failedAt
+                    |> Maybe.map (viewFailure "No cenário B, o")
+                ]
 
         comparing =
             model.comparison /= Nothing
 
         focus =
-            case ( at runA, model.comparison, Maybe.andThen at runB ) of
+            case ( at snapshotsA, model.comparison, Maybe.andThen at snapshotsB ) of
                 ( Just currentA, Just scenarioB, Just currentB ) ->
                     [ viewComparison info model.scenario currentA scenarioB currentB
                     , viewTransactions info "cenário A · " currentA
@@ -259,7 +295,7 @@ view model =
                     ]
 
                 _ ->
-                    [ p [ class "hint" ] [ text "Não há períodos para mostrar." ] ]
+                    [ p [ class "hint" ] [ text "Não há resultado para o período em foco. Escolha um período anterior." ] ]
 
         panels =
             case model.comparison of
@@ -278,7 +314,8 @@ view model =
          , viewModelPicker model.modelId
          ]
             ++ panels
-            ++ [ div [ class "content" ] (viewCharts info model runA runB :: focus)
+            ++ failures
+            ++ [ div [ class "content" ] (viewCharts info model snapshotsA snapshotsB :: focus)
                , viewShare model
                , viewNotes info
                ]
@@ -316,6 +353,18 @@ viewVersionWarning info linkVersion =
             text ""
 
 
+viewFailure : String -> Int -> Html Msg
+viewFailure opening period =
+    p [ class "warning" ]
+        [ text
+            (opening
+                ++ " modelo deixa de ter solução no período "
+                ++ String.fromInt period
+                ++ ". Os resultados param no período anterior. Isso acontece quando a política leva a economia para fora do alcance em que as equações do modelo fazem sentido."
+            )
+        ]
+
+
 viewModelPicker : ModelId -> Html Msg
 viewModelPicker selected =
     let
@@ -343,6 +392,7 @@ viewModelPicker selected =
         [ h2 [] [ text "Modelo" ]
         , div [ class "buttons" ] (List.map viewOption Models.all)
         , p [ class "hint" ] [ text (Models.info selected).summary ]
+        , p [ class "hint" ] [ text "Trocar de modelo reinicia o cenário." ]
         ]
 
 
@@ -557,6 +607,31 @@ viewCharts info model runA runB =
             [ { style = "private" ++ suffix, values = List.map .privateSurplus snapshots }
             , { style = "government" ++ suffix, values = List.map .governmentBalance snapshots }
             ]
+                ++ (if info.hasForeignSector then
+                        [ { style = "foreign" ++ suffix, values = List.map .foreignBalance snapshots } ]
+
+                    else
+                        []
+                   )
+
+        extraValue index snapshot =
+            snapshot.charts
+                |> List.drop index
+                |> List.head
+                |> Maybe.map .value
+                |> Maybe.withDefault 0
+
+        extraCharts =
+            List.head runA
+                |> Maybe.map .charts
+                |> Maybe.withDefault []
+                |> List.indexedMap
+                    (\index extra ->
+                        [ h2 [ class "spaced" ] [ text extra.name ]
+                        , chart (extraValue index)
+                        ]
+                    )
+                |> List.concat
 
         balancesChart =
             Chart.view
@@ -595,6 +670,11 @@ viewCharts info model runA runB =
             List.filterMap identity
                 [ Just (span [ class "key private" ] [ text "Setor privado" ])
                 , Just (span [ class "key government" ] [ text "Governo" ])
+                , if info.hasForeignSector then
+                    Just (span [ class "key foreign" ] [ text "Exterior" ])
+
+                  else
+                    Nothing
                 , if runB /= Nothing then
                     Just (span [ class "key dashed" ] [ text "Tracejado: cenário B" ])
 
@@ -603,27 +683,37 @@ viewCharts info model runA runB =
                 ]
     in
     section [ class "block" ]
-        [ h2 [] [ text "PIB em cada período" ]
-        , div [ class "legend" ] legend
-        , chart .income
-        , h2 [ class "spaced" ] [ text info.wealthLabel ]
-        , chart .householdWealth
-        , h2 [ class "spaced" ] [ text "Saldos setoriais" ]
-        , div [ class "legend" ] balancesLegend
-        , balancesChart
-        , p [ class "hint" ]
-            [ text "As duas curvas são espelhadas: em cada período, o superávit do setor privado é igual ao déficit do governo. Nestes modelos não há setor externo." ]
-        , viewSlider
-            { id = "selected-period"
-            , caption = "Período em foco"
-            , shown = String.fromInt model.selected
-            , lowest = 1
-            , highest = toFloat model.scenario.horizon
-            , step = 1
-            , current = toFloat model.selected
-            , onChange = PeriodSlid
-            }
-        ]
+        ([ h2 [] [ text info.incomeLabel ]
+         , div [ class "legend" ] legend
+         , chart .income
+         ]
+            ++ extraCharts
+            ++ [ h2 [ class "spaced" ] [ text info.wealthLabel ]
+               , chart .householdWealth
+               , h2 [ class "spaced" ] [ text "Saldos setoriais" ]
+               , div [ class "legend" ] balancesLegend
+               , balancesChart
+               , p [ class "hint" ]
+                    [ text
+                        (if info.hasForeignSector then
+                            "O que cada setor poupou no período. Os três saldos somam zero: se o governo e o exterior poupam, o setor privado se endivida na mesma medida."
+
+                         else
+                            "As duas curvas são espelhadas: em cada período, o superávit do setor privado é igual ao déficit do governo. Neste modelo não há setor externo."
+                        )
+                    ]
+               , viewSlider
+                    { id = "selected-period"
+                    , caption = "Período em foco"
+                    , shown = String.fromInt model.selected
+                    , lowest = 1
+                    , highest = toFloat model.scenario.horizon
+                    , step = 1
+                    , current = toFloat model.selected
+                    , onChange = PeriodSlid
+                    }
+               ]
+        )
 
 
 policySentence : Info -> Policy -> String
@@ -644,14 +734,17 @@ policySentence info policy =
            )
 
 
-steadyStateText : Maybe Float -> String
-steadyStateText income =
-    case income of
-        Just value ->
-            Format.decimal value
+steadyStateText : SteadyState -> Maybe String
+steadyStateText steadyState =
+    case steadyState of
+        SettlesAt income ->
+            Just (Format.decimal income)
 
-        Nothing ->
-            "não há"
+        NeverSettles ->
+            Just "não há"
+
+        NotComputed ->
+            Nothing
 
 
 viewFocus : Info -> Scenario -> Snapshot -> Html Msg
@@ -663,8 +756,14 @@ viewFocus info scenario snapshot =
     section [ class "block" ]
         [ h2 [] [ text ("Período " ++ String.fromInt snapshot.number) ]
         , div [ class "summary" ]
-            (List.map (\indicator -> viewIndicator indicator.name (Format.decimal indicator.value)) snapshot.indicators
-                ++ [ viewIndicator "PIB de equilíbrio" (steadyStateText (info.steadyStateIncome policy)) ]
+            (List.map (\indicator -> viewIndicator indicator.name (Format.indicator indicator.value)) snapshot.indicators
+                ++ (case steadyStateText (info.steadyStateIncome policy) of
+                        Just shown ->
+                            [ viewIndicator "PIB de equilíbrio" shown ]
+
+                        Nothing ->
+                            []
+                   )
             )
         , p [ class "hint" ] [ text ("Política em vigor neste período: " ++ policySentence info policy ++ ".") ]
         ]
@@ -703,9 +802,27 @@ viewComparison info scenarioA snapshotA scenarioB snapshotB =
 
         viewIndicatorRow left right =
             viewRow left.name
-                (Format.decimal left.value)
-                (Format.decimal right.value)
-                (Format.signed (right.value - left.value))
+                (Format.indicator left.value)
+                (Format.indicator right.value)
+                (Format.signedIndicator (right.value - left.value))
+
+        steadyRow =
+            case ( steadyA, steadyB ) of
+                ( SettlesAt left, SettlesAt right ) ->
+                    [ viewRow "PIB de equilíbrio" (Format.decimal left) (Format.decimal right) (Format.signed (right - left)) ]
+
+                ( NotComputed, _ ) ->
+                    []
+
+                ( _, NotComputed ) ->
+                    []
+
+                _ ->
+                    [ viewRow "PIB de equilíbrio"
+                        (steadyStateText steadyA |> Maybe.withDefault "")
+                        (steadyStateText steadyB |> Maybe.withDefault "")
+                        ""
+                    ]
     in
     section [ class "block" ]
         [ h2 [] [ text ("Período " ++ String.fromInt snapshotA.number ++ ": os dois cenários") ]
@@ -720,15 +837,7 @@ viewComparison info scenarioA snapshotA scenarioB snapshotB =
                         ]
                     ]
                 , tbody []
-                    (List.map2 viewIndicatorRow snapshotA.indicators snapshotB.indicators
-                        ++ [ viewRow "PIB de equilíbrio"
-                                (steadyStateText steadyA)
-                                (steadyStateText steadyB)
-                                (Maybe.map2 (\left right -> Format.signed (right - left)) steadyA steadyB
-                                    |> Maybe.withDefault ""
-                                )
-                           ]
-                    )
+                    (List.map2 viewIndicatorRow snapshotA.indicators snapshotB.indicators ++ steadyRow)
                 ]
             ]
         , p [ class "hint" ]
@@ -911,7 +1020,7 @@ viewNotes info =
         [ h2 [] [ text "O que observar" ]
         , ol [] (List.map (\note -> li [] [ text note ]) info.notes)
         , p [ class "hint" ]
-            [ text "Estes modelos ainda não têm inflação, bancos nem setor externo. São a contabilidade básica sobre a qual o resto vai ser construído." ]
+            [ text "Os parâmetros destes modelos são os do livro. Eles mostram como a contabilidade funciona, e não são uma descrição da economia brasileira." ]
         ]
 
 

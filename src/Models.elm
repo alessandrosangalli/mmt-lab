@@ -1,9 +1,10 @@
-module Models exposing (Info, ModelId(..), all, fromVersion, info, run)
+module Models exposing (Info, ModelId(..), SteadyState(..), all, defaultScenario, fromVersion, info, run)
 
 {-| The catalogue of models the laboratory can run.
 -}
 
-import Engine exposing (Snapshot)
+import Engine exposing (Run)
+import Model.Open as Open
 import Model.Pc as Pc
 import Model.Sim as Sim
 import Policy exposing (Policy)
@@ -14,6 +15,16 @@ import Sfc.Matrix exposing (Sector)
 type ModelId
     = SimModel
     | PcModel
+    | OpenModel
+
+
+{-| Where income settles under a constant policy: a known value, nowhere at
+all, or a value this model has no formula for.
+-}
+type SteadyState
+    = SettlesAt Float
+    | NeverSettles
+    | NotComputed
 
 
 {-| What the screen needs to know about a model.
@@ -27,17 +38,20 @@ type alias Info =
     { version : String
     , name : String
     , summary : String
+    , incomeLabel : String
     , wealthLabel : String
     , usesInterestRate : Bool
+    , hasForeignSector : Bool
     , sectors : List Sector
-    , steadyStateIncome : Policy -> Maybe Float
+    , defaultPolicy : Policy
+    , steadyStateIncome : Policy -> SteadyState
     , notes : List String
     }
 
 
 all : List ModelId
 all =
-    [ SimModel, PcModel ]
+    [ SimModel, PcModel, OpenModel ]
 
 
 info : ModelId -> Info
@@ -47,10 +61,13 @@ info id =
             { version = "sim-1"
             , name = "SIM: só dinheiro"
             , summary = "O modelo mais simples de Godley e Lavoie (cap. 3). Famílias, empresas e governo, e um único ativo: o dinheiro que o governo emite quando gasta."
+            , incomeLabel = "PIB em cada período"
             , wealthLabel = "Dinheiro guardado pelas famílias"
             , usesInterestRate = False
+            , hasForeignSector = False
             , sectors = Sim.sectors
-            , steadyStateIncome = \policy -> Just (Sim.steadyStateIncome policy)
+            , defaultPolicy = Policy.default
+            , steadyStateIncome = \policy -> SettlesAt (Sim.steadyStateIncome policy)
             , notes =
                 [ "No começo ninguém tem dinheiro. O governo gasta primeiro e só depois recolhe impostos."
                 , "Todo déficit vira dinheiro guardado pelas famílias, centavo por centavo."
@@ -63,10 +80,20 @@ info id =
             { version = "pc-1"
             , name = "PC: títulos e juros"
             , summary = "O modelo PC de Godley e Lavoie (cap. 4). Acrescenta títulos públicos, um banco central e a taxa de juros. As famílias dividem a riqueza entre dinheiro e títulos, e o banco central compra os títulos que sobram."
+            , incomeLabel = "PIB em cada período"
             , wealthLabel = "Riqueza das famílias (dinheiro e títulos)"
             , usesInterestRate = True
+            , hasForeignSector = False
             , sectors = Pc.sectors
-            , steadyStateIncome = Pc.steadyStateIncome
+            , defaultPolicy = Policy.default
+            , steadyStateIncome =
+                \policy ->
+                    case Pc.steadyStateIncome policy of
+                        Just income ->
+                            SettlesAt income
+
+                        Nothing ->
+                            NeverSettles
             , notes =
                 [ "O juro é o que o banco central decidir: ele compra os títulos que as famílias não quiserem."
                 , "O banco central devolve ao governo o juro que recebe, então só o juro pago às famílias pesa no déficit."
@@ -76,8 +103,28 @@ info id =
                 ]
             }
 
+        OpenModel ->
+            { version = "open-1"
+            , name = "OPEN: economia aberta"
+            , summary = "O modelo OPENFLEX de Godley e Lavoie (cap. 12). Dois países trocam mercadorias e compram títulos um do outro, com câmbio flutuante. Você controla a política do país doméstico; o outro país não muda. A economia começa parada, no estado estacionário do livro: gasto 16, alíquota de 20% e juro de 3%. Os parâmetros são os do livro, para dois países iguais, e não representam o Brasil."
+            , incomeLabel = "PIB real em cada período"
+            , wealthLabel = "Riqueza das famílias (dinheiro e títulos)"
+            , usesInterestRate = True
+            , hasForeignSector = True
+            , sectors = Open.sectors
+            , defaultPolicy = Open.defaultPolicy
+            , steadyStateIncome = \_ -> NotComputed
+            , notes =
+                [ "Aumente o gasto público: a renda sobe, as importações crescem, a conta corrente fica negativa e a moeda perde valor, até a conta corrente voltar a zero."
+                , "A moeda mais fraca encarece os importados, e o nível de preços doméstico sobe. É o repasse do câmbio aos preços."
+                , "Os três saldos setoriais (setor privado, governo e exterior) somam zero em todo período."
+                , "O modelo é muito sensível ao juro. Com os parâmetros do livro, um ponto a mais de juro valoriza a moeda em cerca de 30% de imediato, e acima de 4% o modelo deixa de ter solução depois de alguns períodos."
+                , "Tudo isso decorre dos parâmetros do livro. A calibração para o Brasil ainda não foi feita."
+                ]
+            }
 
-run : ModelId -> Scenario -> List Snapshot
+
+run : ModelId -> Scenario -> Run
 run id scenario =
     case id of
         SimModel ->
@@ -85,6 +132,20 @@ run id scenario =
 
         PcModel ->
             Engine.run Pc.model scenario
+
+        OpenModel ->
+            Engine.run Open.model scenario
+
+
+{-| The scenario a model starts with.
+-}
+defaultScenario : ModelId -> Scenario
+defaultScenario id =
+    let
+        base =
+            Scenario.default
+    in
+    { base | initial = (info id).defaultPolicy }
 
 
 {-| The model a version string refers to, even when the version is not the
@@ -97,6 +158,9 @@ fromVersion version =
 
     else if String.startsWith "pc-" version then
         Just PcModel
+
+    else if String.startsWith "open-" version then
+        Just OpenModel
 
     else
         Nothing

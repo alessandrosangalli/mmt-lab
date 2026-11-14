@@ -6,7 +6,7 @@ O projeto está no começo. A versão atual demonstra só a contabilidade básic
 
 ## Versão atual
 
-O laboratório roda dois modelos de Godley e Lavoie (*Monetary Economics*, 2007), escolhidos na tela.
+O laboratório roda três modelos de Godley e Lavoie (*Monetary Economics*, 2007), escolhidos na tela. Os parâmetros são os do livro: eles mostram como a contabilidade funciona, e não descrevem a economia brasileira.
 
 **SIM (cap. 3).** Três setores (famílias, empresas e governo) e um único ativo: o dinheiro que o governo emite quando gasta.
 
@@ -20,7 +20,9 @@ C  = α1 · YD + α2 · H(anterior)  consumo das famílias
 
 **PC (cap. 4).** Acrescenta títulos públicos, um banco central e a taxa de juros. As famílias dividem a riqueza entre dinheiro e títulos, o banco central compra os títulos que sobram, e o juro é o que o banco central decidir. As equações estão em `src/Model/Pc.elm`. Os parâmetros de carteira vêm do livro e só fazem sentido com juros baixos, por isso o controle de juros para em 6%.
 
-Na tela você monta um **cenário**: a política inicial (gasto público G, alíquota θ e, no modelo PC, a taxa de juros r), mudanças de política datadas e o número de períodos. Os gráficos mostram o PIB, a riqueza das famílias e os saldos setoriais em cada período; ao escolher um período, você vê a tabela de Godley e o balanço dele. Dá para comparar dois cenários: as curvas aparecem sobrepostas, e uma tabela mostra a diferença entre eles no período escolhido.
+**OPEN (cap. 12, modelo OPENFLEX).** Dois países trocam mercadorias e compram títulos um do outro, com câmbio flutuante. Há preços de importação e de exportação, então a taxa de câmbio chega ao nível de preços doméstico. Você controla a política do país doméstico; o outro não muda. São 65 variáveis por período, resolvidas por passadas sucessivas (`Sfc.Solver`). Com políticas extremas o modelo deixa de ter solução, e a tela diz em que período isso acontece. O código do modelo é gerado a partir de uma lista de equações; veja `tools/openflex/`.
+
+Na tela você monta um **cenário**: a política inicial (gasto público G, alíquota θ e, no modelo PC, a taxa de juros r), mudanças de política datadas e o número de períodos. Os gráficos mostram o PIB, a riqueza das famílias e os saldos setoriais em cada período, e no modelo aberto também a taxa de câmbio e o nível de preços; ao escolher um período, você vê a tabela de Godley e o balanço dele. Dá para comparar dois cenários: as curvas aparecem sobrepostas, e uma tabela mostra a diferença entre eles no período escolhido.
 
 O modelo e o cenário ficam codificados em um link, que reproduz exatamente o mesmo experimento:
 
@@ -30,7 +32,7 @@ O modelo e o cenário ficam codificados em um link, que reproduz exatamente o me
 
 | Campo | Significado |
 | --- | --- |
-| `v` | Modelo e versão (`sim-1`, `pc-1`). Muda sempre que o mesmo cenário passaria a dar números diferentes |
+| `v` | Modelo e versão (`sim-1`, `pc-1`, `open-1`). Muda sempre que o mesmo cenário passaria a dar números diferentes |
 | `g`, `t`, `i` | Gasto, alíquota e taxa de juros iniciais |
 | `n` | Número de períodos |
 | `p` | Período em foco |
@@ -49,8 +51,9 @@ O código é em inglês; a interface é em português.
 | `Policy` | O que o governo e o banco central decidem em um período |
 | `Scenario` | Um experimento repetível: política inicial, mudanças datadas e horizonte |
 | `Engine` | A interface que todo modelo implementa e o laço que roda um cenário por ela |
-| `Model.Sim`, `Model.Pc` | Os modelos, como funções puras |
-| `Model.OpenFlex` | Economia aberta com câmbio flutuante (cap. 12): dois países, comércio, títulos dos dois lados e preços. Ainda sem tela |
+| `Model.Sim`, `Model.Pc` | Os modelos fechados, como funções puras |
+| `Model.OpenFlex` | Economia aberta com câmbio flutuante (cap. 12): dois países, comércio, títulos dos dois lados e preços. Código gerado |
+| `Model.Open` | O mesmo modelo como a tela o mostra: o país doméstico, com o outro país como resto do mundo |
 | `Sfc.Solver` | Resolve um período cujas equações dependem umas das outras, e devolve erro quando não há solução |
 | `Models` | O catálogo de modelos disponíveis na tela |
 | `Link` | Leitura e escrita do modelo e dos cenários na URL |
