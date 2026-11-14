@@ -6,13 +6,13 @@ const P0 = { alpha1_uk:.75, alpha1_us:.75, alpha2_uk:.13333, alpha2_us:.13333, e
   lambda10:.7, lambda11:5, lambda12:5, lambda20:.25, lambda21:5, lambda22:5, lambda40:.7, lambda41:5, lambda42:5, lambda50:.25, lambda51:5, lambda52:5,
   mu0:-2.1, mu1:.7, mu2:1, nu0m:-0.00001, nu0x:-0.00001, nu1m:.7, nu1x:.5, phi_uk:.2381, phi_us:.2381, theta_uk:.2, theta_us:.2,
   dxre_us:0, dxre_uk:0, g_k_uk:16, g_k_us:16, pr_uk:1.3333, pr_us:1.3333, r_uk:.03, r_us:.03, w_uk:1, w_us:1, b_cb_ukus_s:0.02031,
-  trend:1, infl_uk:1, infl_us:1, tr_k_uk:0 };
+  trend:1, infl_uk:1, infl_us:1, tr_k_uk:0, rho_uk:0, fdi_flow_uk:0 };
 const BOOK = { b_ukuk_d:102.18, b_ukus_d:36.493, b_ukus_s:36.504, b_usuk_d:36.497, b_usuk_s:36.487, b_usus_d:102.19, h_uk_d:7.2987, h_us_d:7.2995,
   v_k_uk:152.62, v_k_us:152.63, v_uk:145.97, v_us:145.99001, c_k_uk:81.393, c_k_us:81.401, cons_uk:77.851, cons_us:77.86, im_k_uk:11.928, im_k_us:11.926, im_uk:11.407, im_us:11.409,
   n_uk:73.046, n_us:73.054, pds_uk:.95648, pds_us:.95649, pm_uk:.95628, pm_us:.95661, ps_uk:.95646, ps_us:.9565, px_uk:.95634, px_us:.95656, py_uk:.95648, py_us:.95649,
   s_k_uk:109.32, s_k_us:109.33, s_uk:104.56, s_us:104.57, t_uk:19.463, t_us:19.465, x_k_uk:11.926, x_k_us:11.928, x_uk:11.406, x_us:11.41, xr_uk:1.0003, xr_us:.99971,
   y_k_uk:97.392, y_k_us:97.403, y_uk:93.154, y_us:93.164, yd_uk:77.851, yd_us:77.86, ydhs_k_uk:81.394, ydhs_k_us:81.402, ydhse_k_uk:81.394, ydhse_k_us:81.402,
-  g_uk:15.304, g_us:15.304, tr_uk:0, f_cb_uk:0, f_cb_us:0, cab_uk:0, psbr_uk:0, psbr_us:0 };
+  g_uk:15.304, g_us:15.304, tr_uk:0, remit_uk:0, fdi_in_uk:0, fdi_uk:0, f_cb_uk:0, f_cb_us:0, cab_uk:0, psbr_uk:0, psbr_us:0 };
 // A start with no gold whose stocks are exactly consistent: each central bank holds bills against the money it issued,
 // and each government's debt is the sum of what its holders hold.
 function consistentStart() { const s = { ...BOOK };
@@ -31,7 +31,7 @@ function run(n, shocks = [], start = null, base = {}) { let p = { ...P0, ...base
   return { out, maxIt }; }
 // transactions matrix of the UK in pounds: columns H F G CB RoW; returns max abs column sum
 function tfm(o) { const L = o._L, LP = o._LP, p = o._p; const col = { H: 0, F: 0, G: 0, CB: 0, R: 0 }; const flow = (from, to, a) => { col[from] -= a; col[to] += a; };
-  flow('H','F',o.cons_uk); flow('G','F',o.g_uk); flow('R','F',o.x_uk); flow('F','R',o.im_uk); flow('F','H',o.y_uk); flow('H','G',o.t_uk); flow('G','H',o.tr_uk);
+  flow('H','F',o.cons_uk); flow('G','F',o.g_uk); flow('R','F',o.x_uk); flow('F','R',o.im_uk); flow('F','H',o.y_uk-o.remit_uk); flow('F','R',o.remit_uk); flow('R','H',o.fdi_in_uk); flow('H','G',o.t_uk); flow('G','H',o.tr_uk);
   flow('G','H',LP.r_uk*L.b_ukuk_d); flow('G','CB',LP.r_uk*L.b_cb_ukuk_d); flow('G','R',LP.r_uk*L.b_usuk_s);
   flow('R','H',o.xr_us*LP.r_us*L.b_ukus_s); flow('R','CB',o.xr_us*LP.r_us*LP.b_cb_ukus_s/(p.trend*p.infl_us)); flow('CB','G',o.f_cb_uk);
   flow('H','CB',o.h_uk_d-L.h_uk_d); flow('H','G',o.b_ukuk_d-L.b_ukuk_d); flow('CB','G',o.b_cb_ukuk_d-L.b_cb_ukuk_d); flow('R','G',o.b_usuk_s-L.b_usuk_s);

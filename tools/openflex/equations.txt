@@ -28,16 +28,18 @@ x_us = v.x_k_us * v.px_us
 im_uk = v.im_k_uk * v.pm_uk
 # [12.32] imports of US
 im_us = v.im_k_us * v.pm_us
-# [12.7] taxes in UK
-t_uk = p.theta_uk * (v.y_uk + Lp.r_uk * L.b_ukuk_d + v.xr_us * Lp.r_us * L.b_ukus_s)
+# profits that foreign-owned firms in the UK send abroad (not in the book)
+remit_uk = Lp.rho_uk * L.fdi_uk
+# [12.7] taxes in UK; household income is output less the profits sent abroad
+t_uk = p.theta_uk * (v.y_uk - v.remit_uk + Lp.r_uk * L.b_ukuk_d + v.xr_us * Lp.r_us * L.b_ukus_s)
 # [12.8] taxes in US
-t_us = p.theta_us * (v.y_us + Lp.r_us * L.b_usus_d + v.xr_uk * Lp.r_uk * L.b_usuk_s)
+t_us = p.theta_us * (v.y_us + v.xr_uk * v.remit_uk + Lp.r_us * L.b_usus_d + v.xr_uk * Lp.r_uk * L.b_usuk_s)
 # government transfers to UK households, fixed in real terms (not in the book)
 tr_uk = p.tr_k_uk * v.pds_uk
 # [12.1] disposable income in UK, plus transfers
-yd_uk = (v.y_uk + Lp.r_uk * L.b_ukuk_d + v.xr_us * Lp.r_us * L.b_ukus_s) * (1 - p.theta_uk) + (v.xr_us - L.xr_us) * L.b_ukus_s + v.tr_uk
+yd_uk = (v.y_uk - v.remit_uk + Lp.r_uk * L.b_ukuk_d + v.xr_us * Lp.r_us * L.b_ukus_s) * (1 - p.theta_uk) + (v.xr_us - L.xr_us) * L.b_ukus_s + v.tr_uk
 # [12.4] disposable income in US
-yd_us = (v.y_us + Lp.r_us * L.b_usus_d + v.xr_uk * Lp.r_uk * L.b_usuk_s) * (1 - p.theta_us) + (v.xr_uk - L.xr_uk) * L.b_usuk_s
+yd_us = (v.y_us + v.xr_uk * v.remit_uk + Lp.r_us * L.b_usus_d + v.xr_uk * Lp.r_uk * L.b_usuk_s) * (1 - p.theta_us) + (v.xr_uk - L.xr_uk) * L.b_usuk_s
 # [12.35] real Haig-Simons disposable income in UK
 ydhs_k_uk = v.yd_uk / v.pds_uk - L.v_k_uk * (v.pds_uk - L.pds_uk) / v.pds_uk
 # [12.36] real Haig-Simons disposable income in US
@@ -90,10 +92,14 @@ cons_us = v.c_k_us * v.pds_us
 g_uk = p.g_k_uk * v.pds_uk
 # [12.62] government expenditure in US
 g_us = p.g_k_us * v.pds_us
-# [12.3] wealth accumulation in UK
-v_uk = L.v_uk + v.yd_uk - v.cons_uk
+# foreign direct investment into the UK: what foreigners pay UK households for a share of UK firms (not in the book)
+fdi_in_uk = p.fdi_flow_uk * v.y_uk
+# the stock of UK firms owned abroad
+fdi_uk = L.fdi_uk + v.fdi_in_uk
+# [12.3] wealth accumulation in UK, plus the proceeds of direct investment
+v_uk = L.v_uk + v.yd_uk - v.cons_uk + v.fdi_in_uk
 # [12.6] wealth accumulation in US
-v_us = L.v_us + v.yd_us - v.cons_us
+v_us = L.v_us + v.yd_us - v.cons_us - v.fdi_in_uk * v.xr_uk
 # [12.33] real wealth in UK
 v_k_uk = v.v_uk / v.pds_uk
 # [12.34] real wealth in US
@@ -127,7 +133,7 @@ b_cb_ukuk_d = v.b_uk_s - v.b_ukuk_d - v.b_usuk_s
 # [12.90] US bills left for UK households
 b_ukus_s = v.b_us_s - v.b_usus_d - v.b_cb_usus_d - p.b_cb_ukus_s
 # [12.15] current account balance of UK
-cab_uk = v.x_uk - v.im_uk + v.xr_us * Lp.r_us * L.b_ukus_s - Lp.r_uk * L.b_usuk_s + Lp.r_us * Lp.b_cb_ukus_s / (p.trend * p.infl_us) * v.xr_us
+cab_uk = v.x_uk - v.im_uk + v.xr_us * Lp.r_us * L.b_ukus_s - Lp.r_uk * L.b_usuk_s + Lp.r_us * Lp.b_cb_ukus_s / (p.trend * p.infl_us) * v.xr_us - v.remit_uk
 # government deficit in UK
 psbr_uk = v.g_uk + v.tr_uk + Lp.r_uk * L.b_uk_s - v.t_uk - v.f_cb_uk
 # government deficit in US

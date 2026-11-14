@@ -5,11 +5,13 @@ const start = JSON.parse(fs.readFileSync(__dirname + '/steady.json'));
 const quarterly = yearly => Math.pow(1 + yearly, 0.25);
 
 // Policy on the path, on the screen's slider steps. 3.5% a quarter is 14.75% a year.
-const POLICY = { g_k_uk: 18, theta_uk: 0.38, r_uk: 0.035 };
+const POLICY = { g_k_uk: 18, theta_uk: 0.39, r_uk: 0.035 };
 // Premises on the path: the Brazilian values read so far (CALIBRATION.md).
 const PREMISES = { eps1: 0.01, mu1: 0.55, nu1m: 0.7, port: 2 };
 // Trends and the foreign interest rate (CALIBRATION.md, section 8).
 const WORLD = { trend: quarterly(0.023), infl_uk: quarterly(0.046), infl_us: quarterly(0.02), r_us: 0.0096 };
+// Direct investment inflow and exports, as shares of output (CALIBRATION.md, section 8).
+const EXTERNAL = { directInvestment: 0.0358, exports: 0.178 };
 const TARGETS = { imports: 0.175, debt: 3.28, foreignShare: 0.099, government: 0.191 };
 
 const expected = p => ({ dxre_us: p.infl_uk / p.infl_us - 1, dxre_uk: p.infl_us / p.infl_uk - 1 }); // the trend of each exchange rate
@@ -30,6 +32,14 @@ for (let theta = 0.30; theta < POLICY.theta_uk + 0.005; theta += 0.01) {
   found = c.rest({ ...found.p, ...POLICY, theta_uk: Math.min(theta, POLICY.theta_uk) }, found.v, [...shape, 'tr_k_uk'], [...shapeTargets, T.government], false);
   if (!found.ok) throw new Error('no growth path found at tax rate ' + theta + ': ' + found.err); }
 found.p.theta_uk = POLICY.theta_uk;
+// Direct investment is switched on a little at a time. The profit rate foreign-owned firms send abroad is
+// solved so that exports land on their share of output. The current account is then a result: on a
+// growth path it is pinned by the stocks of foreign assets and liabilities.
+const pathExports = found.v.x_uk / found.v.y_uk;
+for (let k = 1; k <= STEPS; k++) { const share = k / STEPS, aim = pathExports + (EXTERNAL.exports - pathExports) * share;
+  found = c.rest({ ...found.p, fdi_flow_uk: EXTERNAL.directInvestment * share }, found.v, [...shape, 'tr_k_uk', 'rho_uk'],
+    [...shapeTargets, T.government, v => v.x_uk / v.y_uk - aim], false);
+  if (!found.ok) throw new Error('direct investment stage ' + k + ' failed: ' + found.err); }
 // polish: step the model from the point found until it stops moving at machine precision
 let rest = found.v; for (let i = 0; i < 5; i++) rest = m.run(1, [], rest, found.p).out[0];
 const P = found.p; const V = {}; for (const k of m.KEYS) V[k] = rest[k];
@@ -49,7 +59,7 @@ module.exports = { P, V, withPremises, PREMISES, POLICY };
 
 if (require.main === module) {
   const f = (x, d = 4) => x.toFixed(d); const L = m.carry(V, P);
-  console.log('path:', `y ${f(V.y_k_uk)} xr ${f(V.xr_uk, 8)} revenue/y ${f(V.t_uk / V.y_uk)} gov/y ${f(V.g_uk / V.y_uk)} transfers/y ${f(V.tr_uk / V.y_uk)} interest/y ${f(P.r_uk * L.b_uk_s / V.y_uk)} deficit/y ${f(V.psbr_uk / V.y_uk)} imports/y ${f(V.im_uk / V.y_uk)} exports/y ${f(V.x_uk / V.y_uk)} cons/y ${f(V.cons_uk / V.y_uk)} debt/y ${f(V.b_uk_s / V.y_uk)} foreign ${f(V.b_usuk_s / V.b_uk_s)} cab/y ${f(V.cab_uk / V.y_uk)} foreign bills/wealth ${f(V.b_ukus_d / V.v_uk)} us y ${f(V.y_k_us)}`);
+  console.log('path:', `y ${f(V.y_k_uk)} xr ${f(V.xr_uk, 8)} revenue/y ${f(V.t_uk / V.y_uk)} gov/y ${f(V.g_uk / V.y_uk)} transfers/y ${f(V.tr_uk / V.y_uk)} interest/y ${f(P.r_uk * L.b_uk_s / V.y_uk)} deficit/y ${f(V.psbr_uk / V.y_uk)} imports/y ${f(V.im_uk / V.y_uk)} exports/y ${f(V.x_uk / V.y_uk)} cons/y ${f(V.cons_uk / V.y_uk)} debt/y ${f(V.b_uk_s / V.y_uk)} foreign ${f(V.b_usuk_s / V.b_uk_s)} cab/y ${f(V.cab_uk / V.y_uk)} direct investment stock/y ${f(V.fdi_uk / V.y_uk)} profits sent/y ${f(V.remit_uk / V.y_uk)} rho ${f(P.rho_uk, 5)} trade balance/y ${f((V.x_uk - V.im_uk) / V.y_uk)} foreign bills/wealth ${f(V.b_ukus_d / V.v_uk)} us y ${f(V.y_k_us)}`);
   console.log('solved:', [...shape, 'tr_k_uk'].map(k => k + ' ' + P[k]).join(', '));
   for (const ch of [PREMISES, { eps1: .7, mu1: .7, nu1m: .7, port: 5 }, { eps1: 0, mu1: 1, nu1m: .3, port: 0 }, { eps1: .5, mu1: .8, nu1m: 1, port: 10 }]) {
     const p = withPremises(ch); const r = m.run(60, [], V, p); const z = r.out.at(-1);
@@ -62,7 +72,7 @@ if (require.main === module) {
   show('default, g 19', PREMISES, { g_k_uk: 19 }); show('book trade, g 19', book, { g_k_uk: 19 });
   show('default, g 17', PREMISES, { g_k_uk: 17 });
   show('default, r 4%', PREMISES, { r_uk: .04 }); show('book trade, r 4%', book, { r_uk: .04 });
-  show('default, r 3%', PREMISES, { r_uk: .03 }); show('default, tax 39', PREMISES, { theta_uk: .39 });
+  show('default, r 3%', PREMISES, { r_uk: .03 }); show('default, tax 40', PREMISES, { theta_uk: .40 });
   show('default, r 6%', PREMISES, { r_uk: .06 }); show('default, g 25', PREMISES, { g_k_uk: 25 });
   show('default, g 19, 400 periods', PREMISES, { g_k_uk: 19 }, 400);
   const out = process.argv[2]; if (out) {
