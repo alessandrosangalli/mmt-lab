@@ -131,18 +131,22 @@ type alias Period =
 -- MODEL
 
 
-{-| One period of the economy.
+{- The equations, with (-1) marking the previous period's value:
 
-    Y   = C + G
-    YD  = Y - T + r(-1) * Bh(-1)
-    T   = theta * (Y + r(-1) * Bh(-1))
-    C   = a1 * YD + a2 * V(-1)
-    V   = V(-1) + YD - C
-    Bh  = V * (l0 + l1 * r - l2 * YD / V)
-    Hh  = V - Bh
-    Bs  = Bs(-1) + (G + r(-1) * Bs(-1)) - (T + r(-1) * Bcb(-1))
-    Bcb = Bs - Bh
-    Hs  = Hs(-1) + Bcb - Bcb(-1)
+   Y   = C + G
+   YD  = Y - T + r(-1) * Bh(-1)
+   T   = theta * (Y + r(-1) * Bh(-1))
+   C   = a1 * YD + a2 * V(-1)
+   V   = V(-1) + YD - C
+   Bh  = V * (l0 + l1 * r - l2 * YD / V)
+   Hh  = V - Bh
+   Bs  = Bs(-1) + (G + r(-1) * Bs(-1)) - (T + r(-1) * Bcb(-1))
+   Bcb = Bs - Bh
+   Hs  = Hs(-1) + Bcb - Bcb(-1)
+-}
+
+
+{-| One period of the economy.
 
 The model never states that the money issued equals the money households
 hold. It follows from the accounting, and the tests check it.
