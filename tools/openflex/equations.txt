@@ -1,0 +1,132 @@
+# One line per equation, in solving order. v. = this period (latest value), L. = last period,
+# p. = parameter now, Lp. = parameter last period. Numbers in brackets are the book's equation numbers.
+# [12.86] US exchange rate
+xr_us = 1 / v.xr_uk
+# [12.21] import prices in UK
+pm_uk = exp(p.nu0m + p.nu1m * log(v.py_us) + (1 - p.nu1m) * log(v.py_uk) - p.nu1m * log(v.xr_uk))
+# [12.22] export prices in UK
+px_uk = exp(p.nu0x + p.nu1x * log(v.py_us) + (1 - p.nu1x) * log(v.py_uk) - p.nu1x * log(v.xr_uk))
+# [12.23] export prices in US
+px_us = v.pm_uk * v.xr_uk
+# [12.24] import prices in US
+pm_us = v.px_uk * v.xr_uk
+# [12.25] real exports from UK
+x_k_uk = exp(p.eps0 - p.eps1 * log(v.pm_us / v.py_us) + p.eps2 * log(v.y_k_us))
+# [12.26] real imports of UK
+im_k_uk = exp(p.mu0 - p.mu1 * log(L.pm_uk / L.py_uk) + p.mu2 * log(v.y_k_uk))
+# [12.27] real exports from US
+x_k_us = v.im_k_uk
+# [12.28] real imports of US
+im_k_us = v.x_k_uk
+# [12.29] exports of UK
+x_uk = v.x_k_uk * v.px_uk
+# [12.30] exports of US
+x_us = v.x_k_us * v.px_us
+# [12.31] imports of UK
+im_uk = v.im_k_uk * v.pm_uk
+# [12.32] imports of US
+im_us = v.im_k_us * v.pm_us
+# [12.7] taxes in UK
+t_uk = p.theta_uk * (v.y_uk + Lp.r_uk * L.b_ukuk_d + v.xr_us * Lp.r_us * L.b_ukus_s)
+# [12.8] taxes in US
+t_us = p.theta_us * (v.y_us + Lp.r_us * L.b_usus_d + v.xr_uk * Lp.r_uk * L.b_usuk_s)
+# [12.1] disposable income in UK
+yd_uk = (v.y_uk + Lp.r_uk * L.b_ukuk_d + v.xr_us * Lp.r_us * L.b_ukus_s) * (1 - p.theta_uk) + (v.xr_us - L.xr_us) * L.b_ukus_s
+# [12.4] disposable income in US
+yd_us = (v.y_us + Lp.r_us * L.b_usus_d + v.xr_uk * Lp.r_uk * L.b_usuk_s) * (1 - p.theta_us) + (v.xr_uk - L.xr_uk) * L.b_usuk_s
+# [12.35] real Haig-Simons disposable income in UK
+ydhs_k_uk = v.yd_uk / v.pds_uk - L.v_k_uk * (v.pds_uk - L.pds_uk) / v.pds_uk
+# [12.36] real Haig-Simons disposable income in US
+ydhs_k_us = v.yd_us / v.pds_us - L.v_k_us * (v.pds_us - L.pds_us) / v.pds_us
+# [12.39] expected real disposable income in UK
+ydhse_k_uk = (v.ydhs_k_uk + L.ydhs_k_uk) / 2
+# [12.40] expected real disposable income in US
+ydhse_k_us = (v.ydhs_k_us + L.ydhs_k_us) / 2
+# [12.37] real consumption in UK
+c_k_uk = p.alpha1_uk * v.ydhse_k_uk + p.alpha2_uk * L.v_k_uk
+# [12.38] real consumption in US
+c_k_us = p.alpha1_us * v.ydhse_k_us + p.alpha2_us * L.v_k_us
+# [12.41] real sales in UK
+s_k_uk = v.c_k_uk + p.g_k_uk + v.x_k_uk
+# [12.42] real sales in US
+s_k_us = v.c_k_us + p.g_k_us + v.x_k_us
+# [12.55] real output in UK
+y_k_uk = v.s_k_uk - v.im_k_uk
+# [12.56] real output in US
+y_k_us = v.s_k_us - v.im_k_us
+# [12.65] employment in UK
+n_uk = v.y_k_uk / p.pr_uk
+# [12.66] employment in US
+n_us = v.y_k_us / p.pr_us
+# [12.45] price of sales in UK
+ps_uk = (1 + p.phi_uk) * (p.w_uk * v.n_uk + v.im_uk) / v.s_k_uk
+# [12.46] price of sales in US
+ps_us = (1 + p.phi_us) * (p.w_us * v.n_us + v.im_us) / v.s_k_us
+# [12.43] value of sales in UK
+s_uk = v.s_k_uk * v.ps_uk
+# [12.44] value of sales in US
+s_us = v.s_k_us * v.ps_us
+# [12.47] price of domestic sales in UK
+pds_uk = (v.s_uk - v.x_uk) / (v.s_k_uk - v.x_k_uk)
+# [12.48] price of domestic sales in US
+pds_us = (v.s_us - v.x_us) / (v.s_k_us - v.x_k_us)
+# [12.53] value of output in UK
+y_uk = v.s_uk - v.im_uk
+# [12.54] value of output in US
+y_us = v.s_us - v.im_us
+# [12.57] price of output in UK
+py_uk = v.y_uk / v.y_k_uk
+# [12.58] price of output in US
+py_us = v.y_us / v.y_k_us
+# [12.59] consumption in UK
+cons_uk = v.c_k_uk * v.pds_uk
+# [12.60] consumption in US
+cons_us = v.c_k_us * v.pds_us
+# [12.61] government expenditure in UK
+g_uk = p.g_k_uk * v.pds_uk
+# [12.62] government expenditure in US
+g_us = p.g_k_us * v.pds_us
+# [12.3] wealth accumulation in UK
+v_uk = L.v_uk + v.yd_uk - v.cons_uk
+# [12.6] wealth accumulation in US
+v_us = L.v_us + v.yd_us - v.cons_us
+# [12.33] real wealth in UK
+v_k_uk = v.v_uk / v.pds_uk
+# [12.34] real wealth in US
+v_k_us = v.v_us / v.pds_us
+# [12.11] profits of the central bank in UK
+f_cb_uk = Lp.r_uk * L.b_cb_ukuk_d + Lp.r_us * Lp.b_cb_ukus_s * v.xr_us
+# [12.12] profits of the central bank in US
+f_cb_us = Lp.r_us * L.b_cb_usus_d
+# [12.13] government budget constraint in UK
+b_uk_s = L.b_uk_s + v.g_uk + Lp.r_uk * L.b_uk_s - v.t_uk - v.f_cb_uk
+# [12.14] government budget constraint in US
+b_us_s = L.b_us_s + v.g_us + Lp.r_us * L.b_us_s - v.t_us - v.f_cb_us
+# [12.67] demand for UK bills in UK
+b_ukuk_d = v.v_uk * (p.lambda10 + p.lambda11 * p.r_uk - p.lambda12 * (p.r_us + p.dxre_us))
+# [12.68] demand for US bills in UK
+b_ukus_d = v.v_uk * (p.lambda20 - p.lambda21 * p.r_uk + p.lambda22 * (p.r_us + p.dxre_us))
+# [12.69] demand for money in UK
+h_uk_d = v.v_uk - v.b_ukuk_d - v.b_ukus_d
+# [12.70] demand for US bills in US
+b_usus_d = v.v_us * (p.lambda40 + p.lambda41 * p.r_us - p.lambda42 * (p.r_uk + p.dxre_uk))
+# [12.71] demand for UK bills in US
+b_usuk_d = v.v_us * (p.lambda50 - p.lambda51 * p.r_us + p.lambda52 * (p.r_uk + p.dxre_uk))
+# [12.72] demand for money in US
+h_us_d = v.v_us - v.b_usus_d - v.b_usuk_d
+# [12.83] balance sheet of the US central bank, in changes (gold left out)
+b_cb_usus_d = L.b_cb_usus_d + (v.h_us_d - L.h_us_d)
+# [12.87] UK bills acquired by US households
+b_usuk_s = v.b_usuk_d * v.xr_us
+# [12.82A] the UK central bank takes the UK bills nobody else holds
+b_cb_ukuk_d = v.b_uk_s - v.b_ukuk_d - v.b_usuk_s
+# [12.90] US bills left for UK households
+b_ukus_s = v.b_us_s - v.b_usus_d - v.b_cb_usus_d - p.b_cb_ukus_s
+# [12.15] current account balance of UK
+cab_uk = v.x_uk - v.im_uk + v.xr_us * Lp.r_us * L.b_ukus_s - Lp.r_uk * L.b_usuk_s + Lp.r_us * Lp.b_cb_ukus_s * v.xr_us
+# government deficit in UK
+psbr_uk = v.g_uk + Lp.r_uk * L.b_uk_s - v.t_uk - v.f_cb_uk
+# government deficit in US
+psbr_us = v.g_us + Lp.r_us * L.b_us_s - v.t_us - v.f_cb_us
+# [12.89FL] the exchange rate clears the market for US bills held in the UK
+xr_uk = v.b_ukus_s / v.b_ukus_d
