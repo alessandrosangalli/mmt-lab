@@ -337,12 +337,12 @@ suite =
                     [ \_ -> Expect.within (Absolute 1.0e-6) 0.175 (over at.y_uk at.im_uk)
                     , \_ -> Expect.within (Absolute 1.0e-6) 3.28 (over at.y_uk at.b_uk_s)
                     , \_ -> Expect.within (Absolute 1.0e-6) 0.099 (over at.b_uk_s at.b_usuk_s)
-                    , \_ -> Expect.within (Absolute 1.0e-6) 0.188 (over at.y_uk at.g_uk)
+                    , \_ -> Expect.within (Absolute 1.0e-6) 0.191 (over at.y_uk at.g_uk)
                     , \_ -> Expect.within (Absolute 1.0e-6) 1 at.xr_uk
                     , \_ -> Expect.within (Absolute 0.0005) 0.419 (over at.y_uk at.t_uk)
-                    , \_ -> Expect.within (Absolute 0.0005) 0.1788 (over at.y_uk at.tr_uk)
-                    , \_ -> Expect.within (Absolute 0.0005) 0.0543 (over at.y_uk at.psbr_uk)
-                    , \_ -> Expect.within (Absolute 0.0005) 0.183 (over at.y_uk at.x_uk)
+                    , \_ -> Expect.within (Absolute 0.0005) 0.1767 (over at.y_uk at.tr_uk)
+                    , \_ -> Expect.within (Absolute 0.0005) 0.0551 (over at.y_uk at.psbr_uk)
+                    , \_ -> Expect.within (Absolute 0.0005) 0.1816 (over at.y_uk at.x_uk)
                     ]
                     ()
         , test "the Brazilian economy stays on its growth path under its default policy, whatever the premises" <|
@@ -360,9 +360,9 @@ suite =
                         , List.length result.snapshots
                         , List.all
                             (\snapshot ->
-                                (abs (snapshot.income - 95.784377) < 1.0e-5)
-                                    && (abs (snapshot.foreignBalance + 0.384822) < 1.0e-5)
-                                    && (abs (snapshot.governmentBalance + 5.038415) < 1.0e-5)
+                                (abs (snapshot.income - 94.274383) < 1.0e-5)
+                                    && (abs (snapshot.foreignBalance + 0.269893) < 1.0e-5)
+                                    && (abs (snapshot.governmentBalance + 5.029439) < 1.0e-5)
                             )
                             result.snapshots
                         )
@@ -399,10 +399,10 @@ suite =
                         ending [ ( "eps1", 0.7 ), ( "mu1", 0.7 ) ]
                 in
                 Expect.all
-                    [ \_ -> Expect.within (Absolute 1.0e-7) 0.8273197651 brazilRate
-                    , \_ -> Expect.within (Absolute 1.0e-7) 0.2186815671 brazilAccount
-                    , \_ -> Expect.within (Absolute 1.0e-7) 0.9506601837 bookRate
-                    , \_ -> Expect.within (Absolute 1.0e-7) 0.3811964198 bookAccount
+                    [ \_ -> Expect.within (Absolute 1.0e-7) 0.8217431794 brazilRate
+                    , \_ -> Expect.within (Absolute 1.0e-7) 0.0891354064 brazilAccount
+                    , \_ -> Expect.within (Absolute 1.0e-7) 0.94961655 bookRate
+                    , \_ -> Expect.within (Absolute 1.0e-7) 0.2633237957 bookAccount
                     ]
                     ()
         , test "from the Brazilian starting point, half a point of interest a quarter lifts the currency at once by what Brazilian studies measure for two points a year" <|
@@ -424,9 +424,9 @@ suite =
                             |> Maybe.withDefault 0
                 in
                 Expect.all
-                    [ \_ -> Expect.within (Absolute 1.0e-7) 1.0619430482 (rateAt 1)
+                    [ \_ -> Expect.within (Absolute 1.0e-7) 1.0615161176 (rateAt 1)
                     , \_ -> rateAt 1 |> Expect.all [ Expect.atLeast (1 + 2 * 0.025), Expect.atMost (1 + 2 * 0.042) ]
-                    , \_ -> Expect.within (Absolute 1.0e-7) 0.7606646809 (rateAt 120)
+                    , \_ -> Expect.within (Absolute 1.0e-7) 0.7537853766 (rateAt 120)
                     ]
                     ()
         , test "from the Brazilian starting point, an interest rate of 6% a quarter has no solution in period 80, as in the prototype" <|
@@ -439,7 +439,7 @@ suite =
                     |> Expect.equal (Just 80)
         , test "a version string names its model" <|
             \_ ->
-                List.map Models.fromVersion [ "sim-1", "pc-1", "pc-7", "open-1", "brazil-1", "brazil-2", "other-1", "" ]
+                List.map Models.fromVersion [ "sim-1", "pc-1", "pc-7", "open-1", "brazil-1", "brazil-3", "other-1", "" ]
                     |> Expect.equal [ Just SimModel, Just PcModel, Just PcModel, Just OpenModel, Just BrazilModel, Just BrazilModel, Nothing, Nothing ]
         , test "every model's current version names itself" <|
             \_ ->

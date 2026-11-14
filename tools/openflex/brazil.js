@@ -9,19 +9,23 @@ const POLICY = { g_k_uk: 18, theta_uk: 0.38, r_uk: 0.035 };
 // Premises on the path: the Brazilian values read so far (CALIBRATION.md).
 const PREMISES = { eps1: 0.01, mu1: 0.55, nu1m: 0.7, port: 2 };
 // Trends and the foreign interest rate (CALIBRATION.md, section 8).
-const WORLD = { trend: quarterly(0.023), infl_uk: quarterly(0.045), infl_us: quarterly(0.027), r_us: 0.0096 };
-const TARGETS = { imports: 0.175, debt: 3.28, foreignShare: 0.099, government: 0.188 };
+const WORLD = { trend: quarterly(0.023), infl_uk: quarterly(0.046), infl_us: quarterly(0.02), r_us: 0.0096 };
+const TARGETS = { imports: 0.175, debt: 3.28, foreignShare: 0.099, government: 0.191 };
 
 const expected = p => ({ dxre_us: p.infl_uk / p.infl_us - 1, dxre_uk: p.infl_us / p.infl_uk - 1 }); // the trend of each exchange rate
 const base = { ...m.P0, ...c.port(PREMISES.port), eps1: PREMISES.eps1, mu1: PREMISES.mu1, nu1m: PREMISES.nu1m, ...WORLD, ...expected(WORLD) };
 const T = { imports: v => v.im_uk / v.y_uk - TARGETS.imports, debt: v => v.b_uk_s / v.y_uk - TARGETS.debt,
   foreign: v => v.b_usuk_s / v.b_uk_s - TARGETS.foreignShare, rate: v => v.xr_uk - 1, government: v => v.g_uk / v.y_uk - TARGETS.government };
 const shape = ['mu0', 'alpha2_uk', 'lambda50', 'eps0'], shapeTargets = [T.imports, T.debt, T.foreign, T.rate];
-// Far from the book's starting point the solver needs to be led: first a path with the size of the book's
-// economy and the tax rate free, then the tax rate walked up to the policy's.
-let found = c.rest({ ...base, r_uk: POLICY.r_uk }, start, [...shape, 'theta_uk', 'tr_k_uk', 'g_k_uk'],
-  [...shapeTargets, T.government, v => v.t_uk / v.y_uk - 0.324, v => v.y_k_uk / 94.8344 - 1], false);
-if (!found.ok) throw new Error('first stage failed: ' + found.err);
+// Far from the book's starting point the solver needs to be led: growth and inflation are switched on a
+// little at a time, with the size of the book's economy and the tax rate free; then the tax rate is
+// walked up to the policy's.
+const stage = [...shape, 'theta_uk', 'tr_k_uk', 'g_k_uk'];
+const stageTargets = [...shapeTargets, T.government, v => v.t_uk / v.y_uk - 0.324, v => v.y_k_uk / 94.8344 - 1];
+let found = { p: null, v: start }; const STEPS = 8;
+for (let k = 1; k <= STEPS; k++) { const part = { trend: Math.pow(WORLD.trend, k / STEPS), infl_uk: Math.pow(WORLD.infl_uk, k / STEPS), infl_us: Math.pow(WORLD.infl_us, k / STEPS) };
+  found = c.rest({ ...(found.p || base), r_uk: POLICY.r_uk, r_us: WORLD.r_us, ...part, ...expected(part) }, found.v, stage, stageTargets, false);
+  if (!found.ok) throw new Error('growth stage ' + k + ' failed: ' + found.err); }
 for (let theta = 0.30; theta < POLICY.theta_uk + 0.005; theta += 0.01) {
   found = c.rest({ ...found.p, ...POLICY, theta_uk: Math.min(theta, POLICY.theta_uk) }, found.v, [...shape, 'tr_k_uk'], [...shapeTargets, T.government], false);
   if (!found.ok) throw new Error('no growth path found at tax rate ' + theta + ': ' + found.err); }
