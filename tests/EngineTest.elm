@@ -249,7 +249,7 @@ suite =
                     , \_ -> Expect.within (Absolute 1.0e-7) 0.7999057983 (exchangeRate (Dict.fromList [ ( "port", 1 ) ]))
                     ]
                     ()
-        , test "with the calibrated portfolio reaction, one point of interest lifts the currency on impact by what Brazilian studies measure, matching the prototype" <|
+        , test "with the calibrated portfolio reaction, a quarter point of interest per quarter lifts the currency on impact by what Brazilian studies measure, matching the prototype" <|
             \_ ->
                 let
                     base =
@@ -258,7 +258,7 @@ suite =
                     impact premises =
                         (Models.run OpenModel
                             { base
-                                | initial = { spending = 16, taxRatePct = 20, interestRatePct = 4 }
+                                | initial = { spending = 16, taxRatePct = 20, interestRatePct = 3.25 }
                                 , premises = premises
                             }
                         ).snapshots
@@ -272,8 +272,8 @@ suite =
                         impact (Premise.brazilian (Models.info OpenModel).premises Dict.empty)
                 in
                 Expect.all
-                    [ \_ -> Expect.within (Absolute 1.0e-7) 1.3014361363 (impact Dict.empty)
-                    , \_ -> Expect.within (Absolute 1.0e-7) 1.0268548151 (impact (Dict.fromList [ ( "port", 0.5 ) ]))
+                    [ \_ -> Expect.within (Absolute 1.0e-7) 1.0680192497 (impact Dict.empty)
+                    , \_ -> Expect.within (Absolute 1.0e-7) 1.0268548151 (impact (Dict.fromList [ ( "port", 2 ) ]))
                     , \_ -> calibrated / 1.0003000158 |> Expect.all [ Expect.atLeast 1.025, Expect.atMost 1.042 ]
                     ]
                     ()

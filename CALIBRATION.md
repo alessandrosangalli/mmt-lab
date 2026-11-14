@@ -139,7 +139,7 @@ No modelo, oito parâmetros `lambda` dizem como as famílias de cada país divid
 | --- | --- | --- | --- | --- |
 | Parcela dos títulos domésticos em poder do exterior | cerca de 25% | 9,91% da dívida federal interna em agosto de 2026 | Tesouro Nacional, Relatório Mensal da Dívida de agosto de 2026 | Texto |
 | Parcela da riqueza das famílias em títulos estrangeiros | 25% | Lacuna. A posição internacional de investimento do Banco Central é a fonte a consultar | | Não lida |
-| Reação da carteira a um ponto de juro | 5 pontos da riqueza | Sem estimativa direta. Calibração indireta: 0,5, na faixa de 0,15 a 0,8 (ver abaixo) | Este levantamento | |
+| Reação da carteira a um ponto de juro | 5 pontos da riqueza | Sem estimativa direta. Calibração indireta: 2, na faixa de 1,5 a 2,5 (ver abaixo) | Este levantamento | |
 | Reação do câmbio ao diferencial de juros | não se aplica | Coeficiente de 1,90 na equação de paridade do modelo do BC, com intervalo de 0,77 a 3,22 | Banco Central (2024), boxe do Relatório de Inflação de junho | Texto |
 
 ### Quanto o câmbio responde aos juros no Brasil
@@ -159,22 +159,27 @@ O estudo de Ebeke e Lu (2014), do FMI, foi aberto e descartado: trata a particip
 
 ### A calibração indireta
 
-Nenhum estudo lido mede o parâmetro do modelo, que é quanto da riqueza troca de título. Os estudos medem a consequência: quanto o câmbio se move. Então o valor foi escolhido para o modelo reproduzir essa consequência. Com os demais parâmetros no valor do livro e o juro doméstico subindo de 3% para 4%:
+Nenhum estudo lido mede o parâmetro do modelo, que é quanto da riqueza troca de título. Os estudos medem a consequência: quanto o câmbio se move. Então o valor foi escolhido para o modelo reproduzir essa consequência.
 
-| Reação das carteiras | Câmbio no 1º período | No 4º | No 20º | No 40º |
+O período do modelo é um trimestre (seção 8), e os estudos medem um ponto de juro ao ano. Um ponto ao ano é um quarto de ponto por trimestre. Com os demais parâmetros no valor do livro e o juro doméstico subindo de 3% para 3,25% por trimestre:
+
+| Reação das carteiras | Câmbio no 1º trimestre | No 4º | No 20º | No 40º |
 | --- | --- | --- | --- | --- |
-| 0 | 0,0% | −2,6% | −12,0% | −18,0% |
-| 0,5 | +2,7% | −0,5% | −11,9% | −19,0% |
-| 1 | +5,4% | +1,7% | −11,8% | −20,0% |
-| 5, o valor do livro | +30,1% | +20,5% | −11,2% | −27,8% |
+| 0 | 0,0% | −0,7% | −3,1% | −4,7% |
+| 1,5 | +2,0% | +1,0% | −3,0% | −5,5% |
+| 2 | +2,7% | +1,5% | −3,0% | −5,7% |
+| 2,5 | +3,3% | +2,0% | −2,9% | −6,0% |
+| 5, o valor do livro | +6,8% | +4,8% | −2,7% | −7,3% |
 
-A resposta imediata é quase proporcional ao parâmetro, cerca de 5,3% por unidade. A faixa medida no dia do Copom, de 2,5% a 4,2%, corresponde a valores entre 0,5 e 0,8. O limite inferior do coeficiente de paridade do Banco Central, 0,77, lido como percentual por ponto, corresponde a 0,15. O valor adotado é 0,5, com faixa de 0,15 a 0,8. O valor do livro, 5, está dez vezes acima do que os dados brasileiros sustentam.
+No ponto de repouso com proporções brasileiras (seção 8), a resposta é um pouco maior: 3,1% com o valor 2 e 4,0% com 2,5. A faixa medida no dia do Copom, de 2,5% a 4,2%, corresponde a valores entre 1,5 e 2,5. O valor adotado é 2. O valor do livro, 5, dá cerca do dobro da resposta que os dados brasileiros sustentam.
 
-**O que muda nos resultados.** Com 0,5, o modelo deixa de ser hipersensível aos juros: um juro de 5% passa a ter solução nos 120 períodos, onde com o valor do livro deixava de ter no período 30. Um juro de 6% ainda deixa de ter solução, no período 84. Os resultados do gasto público não mudam em nada, porque o gasto não mexe no diferencial de juros: a tabela da seção 1 vale igual.
+**Correção.** A primeira versão desta calibração, do mesmo dia, adotou 0,5. Ela comparava um ponto de juro por período do modelo com um ponto de juro ao ano dos estudos, o que só estaria certo se o período fosse um ano. Com a decisão pelo trimestre, a comparação correta é a de cima.
 
-**Um resultado do modelo a registrar.** Em todas as linhas, a alta de juros acaba desvalorizando a moeda, entre 18% e 28% no período 40, qualquer que seja a reação das carteiras. O juro maior aumenta os pagamentos ao exterior e a renda das famílias, e as duas coisas abrem a conta corrente. É uma propriedade do modelo com os parâmetros do livro, não um resultado sobre o Brasil, e pesa na tese T6.
+**O que muda nos resultados.** Com 2, o modelo fica menos sensível aos juros que com o valor do livro, mas não muito: um juro de 5% por trimestre deixa de ter solução no período 114 (com o valor do livro, no período 30), e um de 6%, no período 36. Os resultados do gasto público não mudam em nada, porque o gasto não mexe no diferencial de juros: a tabela da seção 1 vale igual.
 
-**Limites desta calibração.** São quatro. A medida é do dia da decisão, e o período do modelo é um trimestre ou um ano. A medida é de uma surpresa, e o modelo não distingue surpresa de mudança esperada. Os oito parâmetros de carteira foram movidos juntos, com o mesmo valor para os dois países. E Cieplinski, Braga e Summa mostram que a relação muda de sinal nas crises, o que um parâmetro fixo não reproduz. A calibração foi feita com os resultados do modelo à vista, e isso tem de ser declarado quando o critério de T5 e T6 for pré-registrado.
+**Um resultado do modelo a registrar.** Em todas as linhas, a alta de juros acaba desvalorizando a moeda, qualquer que seja a reação das carteiras. O juro maior aumenta os pagamentos ao exterior e a renda das famílias, e as duas coisas abrem a conta corrente. É uma propriedade do modelo, não um resultado sobre o Brasil, e pesa na tese T6.
+
+**Limites desta calibração.** São quatro. A medida é do dia da decisão, e o período do modelo é um trimestre. A medida é de uma surpresa, e o modelo não distingue surpresa de mudança esperada. Os oito parâmetros de carteira foram movidos juntos, com o mesmo valor para os dois países. E Cieplinski, Braga e Summa mostram que a relação muda de sinal nas crises, o que um parâmetro fixo não reproduz. A calibração foi feita com os resultados do modelo à vista, e isso tem de ser declarado quando o critério de T5 e T6 for pré-registrado.
 
 ## 6. Parâmetros do modelo rival (marco M5)
 
@@ -232,28 +237,50 @@ Três razões, todas tiradas das fontes lidas:
 
 A consequência é que juros, velocidades de ajuste e a razão entre estoques e fluxos passam a ser lidos por trimestre.
 
-### Primeiro teste: o modelo consegue repousar em proporções brasileiras
+### O ponto de repouso com proporções brasileiras
 
-Teste exploratório no protótipo, com o período lido como trimestre. Os parâmetros foram levados aos poucos do livro para: carga tributária de 32,4%, juro doméstico de 3,6% e externo de 1% por trimestre, reação das carteiras de 0,5 e consumo de 5% da riqueza por trimestre. O modelo chegou a um ponto de repouso:
+Um primeiro teste deixou o modelo correr até parar, com os parâmetros levados aos poucos para valores brasileiros. Várias combinações perderam a solução no caminho, e com as respostas brasileiras de comércio nenhuma chegou ao repouso. Por isso o repouso passou a ser calculado diretamente, como um sistema de equações (`tools/openflex/calibrate.js`): alguns parâmetros ficam livres e são escolhidos para o repouso reproduzir as proporções brasileiras.
 
-| Proporção | No repouso encontrado | Brasil |
-| --- | --- | --- |
-| Dívida pública sobre o PIB trimestral | 3,2 | cerca de 3,3 |
-| Parcela da dívida em poder do exterior | 11% | 9,9% |
-| Importações sobre o PIB | 11% | 17,5% |
-| Consumo do governo sobre o PIB | 25% | 18,8% |
-| Arrecadação sobre o PIB | 36% | 32,4% |
+Juros fixados: 3,6% por trimestre no país doméstico, que é uma Selic de 15% ao ano, e 1% no exterior. O juro externo é um valor provisório, ainda sem fonte lida. Reação das carteiras: 2.
 
-A dívida e a parcela do exterior ficam perto das brasileiras sem terem sido alvo direto, o que é um bom sinal. As outras três proporções ainda estão fora. O teste também mostra o limite do método: várias combinações de parâmetros perderam a solução no caminho, e com as respostas brasileiras de comércio nenhuma chegou ao repouso. Isso não prova que o repouso não existe. Prova que deixar o modelo correr não serve para achá-lo.
+| Proporção no repouso | Modelo | Brasil | Como entra |
+| --- | --- | --- | --- |
+| Consumo do governo sobre o PIB | 18,8% | 18,8% | Alvo |
+| Importações sobre o PIB | 17,5% | 17,5% | Alvo |
+| Dívida pública sobre o PIB trimestral | 3,28 | 3,28 (81,9% do PIB anual) | Alvo |
+| Parcela da dívida em poder do exterior | 9,9% | 9,9% | Alvo |
+| Exportações sobre o PIB | 17,9% | 18,0% | Resultado |
+| Arrecadação sobre o PIB | 29,9% | 32,4% de carga bruta | Resultado |
+| Consumo das famílias sobre o PIB | 80,8% | 63,8%, mais 17,0% de investimento | Resultado |
 
-O valor de 5% para o consumo da riqueza não vem de estimativa. Ele sai da contabilidade: no repouso, a razão entre riqueza e renda disponível é fixada pelos dois parâmetros de consumo, e 5% é o valor que leva a dívida à escala brasileira. É calibração por razão entre estoque e fluxo, e precisa ser declarada assim.
+Os parâmetros que saem do cálculo: alíquota de 27,0%; consumo de 5,5% da riqueza por trimestre (o livro usa 13,3%); e os deslocamentos das equações de comércio e de carteira.
+
+O repouso existe com as respostas de comércio do livro e também com as brasileiras, e o modelo permanece nele por 40 períodos nos dois casos. Com as respostas brasileiras o repouso é instável: qualquer mudança de política afasta a economia dele para sempre.
+
+**A alíquota não pode ser alvo.** No repouso o orçamento fecha: a arrecadação tem de cobrir o consumo do governo mais os juros. Fixados o gasto, a dívida e o juro, a alíquota é consequência. A primeira tentativa, com a carga tributária também como alvo, não tinha solução. A arrecadação de 29,9% do modelo não é a carga tributária brasileira: é o que um governo sem transferências e sem crescimento precisaria arrecadar. No Brasil, parte da carga volta às famílias como transferências, e o governo não cobre os juros com arrecadação: tem déficit nominal perto de 10% do PIB.
+
+**O consumo da riqueza não vem de estimativa.** No repouso, a razão entre riqueza e renda é fixada pelos parâmetros de consumo, e 5,5% é o valor que leva a dívida à escala brasileira. É calibração por razão entre estoque e fluxo.
+
+### O que o modelo faz a partir do repouso brasileiro
+
+Resultados exploratórios, com a reação das carteiras em 0,5, antes da correção para 2. Para o gasto público, a reação das carteiras não importa. Para os juros, os números precisam ser refeitos.
+
+| Mudança | Comércio | Câmbio no período 40 | No período 120 | Conta corrente no período 120 |
+| --- | --- | --- | --- | --- |
+| Gasto público 5% maior | Do livro | 0,939 | 0,911 | −0,01% do PIB: fechou |
+| Gasto público 5% maior | Brasileiro | 0,890 | 0,662 | −0,52% do PIB: continua abrindo |
+| Gasto público 5% menor | Brasileiro | 1,125 | 1,489 | +0,39% do PIB |
+
+O resultado da seção 1 se mantém no ponto de partida brasileiro: com as respostas brasileiras de comércio, o câmbio não corrige a conta corrente. O repasse aos preços continua abaixo do alvo da seção 2: com a moeda 9% mais fraca, os preços sobem 0,4%.
 
 ### O que falta decidir e fazer
 
-1. **Calcular o repouso diretamente.** Resolver o estado estacionário como um sistema de equações, com as proporções brasileiras como alvo, em vez de esperar o modelo convergir.
-2. **O outro país.** No livro, os dois países são iguais. Para o Brasil, o resto do mundo é muito maior. Isso exige reescalar o segundo país ou torná-lo exógeno.
-3. **Defasagens.** O livro não tem defasagem nas exportações; a estimativa brasileira indica ajuste em três trimestres.
-4. **Crescimento.** O modelo do livro repousa com déficit zero. O Brasil tem déficit nominal perto de 10% do PIB, com a economia e os preços crescendo. Um repouso sem crescimento não reproduz isso.
+1. **Levar o repouso brasileiro para o código Elm**, como um modelo novo, com versão própria no link.
+2. **O outro país.** O cálculo manteve o país doméstico do tamanho do livro, igual ao outro. Para o Brasil, o resto do mundo é muito maior.
+3. **Crescimento e transferências.** O repouso tem déficit zero e não tem transferências. É a maior distância que resta entre o modelo e as contas públicas brasileiras.
+4. **Repasse do câmbio aos preços.** Ajustar para a faixa de 0,10 a 0,16.
+5. **Defasagens.** O livro não tem defasagem nas exportações; a estimativa brasileira indica ajuste em três trimestres.
+6. **Juro externo.** Trocar o valor provisório por uma fonte lida.
 
 ## Referências
 
