@@ -22,7 +22,7 @@ C  = α1 · YD + α2 · H(anterior)  consumo das famílias
 
 **OPEN (cap. 12, modelo OPENFLEX).** Dois países trocam mercadorias e compram títulos um do outro, com câmbio flutuante. Há preços de importação e de exportação, então a taxa de câmbio chega ao nível de preços doméstico. Você controla a política do país doméstico; o outro não muda. São 65 variáveis por período, resolvidas por passadas sucessivas (`Sfc.Solver`). Com políticas extremas o modelo deixa de ter solução, e a tela diz em que período isso acontece. O código do modelo é gerado a partir de uma lista de equações; veja `tools/openflex/`.
 
-No modelo aberto, quatro **premissas** contestadas viram controles na tela: a resposta das exportações ao câmbio, a resposta das importações ao preço, o repasse do câmbio aos preços de importação e a reação das carteiras aos juros. Cada uma mostra o valor do livro e o que se sabe para o Brasil. Elas valem por cenário, então dá para comparar a mesma política sob duas premissas.
+No modelo aberto, quatro **premissas** contestadas viram controles na tela: a resposta das exportações ao câmbio, a resposta das importações ao preço, o repasse do câmbio aos preços de importação e a reação das carteiras aos juros. Cada uma mostra o valor do livro e o que se sabe para o Brasil, e um botão aplica as estimativas brasileiras já conferidas (hoje, as duas de comércio). Elas valem por cenário, então dá para comparar a mesma política sob duas premissas.
 
 O **mapa de premissas** roda o cenário para cada combinação de duas premissas, em uma grade de 11 por 11, e mostra em quais a economia se estabiliza, em quais ainda está se ajustando no último período e em quais o modelo deixa de ter solução. Tocar em um quadrado leva aquelas premissas para o cenário.
 

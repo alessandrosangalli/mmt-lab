@@ -1,6 +1,6 @@
 # Calibração para o Brasil
 
-**Status: levantamento parcial, de 14 de novembro de 2026.** Este arquivo reúne as estimativas publicadas que vão definir as faixas dos parâmetros do modelo do Brasil. Ele ainda não muda nenhum número do código: o modelo aberto continua com os parâmetros do livro.
+**Status: levantamento em andamento, de 14 de novembro de 2026.** Este arquivo reúne as estimativas publicadas que vão definir as faixas dos parâmetros do modelo do Brasil. O modelo aberto continua partindo dos parâmetros do livro; as duas estimativas de comércio já lidas no original podem ser aplicadas na tela, pelo botão "Usar as estimativas brasileiras disponíveis".
 
 O levantamento segue as regras do `PROTOCOL.md`: cada faixa vem de uma estimativa publicada, com a fonte, e valem como evidência estudos revisados por pares e estudos técnicos de bancos centrais e de institutos de pesquisa. Dados oficiais descrevem a economia, mas não são estimativas de comportamento.
 
@@ -27,23 +27,28 @@ No modelo, as exportações reais respondem à renda do resto do mundo (`eps2`) 
 | `eps2`, exportações e renda mundial | 1 | 0,98 no modelo preferido; de 0,92 a 1,19 entre as especificações | Schettini, Squeff e Gouvêa (2012) | Texto |
 | `eps1`, exportações e câmbio real | 0,7 | 0,01 no modelo preferido, não significativo; de −0,04 a 0,11 entre as especificações | Schettini, Squeff e Gouvêa (2012) | Texto |
 | Velocidade de ajuste das exportações | sem defasagem | Desequilíbrios corrigidos em cerca de três trimestres | Schettini, Squeff e Gouvêa (2012) | Texto |
-| `mu2`, importações e renda doméstica | 1 | Lacuna | Santos e coautores, "Por que a elasticidade-preço das importações é baixa no Brasil?" | Não lida |
-| `mu1`, importações e preço relativo | 0,7 | Lacuna. O título do estudo indica que é baixa | A mesma | Não lida |
+| `mu2`, importações e renda doméstica | 1 | de 1,43 a 1,55 no modelo escolhido pelos autores; de 2,22 a 3,89 nas estimativas de cointegração | Santos, Cieplinski, Pimentel e Bhering (2017) | Texto |
+| `mu1`, importações e preço relativo | 0,7 | 0,55 no modelo escolhido pelos autores; de 0,37 a 0,55 entre as especificações | Santos, Cieplinski, Pimentel e Bhering (2017) | Texto |
+| `mu1` em estudos anteriores | 0,7 | 0,17: uma depreciação real de 1% reduz o volume importado em 0,17% | Minella e Souza-Sobrinho (2009), citado em Santos e coautores | Citação indireta |
+
+A amostra de Santos e coautores é trimestral, do primeiro trimestre de 1996 ao segundo de 2013. Os autores explicam a resposta baixa das importações pela composição: bens intermediários, combustíveis e alguns serviços somam quase dois terços das importações e têm pouco ou nenhum substituto nacional. Uma das tabelas traz coeficientes de preço positivos depois de 2002, que o texto não discute.
 
 A amostra de Schettini, Squeff e Gouvêa é trimestral, de 1995 a 2009. Os próprios autores avisam que as estatísticas t de uma das tabelas não são confiáveis, então a falta de significância do câmbio é uma indicação, não uma conclusão firme.
 
-**Por que isso importa.** A diferença em `eps1` é a maior encontrada até aqui. No livro, uma moeda 10% mais fraca aumenta as exportações em 7%; pela estimativa brasileira, quase não aumenta. No modelo, é esse aumento das exportações que faz o câmbio flutuante corrigir a conta corrente. Se ele é fraco, a correção depende mais da queda das importações e da renda. Isso pesa diretamente na tese T5. É uma consequência a testar no modelo calibrado, não uma conclusão.
+**Por que isso importa.** No modelo, o câmbio flutuante corrige a conta corrente porque uma moeda mais fraca aumenta as exportações e reduz as importações. Os livros de economia internacional resumem isso na condição de Marshall-Lerner: a correção funciona quando as duas respostas ao preço, somadas, passam de 1. No livro de Godley e Lavoie a soma é 1,4. Pelas estimativas brasileiras lidas aqui, ela fica em torno de 0,56 (0,01 das exportações mais 0,55 das importações), e entre 0,33 e 0,66 nos extremos das faixas. Isso pesa diretamente na tese T5.
 
-**O que o modelo faz com essa estimativa.** A premissa já pode ser trocada na tela. Com todos os outros parâmetros no valor do livro e um aumento do gasto público de 16 para 20:
+**O que o modelo faz com essas estimativas.** As duas premissas podem ser trocadas na tela. Com todos os outros parâmetros no valor do livro e um aumento pequeno do gasto público, de 16 para 17:
 
-| Resposta das exportações ao câmbio | Câmbio no período 40 | Conta corrente no período 40 | Desfecho em 120 períodos |
+| Premissas de comércio | Câmbio no período 40 | Câmbio no período 120 | Conta corrente no período 120 |
 | --- | --- | --- | --- |
-| 0,70, o valor do livro | 0,701 | −0,27 | A conta corrente volta a zero e a moeda se estabiliza em 0,64 |
-| 0,01, a estimativa brasileira | 0,535 | −1,36 | A moeda continua caindo e o modelo deixa de ter solução no período 108 |
+| Do livro (0,70 e 0,70) | 0,909 | 0,885 | −0,003: fechou |
+| Estimativas brasileiras (0,01 e 0,55) | 0,812 | 0,464 | −0,887: continua abrindo |
 
-O mapa de premissas da tela mostra o quadro completo. No mesmo cenário, com 120 períodos, a economia se estabiliza quando a resposta das exportações ao câmbio e a resposta das importações ao preço somam bem mais que 1, e deixa de ter solução quando somam bem menos. A fronteira fica perto da soma 1, que é a condição de Marshall-Lerner dos livros-texto de economia internacional. Com a estimativa brasileira para as exportações, perto de zero, o desfecho passa a depender quase só da resposta das importações, que é justamente a lacuna deste levantamento.
+Com as estimativas brasileiras, a moeda perde mais da metade do valor em 120 períodos e a conta corrente não fecha. Com um aumento maior do gasto, para 18, o modelo deixa de ter solução no período 110; para 20, no período 69. Um corte de gasto faz o contrário: a moeda se valoriza sem parar.
 
-Isso mostra o que a premissa faz dentro deste modelo, com os demais parâmetros do livro. Não é um resultado sobre o Brasil: as importações, as carteiras e o tamanho relativo dos países ainda não foram calibrados, e qualquer um deles pode mudar o desfecho.
+O mapa de premissas da tela mostra o quadro completo: a economia se estabiliza quando as duas respostas somam bem mais que 1 e deixa de ter solução quando somam bem menos, com a fronteira perto de 1.
+
+**O que isso não mostra.** Não é um resultado sobre o Brasil, por quatro razões. As carteiras, o consumo e o tamanho relativo dos países continuam com os valores do livro. As estimativas medem a resposta em poucos trimestres, e a resposta do comércio ao câmbio costuma crescer com o tempo. No modelo, a renda do resto do mundo não reage. E a faixa das estimativas é larga: estudos anteriores encontram respostas das importações ainda menores, e outros, maiores que 1.
 
 ## 2. Repasse do câmbio aos preços
 
@@ -81,19 +86,41 @@ O livro usa `alpha1` de 0,75. As estimativas brasileiras cobrem de 0,37 a 1,00 c
 
 | Medida | Valor | Fonte | Lida |
 | --- | --- | --- | --- |
-| Carga tributária bruta do governo geral, 2025 | 32,4% do PIB | Tesouro Nacional, citado pela imprensa | Secundária |
-| Dívida Pública Federal, julho de 2026 | R$ 9,288 trilhões | Tesouro Nacional, citado pela Agência Brasil | Secundária |
-| Parcela da dívida federal ligada ao câmbio | 3,65% | A mesma | Secundária |
-| Parcela ligada à Selic | 51,11% | A mesma | Secundária |
-| Parcela ligada a índices de preços | 26,02% | A mesma | Secundária |
-| Parcela prefixada | 19,22% | A mesma | Secundária |
-| Dívida interna em poder de não residentes | 9,82% | A mesma | Secundária |
-| Dívida bruta do governo geral, setembro de 2026 | 82,9% do PIB | Banco Central | Título |
-| Consumo do governo, em % do PIB | Lacuna | IBGE, Contas Nacionais | Não lida |
+| Carga tributária bruta do governo geral, 2025 (preliminar) | 32,40% do PIB; 32,22% em 2024 | Tesouro Nacional, Boletim da Carga Tributária de 2025 | Texto |
+| Carga por base, 2025 | Bens e serviços 13,78%; renda, lucros e ganhos de capital 9,16%; contribuições sociais 6,72%; propriedade 1,73% do PIB | A mesma | Texto |
+| Consumo do governo, 2024 | 18,8% do PIB | IBGE, Contas Nacionais Trimestrais do 2º trimestre de 2025 | Texto |
+| Dívida Pública Federal, setembro de 2026 | R$ 9,383 trilhões, dos quais R$ 345 bilhões de dívida externa | Tesouro Nacional, citado pela Agência Brasil | Secundária |
+| Parcela da dívida federal ligada ao câmbio | 3,67% | A mesma | Secundária |
+| Parcela ligada à Selic | 51,6% | A mesma | Secundária |
+| Parcela ligada a índices de preços | 23,59% | A mesma | Secundária |
+| Parcela prefixada | 21,14% | A mesma | Secundária |
+| Dívida interna em poder de não residentes | 9,58% | A mesma | Secundária |
+| Dívida bruta do governo geral, setembro de 2026 | 82,9% do PIB, ou R$ 11,1 trilhões | Banco Central, citado pela imprensa | Secundária |
+| Juros nominais do setor público em 12 meses, até setembro de 2026 | 8,99% do PIB | A mesma | Secundária |
+| Déficit nominal do setor público em 12 meses | 9,51% do PIB | A mesma | Secundária |
 
 A alíquota `theta` do modelo incide sobre a renda e os juros recebidos, então a carga tributária em % do PIB é o alvo certo para ela. O livro usa 20%.
 
-**Sobre a tese T2.** A parcela cambial de 3,65% é o tipo de dado que o critério de T2 vai testar. O protocolo já declarava que quem redigiu o critério sabia que essa parcela é pequena. Este número foi visto depois de o critério ser escrito, em fonte secundária, e não substitui a análise com a série do Tesouro.
+### Contas nacionais
+
+| Medida, 2024 | % do PIB | Fonte | Lida |
+| --- | --- | --- | --- |
+| Consumo das famílias | 63,8 | IBGE, Contas Nacionais Trimestrais do 2º trimestre de 2025 | Texto |
+| Consumo do governo | 18,8 | A mesma | Texto |
+| Formação bruta de capital fixo | 17,0 | A mesma, calculado dos valores correntes | Texto |
+| Exportações de bens e serviços | 18,0 | A mesma, calculado dos valores correntes | Texto |
+| Importações de bens e serviços | 17,5 | A mesma, calculado dos valores correntes | Texto |
+
+No estado estacionário do livro, as importações são cerca de 12% da renda e o consumo do governo, 16%. O modelo não tem investimento, que no Brasil é 17% do PIB.
+
+### Contas externas
+
+| Medida | Valor | Fonte | Lida |
+| --- | --- | --- | --- |
+| Conta corrente em 12 meses, até junho de 2026 | déficit de US$ 61,4 bilhões, ou 2,46% do PIB | Banco Central, nota para a imprensa de 28 de julho de 2026 | Texto |
+| Reservas internacionais, fim de junho de 2026 | US$ 367,6 bilhões | A mesma | Texto |
+
+**Sobre a tese T2.** A parcela cambial de 3,67% é o tipo de dado que o critério de T2 vai testar. O protocolo já declarava que quem redigiu o critério sabia que essa parcela é pequena. Este número foi visto depois de o critério ser escrito, em fonte secundária, e não substitui a análise com a série do Tesouro.
 
 ## 5. Carteiras e mobilidade de capital
 
@@ -101,7 +128,7 @@ No modelo, oito parâmetros `lambda` dizem como as famílias de cada país divid
 
 | Medida | Livro | Indicação para o Brasil | Fonte | Lida |
 | --- | --- | --- | --- | --- |
-| Parcela dos títulos domésticos em poder do exterior | cerca de 25% | 9,82% da dívida federal interna | Tesouro Nacional, citado pela Agência Brasil | Secundária |
+| Parcela dos títulos domésticos em poder do exterior | cerca de 25% | 9,58% da dívida federal interna | Tesouro Nacional, citado pela Agência Brasil | Secundária |
 | Parcela da riqueza das famílias em títulos estrangeiros | 25% | Lacuna. A posição internacional de investimento do Banco Central é a fonte a consultar | | Não lida |
 | Reação da carteira a um ponto de juro | 5 pontos da riqueza | Lacuna: nenhuma estimativa direta localizada | | |
 | Reação do câmbio ao diferencial de juros | não se aplica | Coeficiente de 1,90 na equação de paridade do modelo do BC, com intervalo de 0,77 a 3,22 | Banco Central (2024), boxe do Relatório de Inflação de junho | Texto |
@@ -133,13 +160,12 @@ A leitura automática do boxe perdeu os símbolos matemáticos, então os sinais
 
 | Lacuna | Onde procurar |
 | --- | --- |
-| Elasticidades das importações (`mu1`, `mu2`) | Santos e coautores, já localizado; estudos do IPEA com as contas trimestrais |
 | Efeito da riqueza no consumo (`alpha2`) | Literatura brasileira de consumo; pode não existir estimativa |
-| Composição e sensibilidade das carteiras (`lambda`) | Posição internacional de investimento e estatísticas de fluxos de capital do Banco Central; literatura de paridade de juros para o Brasil |
-| Pesos das contas nacionais (consumo do governo, importações e exportações em % do PIB) | IBGE, Contas Nacionais Trimestrais |
+| Composição e sensibilidade das carteiras (`lambda`) | Posição internacional de investimento do Banco Central (a nota mensal só traz fluxos); literatura de paridade de juros para o Brasil |
 | Margem e participação dos salários (`phi`) | IBGE, Contas Econômicas Integradas |
 | Juros doméstico e externo e duração do período do modelo | Séries do Banco Central; decisão de usar trimestre ou ano |
-| Números marcados como "Secundária" ou "Título" | Documentos originais do Tesouro Nacional e do Banco Central |
+| Números marcados como "Secundária" | Relatório Mensal da Dívida do Tesouro Nacional e nota de estatísticas fiscais do Banco Central, nos originais |
+| Resposta do comércio no longo prazo | Estudos que separem curto e longo prazo; as estimativas lidas são de poucos trimestres |
 | Sinais e forma das equações do modelo do BC | Boxe de junho de 2024, no original |
 
 ## 8. Decisões que a calibração exige
@@ -155,7 +181,10 @@ A leitura automática do boxe perdeu os símbolos matemáticos, então os sinais
 - Banco Central do Brasil (2024). [Atualização dos modelos semiestruturais de pequeno porte](https://www.bcb.gov.br/content/ri/relatorioinflacao/202406/ri202406b12p.pdf). Boxe do Relatório de Inflação, junho de 2024, p. 97-107.
 - Banco Central do Brasil (2026). [Repasse cambial: estimativas por projeções locais](https://www.bcb.gov.br/content/ri/relatorioinflacao/202603/rpm202603b8p.pdf). Boxe do Relatório de Política Monetária, março de 2026, p. 65-69.
 - Lopes, L. S. (2017). [Testando teorias para o consumo agregado no Brasil](https://www.scielo.br/j/neco/a/jhrqCyvzyVBHLnMmCj6XVtb/?lang=pt). *Nova Economia*, 27(1), 209-240.
-- Santos, C. H. M. e coautores. [Por que a elasticidade-preço das importações é baixa no Brasil?](https://www.eco.unicamp.br/images/arquivos/artigos/3517/05Santos.pdf) *Economia e Sociedade*. Localizado, não lido.
+- Banco Central do Brasil (2026). [Estatísticas do setor externo, nota para a imprensa de 28 de julho de 2026](https://www.bcb.gov.br/content/estatisticas/hist_estatisticassetorexterno/202607_Texto_de_estatisticas_do_setor_externo.pdf).
+- IBGE (2025). [Contas Nacionais Trimestrais, 2º trimestre de 2025](https://agenciadenoticias.ibge.gov.br/media/com_mediaibge/arquivos/568f71479261775bd98e8c2a84ae9f32.pdf).
+- Santos, C. H. M., Cieplinski, A., Pimentel, D. M. e Bhering, G. (2017). [Por que a elasticidade-preço das importações é baixa no Brasil? Evidências a partir das desagregações das importações por categorias de uso](https://www.eco.unicamp.br/images/arquivos/artigos/3517/05Santos.pdf). *Economia e Sociedade*, 26(1), 141-164.
 - Schettini, B. P., Squeff, G. C. e Gouvêa, R. R. (2012). [Estimativas da função exportações brasileiras agregadas com dados das Contas Nacionais Trimestrais, 1995-2009](https://revistas.usp.br/ecoa/article/view/46197). *Economia Aplicada*, 16(1), 167-196.
-- Tesouro Nacional. Carga tributária bruta do governo geral de 2025, citada em [notícia de 8 de agosto de 2026](https://www.itatiaia.com.br/economia/carga-tributaria-bruta-governo-geral-avanca-32-4-pib-tesouro-nacional/).
-- Tesouro Nacional. Relatório Mensal da Dívida de julho de 2026, citado em [notícia da Agência Brasil de 26 de agosto de 2026](https://www.acessa.com/economia/2026/08/338013-divida-publica-sobe-022-em-julho-e-supera-rs-92-trilhoes.html).
+- Tesouro Nacional. [Estimativa da Carga Tributária Bruta do Governo Geral, 2025](https://cdn.tesouro.gov.br/sistemas-internos/apex/producao/sistemas/thot/arquivos/publicacoes/54334_1699660/Boletim_CTB_2025.pdf).
+- Tesouro Nacional. Relatório Mensal da Dívida de setembro de 2026, citado em [notícia da Agência Brasil de 29 de outubro de 2026](https://www.acessa.com/economia/2026/10/343297-divida-publica-sobe-097-em-setembro-e-encosta-em-rs-94-trilhoes.html).
+- Banco Central do Brasil. Estatísticas fiscais de setembro de 2026, citadas em [notícia de 29 de outubro de 2026](https://sbtnews.sbt.com.br/noticia/economia/bc-divida-publica-chega-a-82-9-do-pib-em-setembro).

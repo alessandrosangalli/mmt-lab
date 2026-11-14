@@ -124,7 +124,8 @@ info id =
                 , "A moeda mais fraca encarece os importados, e o nível de preços doméstico sobe. É o repasse do câmbio aos preços."
                 , "Os três saldos setoriais (setor privado, governo e exterior) somam zero em todo período."
                 , "O modelo é muito sensível ao juro. Com os parâmetros do livro, um ponto a mais de juro valoriza a moeda em cerca de 30% de imediato, e acima de 4% o modelo deixa de ter solução depois de alguns períodos."
-                , "Em Premissas do modelo, troque a resposta das exportações ao câmbio de 0,70, o valor do livro, para 0,01, a estimativa brasileira, e aumente o gasto: a moeda continua caindo e o modelo deixa de ter solução. Use Comparar com outro cenário para ver os dois lado a lado."
+                , "Em Premissas do modelo, use as estimativas brasileiras para o comércio e aumente um pouco o gasto: a moeda continua caindo e a conta corrente não fecha. Com os valores do livro, ela fecha. Use Comparar com outro cenário para ver os dois lado a lado."
+                , "A diferença vem de uma condição clássica: o câmbio só corrige as contas externas quando exportações e importações, somadas, reagem bastante ao preço. O mapa de premissas mostra essa fronteira."
                 , "Os demais parâmetros continuam sendo os do livro. A calibração para o Brasil ainda não foi feita, então isso mostra o que cada premissa faz, não o que aconteceria no Brasil."
                 ]
             }
