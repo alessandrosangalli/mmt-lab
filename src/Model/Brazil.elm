@@ -60,7 +60,7 @@ wageIndexation : Premise
 wageIndexation =
     { key = "kappa"
     , name = "Indexação dos salários aos preços"
-    , note = "Quanto os salários acompanham os preços ao consumidor: 0 é salário fixo em relação à tendência, como no livro; 1 é reposição integral. Um quarto dos salários é reajustado a cada trimestre, uma convenção, e não uma estimativa. Não há valor brasileiro adotado: os testes feitos até aqui não bastam para escolher um, e o resultado depende muito dele. Com reposição integral, uma desvalorização vira uma alta de preços que não para."
+    , note = "Quanto os salários acompanham os preços ao consumidor: 0 é salário fixo em relação à tendência, como no livro; 1 é reposição integral. A cada trimestre, 21,6% dos salários são reajustados, como estima o modelo SAMBA do Banco Central. Não há valor brasileiro adotado para a indexação: no SAMBA os salários acompanham os preços por inteiro no longo prazo, mas o salário real responde ao desemprego, o que este modelo ainda não tem. Sem essa resposta, reposição integral travaria o câmbio real. Com reposição integral aqui, uma desvalorização vira uma alta de preços que não para."
     , lowest = 0
     , highest = 1
     , step = 0.05

@@ -12,8 +12,9 @@ const PREMISES = { eps1: 0.01, mu1: 0.55, nu1m: 1, port: 2 };
 const WORLD = { trend: quarterly(0.023), infl_uk: quarterly(0.046), infl_us: quarterly(0.02), r_us: 0.0096 };
 // Direct investment inflow and exports, as shares of output (CALIBRATION.md, section 8).
 const EXTERNAL = { directInvestment: 0.0358, exports: 0.178 };
-// Share of wages reset each quarter: yearly contracts, spread evenly over the year. A convention, not an estimate.
-const WAGE_RESET = 0.25;
+// Share of wages re-optimized each quarter: 1 minus the wage Calvo probability of the Banco Central's SAMBA
+// model, 0.784 (Fasolo et al. 2023, BCB Working Paper 578, table 4). CALIBRATION.md, section 2.
+const WAGE_RESET = 0.216;
 const TARGETS = { imports: 0.175, debt: 3.28, foreignShare: 0.099, government: 0.191 };
 
 const expected = p => ({ dxre_us: p.infl_uk / p.infl_us - 1, dxre_uk: p.infl_us / p.infl_uk - 1 }); // the trend of each exchange rate
