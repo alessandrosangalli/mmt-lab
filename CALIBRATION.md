@@ -343,7 +343,21 @@ Números em relação à tendência, conferidos entre o protótipo e o código E
 | Gasto de 18 para 19 | Brasileiro | 0,845 | 0,740 | 3,37 |
 | Gasto de 18 para 19 | Do livro | 0,953 | 0,953 | 3,27 |
 
-**A instabilidade do `brazil-1` desaparece com crescimento.** Sem crescimento, com as respostas brasileiras de comércio, a moeda caía sem parar depois de um aumento de gasto. Com crescimento, ela cai mais e mais devagar do que com as respostas do livro, mas se acomoda: cerca de 26% abaixo, depois de mais de cem anos de trimestres. A explicação mais provável é que o crescimento dilui os estoques de dívida externa a cada período, o que falta num modelo parado; isso ainda não foi testado isoladamente. O resultado anterior era, em boa parte, consequência de o modelo não crescer. Isso vale para as seções 1 e 5 deste documento, que usam o modelo do livro sem crescimento.
+**O crescimento não cria a estabilidade: ele a acelera.** A leitura anterior deste documento, de que a instabilidade "desaparece com crescimento", estava imprecisa, e foi testada isoladamente (`tools/openflex/stability.js`). O teste resolve o ponto de partida brasileiro para vários ritmos de crescimento e de inflação, sem investimento direto para que exista repouso também sem crescimento, dá a cada um um aumento pequeno e permanente do gasto, e mede em quanto tempo o movimento do câmbio cai à metade.
+
+| Ritmo | Comércio brasileiro | Comércio do livro |
+| --- | --- | --- |
+| Sem crescimento e sem inflação | 881 trimestres | 19 trimestres |
+| Um quarto dos dois | 295 | 17 |
+| Metade dos dois | 173 | 16 |
+| Os dois inteiros, como no Brasil | 94 | 13 |
+| Só crescimento real | 181 | 17 |
+| Só inflação | 169 | 15 |
+| O modelo da tela, com investimento direto | 99 | 45 |
+
+Três leituras. Primeira: mesmo sem crescimento, o câmbio converge com as respostas brasileiras de comércio, mas leva 220 anos para andar metade do caminho, o que na prática é não se acomodar; foi isso que as versões sem crescimento mostravam em 120 períodos. Segunda: crescimento real e inflação ajudam em medida parecida, e juntos encurtam o prazo em nove vezes. Isso é compatível com a explicação de que o crescimento nominal dilui os estoques a cada período, mas o teste mede o efeito, não prova o mecanismo. Terceira: as respostas de comércio continuam decidindo a velocidade. No Brasil calibrado, metade do ajuste leva cerca de 24 anos; com as respostas do livro, 3 anos.
+
+O teste usa um choque pequeno, então mede o comportamento perto do ponto de partida. Choques grandes podem se comportar de outro modo: o gasto de 18 para 25, por exemplo, leva a moeda a 0,3 em 120 períodos.
 
 O investimento direto mudou pouco esse comportamento: sem ele, no `brazil-3`, os mesmos números eram 0,822 e 0,724.
 
@@ -359,7 +373,7 @@ Esses resultados foram vistos antes de os critérios de T4 a T6 serem pré-regis
 4. **Defasagens.** O livro não tem defasagem nas exportações; a estimativa brasileira indica ajuste em três trimestres.
 5. **Investimento produtivo.** O modelo não tem, e por isso o consumo das famílias fica em 80% do PIB, contra 63,4% no Brasil, mais 16,8% de investimento.
 6. **Transferências como controle na tela**, para simular mudanças em benefícios.
-7. **Testar isoladamente** por que o crescimento estabiliza o câmbio.
+7. **Resposta do comércio no longo prazo.** As estimativas brasileiras usadas são de poucos trimestres. Como elas decidem se o ajuste leva 3 ou 24 anos, uma estimativa de longo prazo é a lacuna que mais pesa.
 
 ## Referências
 
