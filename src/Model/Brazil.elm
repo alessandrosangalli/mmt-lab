@@ -54,6 +54,22 @@ portfolioResponse =
     startingAt Rest.params.lambda11 Open.portfolioResponse
 
 
+{-| How far wages follow consumer prices. The book keeps wages fixed.
+-}
+wageIndexation : Premise
+wageIndexation =
+    { key = "kappa"
+    , name = "Indexação dos salários aos preços"
+    , note = "Quanto os salários acompanham os preços ao consumidor: 0 é salário fixo em relação à tendência, como no livro; 1 é reposição integral. Um quarto dos salários é reajustado a cada trimestre, uma convenção, e não uma estimativa. Não há valor brasileiro adotado: os testes feitos até aqui não bastam para escolher um, e o resultado depende muito dele. Com reposição integral, uma desvalorização vira uma alta de preços que não para."
+    , lowest = 0
+    , highest = 1
+    , step = 0.05
+    , default = Rest.params.kappa_uk
+    , brazil = Nothing
+    , published = Nothing
+    }
+
+
 startingAt : Float -> Premise -> Premise
 startingAt value premise =
     { premise | default = value }
@@ -61,7 +77,7 @@ startingAt value premise =
 
 premises : List Premise
 premises =
-    [ exportResponse, importResponse, passThrough, portfolioResponse ]
+    [ exportResponse, importResponse, passThrough, portfolioResponse, wageIndexation ]
 
 
 {-| Premises are anchored on the starting path: each one changes how strongly
@@ -112,6 +128,7 @@ toParams chosen policy =
         , mu1 = imports
         , mu0 = rest.mu0 + (imports - rest.mu1) * logBase e (at.pm_uk / at.py_uk)
         , nu1m = pass
+        , kappa_uk = Premise.value wageIndexation chosen
         , nu0m = rest.nu0m - (pass - rest.nu1m) * (logBase e at.py_us - logBase e at.py_uk - logBase e at.xr_uk)
         , lambda10 = rest.lambda10 + change * homeGap
         , lambda20 = rest.lambda20 - change * homeGap

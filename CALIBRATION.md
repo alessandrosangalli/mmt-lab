@@ -89,7 +89,24 @@ No modelo BRASIL, o repasse aos preços ao consumidor foi medido para cada valor
 
 Só o repasse integral aos importados chega ao 0,10 que o Banco Central estima para 12 meses. O 0,16 de 24 meses fica fora do alcance do modelo: os salários não reagem aos preços, então não há segunda rodada, e todo o repasse tem de vir dos importados. O valor adotado é 1, com faixa de 0,9 a 1.
 
-**Limite.** Num modelo em que os salários reagissem, um repasse menor aos importados daria o mesmo repasse aos preços ao consumidor. O valor 1 é o que a estrutura atual exige, e não uma medida do repasse aos importados no Brasil.
+### Salários que acompanham os preços: estrutura pronta, valor em aberto
+
+As equações ganharam um salário que pode acompanhar os preços ao consumidor. A cada trimestre um quarto dos salários é reajustado, e o reajuste repõe uma fração da alta de preços: a premissa de indexação, de 0 (salário fixo em relação à tendência, como no livro) a 1 (reposição integral). O um quarto é uma convenção, de contratos anuais espalhados pelo ano, e não uma estimativa. Com a indexação em 0, os números do modelo são os mesmos de antes.
+
+O que os testes no protótipo mostraram, no modelo BRASIL com gasto de 18 para 19:
+
+| Indexação | Câmbio no período 120 | Preços no período 120, em relação à tendência | Tempo para o câmbio andar metade do caminho, com importações em 0,755 |
+| --- | --- | --- | --- |
+| 0 | 0,53 | +6% | 167 trimestres |
+| 0,5 | 0,58 | +10% | 200 |
+| 0,9 | 0,69 | +17% | 451 |
+| 1 | 0,82 | +20% | 6.602: na prática, não se acomoda |
+
+A indexação troca desvalorização por inflação. Quanto mais os salários repõem os preços, menos a moeda cai e mais os preços sobem. Com reposição integral, o câmbio real quase não muda, e sem mudança no câmbio real o comércio não corrige nada: a economia fica num ajuste sem fim, com os preços subindo acima da tendência.
+
+**Por que não há valor brasileiro adotado.** Três combinações diferentes de repasse aos importados, indexação e velocidade de reajuste reproduzem igualmente bem os dois números do Banco Central (0,10 em 12 meses e 0,16 em 24), e todas pedem indexação perto de 1. São três parâmetros para dois números. Além disso, o experimento do modelo, um aumento de gasto em que o câmbio continua caindo, não é o do Banco Central, que mede a resposta a uma desvalorização isolada. Adotar indexação perto de 1 com essa base seria apresentar um ajuste frágil como calibração. A premissa fica na tela em 0, sem valor brasileiro e sem faixa, até haver uma fonte para a indexação dos salários no Brasil e um experimento comparável.
+
+**Limite.** Com a indexação em 0, vale o que já estava dito: num modelo em que os salários reagissem, um repasse menor aos importados daria o mesmo repasse aos preços ao consumidor. O valor 1 é o que a estrutura atual exige, e não uma medida do repasse aos importados no Brasil.
 
 **O que muda nos resultados, e é muito.** O repasse aos importados decide, junto com a resposta das importações ao preço, se o câmbio se acomoda. Com repasse integral, a desvalorização encarece os importados por inteiro; se o volume importado cai pouco, a conta de importações sobe em vez de cair, e a conta corrente piora. Tempo para o câmbio andar metade do caminho depois de um aumento pequeno do gasto, no modelo BRASIL:
 
@@ -447,7 +464,7 @@ Esses resultados foram vistos antes de os critérios de T4 a T6 serem pré-regis
 
 1. **Conferir o lado externo** contra a posição internacional de investimento do Banco Central: o estoque de investimento direto, os lucros remetidos e os ativos dos residentes no exterior.
 2. **O outro país.** O cálculo manteve o país doméstico perto do tamanho do livro. Para o Brasil, o resto do mundo é muito maior.
-3. **Salários que reagem aos preços.** Sem isso, o repasse de 24 meses (0,16) fica fora do alcance, e o repasse aos importados tem de ser integral.
+3. **Indexação dos salários.** A estrutura está no modelo; falta uma fonte brasileira para o valor e um experimento de repasse comparável ao do Banco Central.
 4. **Defasagens.** O livro não tem defasagem nas exportações; a estimativa brasileira indica ajuste em três trimestres.
 5. **Investimento produtivo.** O modelo não tem, e por isso o consumo das famílias fica em 80% do PIB, contra 63,4% no Brasil, mais 16,8% de investimento.
 6. **Transferências como controle na tela**, para simular mudanças em benefícios.
