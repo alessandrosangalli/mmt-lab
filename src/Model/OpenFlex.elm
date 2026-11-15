@@ -32,11 +32,14 @@ bank's balance sheet. And the home central bank's bill holdings follow the
 book's own alternative equation 12.82A (it holds the bills nobody else
 does), which keeps the accounts from drifting apart over long runs.
 
-Six things are added, and all are switched off in the book's baseline. The
+Seven things are added, and all are switched off in the book's baseline. The
 home wage can follow consumer prices (`kappa_uk`) and unemployment
 (`beta_uk`, against a labour force `lf_uk`), a share `wspeed_uk` of wages
 being reset each period. Home households can spend less of their income when
-the real interest rate stands above `rstar_uk` (`zeta_uk`). The
+the real interest rate stands above `rstar_uk` (`zeta_uk`). And the exchange
+rate can clear foreigners' demand for home bills instead of home households'
+demand for foreign bills (`fxclose`); both give the same solution, but the
+second keeps the solver working when home households hold little abroad. The
 home government can pay transfers to households (`tr_k_uk`). Foreigners can
 buy a share of home firms from home households every period (`fdi_flow_uk`,
 as a share of output) and receive profits on what they own (`rho_uk`). And
@@ -114,6 +117,7 @@ type alias Params =
     , ustar_uk : Float
     , zeta_uk : Float
     , rstar_uk : Float
+    , fxclose : Float
     }
 
 
@@ -176,6 +180,7 @@ bookParams =
     , ustar_uk = 1
     , zeta_uk = 0
     , rstar_uk = 0
+    , fxclose = 0
     }
 
 
@@ -709,21 +714,21 @@ sweep laggedParams lagged params guess =
         h_us_d =
             v_us - b_usus_d - b_usuk_d
 
-        -- [12.83] balance sheet of the US central bank, in changes (gold left out)
+        -- [12.83] balance sheet of the US central bank, in changes (gold left out); or the US bills nobody else holds
         b_cb_usus_d =
-            lagged.b_cb_usus_d + (h_us_d - lagged.h_us_d)
+            (1 - params.fxclose) * (lagged.b_cb_usus_d + (h_us_d - lagged.h_us_d)) + params.fxclose * (b_us_s - b_usus_d - guess.b_ukus_s - params.b_cb_ukus_s)
 
-        -- [12.87] UK bills acquired by US households
+        -- [12.87] UK bills acquired by US households; or the UK bills left for them
         b_usuk_s =
-            b_usuk_d * xr_us
+            (1 - params.fxclose) * b_usuk_d * xr_us + params.fxclose * (b_uk_s - b_ukuk_d - guess.b_cb_ukuk_d)
 
-        -- [12.82A] the UK central bank takes the UK bills nobody else holds
+        -- new money less what it pays for new reserves (gold left out)
         b_cb_ukuk_d =
-            b_uk_s - b_ukuk_d - b_usuk_s
+            (1 - params.fxclose) * (b_uk_s - b_ukuk_d - b_usuk_s) + params.fxclose * (lagged.b_cb_ukuk_d + (h_uk_d - lagged.h_uk_d) - (params.b_cb_ukus_s - laggedParams.b_cb_ukus_s / (params.trend * params.infl_us)) * xr_us)
 
-        -- [12.90] US bills left for UK households
+        -- [12.90] US bills left for UK households; or the US bills they want
         b_ukus_s =
-            b_us_s - b_usus_d - b_cb_usus_d - params.b_cb_ukus_s
+            (1 - params.fxclose) * (b_us_s - b_usus_d - b_cb_usus_d - params.b_cb_ukus_s) + params.fxclose * b_ukus_d * guess.xr_uk
 
         -- [12.15] current account balance of UK
         cab_uk =
@@ -737,9 +742,9 @@ sweep laggedParams lagged params guess =
         psbr_us =
             g_us + laggedParams.r_us * lagged.b_us_s - t_us - f_cb_us
 
-        -- [12.89FL] the exchange rate clears the market for US bills held in the UK
+        -- [12.89FL] the exchange rate clears the market for US bills held in the UK; or for UK bills held in the US
         xr_uk =
-            b_ukus_s / b_ukus_d
+            (1 - params.fxclose) * b_ukus_s / b_ukus_d + params.fxclose * b_usuk_d / b_usuk_s
     in
     { xr_us = xr_us
     , pm_uk = pm_uk

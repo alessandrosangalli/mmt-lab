@@ -136,19 +136,24 @@ b_usus_d = v.v_us * (p.lambda40 + p.lambda41 * p.r_us - p.lambda42 * (p.r_uk + p
 b_usuk_d = v.v_us * (p.lambda50 - p.lambda51 * p.r_us + p.lambda52 * (p.r_uk + p.dxre_uk))
 # [12.72] demand for money in US
 h_us_d = v.v_us - v.b_usus_d - v.b_usuk_d
-# [12.83] balance sheet of the US central bank, in changes (gold left out)
-b_cb_usus_d = L.b_cb_usus_d + (v.h_us_d - L.h_us_d)
-# [12.87] UK bills acquired by US households
-b_usuk_s = v.b_usuk_d * v.xr_us
-# [12.82A] the UK central bank takes the UK bills nobody else holds
-b_cb_ukuk_d = v.b_uk_s - v.b_ukuk_d - v.b_usuk_s
-# [12.90] US bills left for UK households
-b_ukus_s = v.b_us_s - v.b_usus_d - v.b_cb_usus_d - p.b_cb_ukus_s
+# Which market sets the exchange rate (not in the book). fxclose 0 is the book: the UK central bank takes the
+# UK bills nobody else holds, and the rate clears UK households' demand for US bills. fxclose 1: UK households
+# get the US bills they want, the UK central bank follows its own balance sheet, the US central bank takes the
+# US bills left over, and the rate clears US households' demand for UK bills. Only 0 and 1 are meaningful.
+# [12.83] balance sheet of the US central bank, in changes (gold left out); or the US bills nobody else holds
+b_cb_usus_d = (1 - p.fxclose) * (L.b_cb_usus_d + (v.h_us_d - L.h_us_d)) + p.fxclose * (v.b_us_s - v.b_usus_d - v.b_ukus_s - p.b_cb_ukus_s)
+# [12.87] UK bills acquired by US households; or the UK bills left for them
+b_usuk_s = (1 - p.fxclose) * v.b_usuk_d * v.xr_us + p.fxclose * (v.b_uk_s - v.b_ukuk_d - v.b_cb_ukuk_d)
+# [12.82A] the UK central bank takes the UK bills nobody else holds; or [12.84] its balance sheet, in changes:
+# new money less what it pays for new reserves (gold left out)
+b_cb_ukuk_d = (1 - p.fxclose) * (v.b_uk_s - v.b_ukuk_d - v.b_usuk_s) + p.fxclose * (L.b_cb_ukuk_d + (v.h_uk_d - L.h_uk_d) - (p.b_cb_ukus_s - Lp.b_cb_ukus_s / (p.trend * p.infl_us)) * v.xr_us)
+# [12.90] US bills left for UK households; or the US bills they want
+b_ukus_s = (1 - p.fxclose) * (v.b_us_s - v.b_usus_d - v.b_cb_usus_d - p.b_cb_ukus_s) + p.fxclose * v.b_ukus_d * v.xr_uk
 # [12.15] current account balance of UK
 cab_uk = v.x_uk - v.im_uk + v.xr_us * Lp.r_us * L.b_ukus_s - Lp.r_uk * L.b_usuk_s + Lp.r_us * Lp.b_cb_ukus_s / (p.trend * p.infl_us) * v.xr_us - v.remit_uk
 # government deficit in UK
 psbr_uk = v.g_uk + v.tr_uk + Lp.r_uk * L.b_uk_s - v.t_uk - v.f_cb_uk
 # government deficit in US
 psbr_us = v.g_us + Lp.r_us * L.b_us_s - v.t_us - v.f_cb_us
-# [12.89FL] the exchange rate clears the market for US bills held in the UK
-xr_uk = v.b_ukus_s / v.b_ukus_d
+# [12.89FL] the exchange rate clears the market for US bills held in the UK; or for UK bills held in the US
+xr_uk = (1 - p.fxclose) * v.b_ukus_s / v.b_ukus_d + p.fxclose * v.b_usuk_d / v.b_usuk_s

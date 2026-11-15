@@ -339,11 +339,13 @@ suite =
                     , \_ -> Expect.within (Absolute 1.0e-6) 0.099 (over at.b_uk_s at.b_usuk_s)
                     , \_ -> Expect.within (Absolute 1.0e-6) 0.191 (over at.y_uk at.g_uk)
                     , \_ -> Expect.within (Absolute 1.0e-6) 1 at.xr_uk
-                    , \_ -> Expect.within (Absolute 0.0005) 0.4175 (over at.y_uk at.t_uk)
-                    , \_ -> Expect.within (Absolute 0.0005) 0.1752 (over at.y_uk at.tr_uk)
+                    , \_ -> Expect.within (Absolute 0.0005) 0.4109 (over at.y_uk at.t_uk)
+                    , \_ -> Expect.within (Absolute 0.0005) 0.1848 (over at.y_uk at.tr_uk)
                     , \_ -> Expect.within (Absolute 0.0005) 0.0551 (over at.y_uk at.psbr_uk)
                     , \_ -> Expect.within (Absolute 1.0e-6) 0.178 (over at.y_uk at.x_uk)
-                    , \_ -> Expect.within (Absolute 0.0005) -0.0328 (over at.y_uk at.cab_uk)
+                    , \_ -> Expect.within (Absolute 0.0005) -0.0336 (over at.y_uk at.cab_uk)
+                    , \_ -> Expect.within (Absolute 1.0e-6) 0.156 (BrazilRest.params.b_cb_ukus_s * at.xr_us / (4 * at.y_uk))
+                    , \_ -> Expect.within (Absolute 1.0e-6) 0.03 (over at.v_uk at.b_ukus_d)
                     , \_ -> Expect.within (Absolute 0.0005) 0.0322 (over at.y_uk at.remit_uk)
                     ]
                     ()
@@ -362,9 +364,9 @@ suite =
                         , List.length result.snapshots
                         , List.all
                             (\snapshot ->
-                                (abs (snapshot.income - 94.210232) < 1.0e-5)
-                                    && (abs (snapshot.foreignBalance - 2.998371) < 1.0e-5)
-                                    && (abs (snapshot.governmentBalance + 5.026017) < 1.0e-5)
+                                (abs (snapshot.income - 94.326408) < 1.0e-5)
+                                    && (abs (snapshot.foreignBalance - 3.066794) < 1.0e-5)
+                                    && (abs (snapshot.governmentBalance + 5.032215) < 1.0e-5)
                                     && (abs (brazilSeries "Desemprego (%)" snapshot - 5.9) < 1.0e-6)
                             )
                             result.snapshots
@@ -376,17 +378,17 @@ suite =
                 , still [ ( "eps1", 0.5 ), ( "mu1", 0.8 ), ( "nu1m", 1 ), ( "port", 10 ), ( "kappa", 1 ), ( "beta", 0 ) ]
                 ]
                     |> Expect.equal (List.repeat 4 ( Nothing, 60, True ))
-        , test "from the Brazilian starting point, more spending lowers unemployment for good and leaves the real exchange rate near where it was, matching the prototype" <|
+        , test "from the Brazilian starting point, more spending lowers unemployment for good and lifts the real exchange rate, matching the prototype" <|
             \_ ->
                 let
                     ending premises =
                         brazilEnding { spending = 19, taxRatePct = 39, interestRatePct = 3.5 } premises
                 in
                 Expect.all
-                    [ \_ -> Expect.within (Absolute 1.0e-7) 1.0391382769 (brazilSeries "Câmbio real (valor da moeda doméstica, corrigido pelos preços dos dois países)" (ending []))
-                    , \_ -> Expect.within (Absolute 1.0e-7) 0.8215183232 (brazilSeries "Taxa de câmbio (valor da moeda doméstica)" (ending []))
-                    , \_ -> Expect.within (Absolute 1.0e-6) 5.0905413654 (brazilSeries "Desemprego (%)" (ending []))
-                    , \_ -> Expect.within (Absolute 1.0e-7) 1.0204809395 (brazilSeries "Câmbio real (valor da moeda doméstica, corrigido pelos preços dos dois países)" (ending [ ( "eps1", 0.7 ), ( "mu1", 0.7 ) ]))
+                    [ \_ -> Expect.within (Absolute 1.0e-7) 1.0925180562 (brazilSeries "Câmbio real (valor da moeda doméstica, corrigido pelos preços dos dois países)" (ending []))
+                    , \_ -> Expect.within (Absolute 1.0e-7) 1.002132267 (brazilSeries "Taxa de câmbio (valor da moeda doméstica)" (ending []))
+                    , \_ -> Expect.within (Absolute 1.0e-6) 4.7194229554 (brazilSeries "Desemprego (%)" (ending []))
+                    , \_ -> Expect.within (Absolute 1.0e-7) 1.0190585989 (brazilSeries "Câmbio real (valor da moeda doméstica, corrigido pelos preços dos dois países)" (ending [ ( "eps1", 0.7 ), ( "mu1", 0.7 ) ]))
                     ]
                     ()
         , test "from the Brazilian starting point, without the wage block more spending drives unemployment below zero, matching the prototype" <|
@@ -396,8 +398,8 @@ suite =
                         brazilEnding { spending = 19, taxRatePct = 39, interestRatePct = 3.5 } [ ( "kappa", 0 ), ( "beta", 0 ), ( "nu1m", 1 ) ]
                 in
                 Expect.all
-                    [ \_ -> Expect.within (Absolute 1.0e-6) -0.1828457892 (brazilSeries "Desemprego (%)" ending)
-                    , \_ -> Expect.within (Absolute 1.0e-7) 0.5279432143 (brazilSeries "Taxa de câmbio (valor da moeda doméstica)" ending)
+                    [ \_ -> Expect.within (Absolute 1.0e-6) -1.6104603248 (brazilSeries "Desemprego (%)" ending)
+                    , \_ -> Expect.within (Absolute 1.0e-7) 0.0824763007 (brazilSeries "Taxa de câmbio (valor da moeda doméstica)" ending)
                     ]
                     ()
         , test "from the Brazilian starting point, half a point of interest a quarter lifts the currency at once by what Brazilian studies measure for two points a year" <|
@@ -418,14 +420,14 @@ suite =
                             |> Maybe.withDefault 0
                 in
                 Expect.all
-                    [ \_ -> Expect.within (Absolute 1.0e-7) 1.056798251 (rateAt 1)
+                    [ \_ -> Expect.within (Absolute 1.0e-7) 1.0687128488 (rateAt 1)
                     , \_ -> rateAt 1 |> Expect.all [ Expect.atLeast (1 + 2 * 0.025), Expect.atMost (1 + 2 * 0.042) ]
-                    , \_ -> Expect.within (Absolute 1.0e-7) 0.8117950126 (rateAt 120)
+                    , \_ -> Expect.within (Absolute 1.0e-7) 0.8355531191 (rateAt 120)
                     ]
                     ()
         , test "a version string names its model" <|
             \_ ->
-                List.map Models.fromVersion [ "sim-1", "pc-1", "pc-7", "open-1", "brazil-1", "brazil-6", "other-1", "" ]
+                List.map Models.fromVersion [ "sim-1", "pc-1", "pc-7", "open-1", "brazil-1", "brazil-7", "other-1", "" ]
                     |> Expect.equal [ Just SimModel, Just PcModel, Just PcModel, Just OpenModel, Just BrazilModel, Just BrazilModel, Nothing, Nothing ]
         , test "every model's current version names itself" <|
             \_ ->

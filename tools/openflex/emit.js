@@ -39,11 +39,14 @@ bank's balance sheet. And the home central bank's bill holdings follow the
 book's own alternative equation 12.82A (it holds the bills nobody else
 does), which keeps the accounts from drifting apart over long runs.
 
-Six things are added, and all are switched off in the book's baseline. The
+Seven things are added, and all are switched off in the book's baseline. The
 home wage can follow consumer prices (\`kappa_uk\`) and unemployment
 (\`beta_uk\`, against a labour force \`lf_uk\`), a share \`wspeed_uk\` of wages
 being reset each period. Home households can spend less of their income when
-the real interest rate stands above \`rstar_uk\` (\`zeta_uk\`). The
+the real interest rate stands above \`rstar_uk\` (\`zeta_uk\`). And the exchange
+rate can clear foreigners' demand for home bills instead of home households'
+demand for foreign bills (\`fxclose\`); both give the same solution, but the
+second keeps the solver working when home households hold little abroad. The
 home government can pay transfers to households (\`tr_k_uk\`). Foreigners can
 buy a share of home firms from home households every period (\`fdi_flow_uk\`,
 as a share of output) and receive profits on what they own (\`rho_uk\`). And

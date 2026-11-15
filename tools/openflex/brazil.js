@@ -8,12 +8,14 @@ const quarterly = yearly => Math.pow(1 + yearly, 0.25);
 const POLICY = { g_k_uk: 18, theta_uk: 0.39, r_uk: 0.035 };
 // Premises on the path: the Brazilian values read so far (CALIBRATION.md).
 // kappa: wages follow consumer prices in full, as in the SAMBA model; beta: wage curve (CALIBRATION.md, section 2).
-// nu1m: calibrated by passthrough.js to the central bank's 12-month pass-through.
-const PREMISES = { eps1: 0.01, mu1: 0.55, nu1m: 0.35, port: 2, kappa: 1, beta: -0.06 };
+// nu1m: calibrated by passthrough.js to the central bank's 12-month pass-through; port: by portfolio.js.
+const PREMISES = { eps1: 0.01, mu1: 0.55, nu1m: 0.95, port: 0.8, kappa: 1, beta: -0.06 };
 // Trends and the foreign interest rate (CALIBRATION.md, section 8).
 const WORLD = { trend: quarterly(0.023), infl_uk: quarterly(0.046), infl_us: quarterly(0.02), r_us: 0.0096 };
 // Direct investment inflow and exports, as shares of output (CALIBRATION.md, section 8).
-const EXTERNAL = { directInvestment: 0.0358, exports: 0.178 };
+// Reserves: about 16% of annual GDP. Households' foreign bills: 3% of their wealth, an order of magnitude and not an
+// estimate (CALIBRATION.md, section 8).
+const EXTERNAL = { directInvestment: 0.0358, exports: 0.178, reserves: 0.156, householdsAbroad: 0.03 };
 // Share of wages re-optimized each quarter: 1 minus the wage Calvo probability of the Banco Central's SAMBA
 // model, 0.784 (Fasolo et al. 2023, BCB Working Paper 578, table 4). CALIBRATION.md, section 2.
 const WAGE_RESET = 0.216;
@@ -49,6 +51,15 @@ for (let k = 1; external && k <= STEPS; k++) { const share = k / STEPS, aim = pa
   found = c.rest({ ...found.p, fdi_flow_uk: external.directInvestment * share }, found.v, [...shape, 'tr_k_uk', 'rho_uk'],
     [...shapeTargets, T.government, v => v.x_uk / v.y_uk - aim], false);
   if (!found.ok) throw new Error('direct investment stage ' + k + ' failed: ' + found.err); }
+// External balance sheet: the central bank holds the reserves, and households hold little abroad. Done a little
+// at a time, with the closure in which the exchange rate clears foreigners' demand for home bills, which keeps
+// the model solvable when households hold little abroad (CALIBRATION.md, section 8).
+{ const was = found.v.b_ukus_d / found.v.v_uk, wasReserves = found.p.b_cb_ukus_s * found.v.xr_us / (4 * found.v.y_uk);
+  for (let k = 1; k <= 16; k++) { const aim = was + (EXTERNAL.householdsAbroad - was) * k / 16, aimReserves = wasReserves + (EXTERNAL.reserves - wasReserves) * k / 16;
+    found = c.rest(found.p, found.v, [...shape, 'tr_k_uk', 'rho_uk', 'lambda20', 'b_cb_ukus_s'],
+      [...shapeTargets, T.government, v => v.x_uk / v.y_uk - EXTERNAL.exports, v => v.b_ukus_d / v.v_uk - aim, (v, p) => p.b_cb_ukus_s * v.xr_us / (4 * v.y_uk) - aimReserves], false);
+    if (!found.ok) throw new Error('external balance sheet stage ' + k + ' failed: ' + found.err); } }
+found.p = { ...found.p, fxclose: 1 };
 // The labour force is set so that unemployment on the path is Brazil's.
 found.p = { ...found.p, lf_uk: found.v.n_uk / (1 - UNEMPLOYMENT), ustar_uk: UNEMPLOYMENT, rstar_uk: found.p.r_uk - (found.p.infl_uk - 1) };
 // polish: step the model from the point found until it stops moving at machine precision
@@ -84,6 +95,7 @@ module.exports = { P, V, withPremises, PREMISES, POLICY, WORLD, solvePath, moveT
 
 if (require.main === module) {
   const f = (x, d = 4) => x.toFixed(d); const L = m.carry(V, P);
+  const yA = 4 * V.y_uk; console.log('balance sheet:', `reserves ${f(100 * P.b_cb_ukus_s * V.xr_us / yA, 1)}% households abroad ${f(100 * V.b_ukus_d / V.v_uk, 1)}% of wealth, net external position ${f(100 * (V.b_ukus_d * V.xr_us + P.b_cb_ukus_s * V.xr_us - V.b_usuk_s - V.fdi_uk) / yA, 1)}% of GDP, household wealth ${f(100 * V.v_uk / yA, 1)}% of GDP`);
   console.log('path:', `y ${f(V.y_k_uk)} xr ${f(V.xr_uk, 8)} revenue/y ${f(V.t_uk / V.y_uk)} gov/y ${f(V.g_uk / V.y_uk)} transfers/y ${f(V.tr_uk / V.y_uk)} interest/y ${f(P.r_uk * L.b_uk_s / V.y_uk)} deficit/y ${f(V.psbr_uk / V.y_uk)} imports/y ${f(V.im_uk / V.y_uk)} exports/y ${f(V.x_uk / V.y_uk)} cons/y ${f(V.cons_uk / V.y_uk)} debt/y ${f(V.b_uk_s / V.y_uk)} foreign ${f(V.b_usuk_s / V.b_uk_s)} cab/y ${f(V.cab_uk / V.y_uk)} direct investment stock/y ${f(V.fdi_uk / V.y_uk)} profits sent/y ${f(V.remit_uk / V.y_uk)} rho ${f(P.rho_uk, 5)} trade balance/y ${f((V.x_uk - V.im_uk) / V.y_uk)} foreign bills/wealth ${f(V.b_ukus_d / V.v_uk)} us y ${f(V.y_k_us)}`);
   console.log('solved:', ['mu0', 'alpha2_uk', 'lambda50', 'eps0', 'tr_k_uk', 'rho_uk'].map(k => k + ' ' + P[k]).join(', '));
   for (const ch of [PREMISES, { eps1: .7, mu1: .7, nu1m: .7, port: 5, kappa: 0, beta: 0 }, { eps1: 0, mu1: 1, nu1m: .3, port: 0, kappa: 0.5, beta: -0.15 }, { eps1: .5, mu1: .8, nu1m: 1, port: 10, kappa: 1, beta: 0 }]) {

@@ -6,7 +6,7 @@ const P0 = { alpha1_uk:.75, alpha1_us:.75, alpha2_uk:.13333, alpha2_us:.13333, e
   lambda10:.7, lambda11:5, lambda12:5, lambda20:.25, lambda21:5, lambda22:5, lambda40:.7, lambda41:5, lambda42:5, lambda50:.25, lambda51:5, lambda52:5,
   mu0:-2.1, mu1:.7, mu2:1, nu0m:-0.00001, nu0x:-0.00001, nu1m:.7, nu1x:.5, phi_uk:.2381, phi_us:.2381, theta_uk:.2, theta_us:.2,
   dxre_us:0, dxre_uk:0, g_k_uk:16, g_k_us:16, pr_uk:1.3333, pr_us:1.3333, r_uk:.03, r_us:.03, w_uk:1, w_us:1, b_cb_ukus_s:0.02031,
-  trend:1, infl_uk:1, infl_us:1, tr_k_uk:0, rho_uk:0, fdi_flow_uk:0, kappa_uk:0, pref_uk:1, wspeed_uk:1, beta_uk:0, lf_uk:1e6, ustar_uk:1, zeta_uk:0, rstar_uk:0 };
+  trend:1, infl_uk:1, infl_us:1, tr_k_uk:0, rho_uk:0, fdi_flow_uk:0, kappa_uk:0, pref_uk:1, wspeed_uk:1, beta_uk:0, lf_uk:1e6, ustar_uk:1, zeta_uk:0, rstar_uk:0, fxclose:0 };
 const BOOK = { b_ukuk_d:102.18, b_ukus_d:36.493, b_ukus_s:36.504, b_usuk_d:36.497, b_usuk_s:36.487, b_usus_d:102.19, h_uk_d:7.2987, h_us_d:7.2995,
   v_k_uk:152.62, v_k_us:152.63, v_uk:145.97, v_us:145.99001, c_k_uk:81.393, c_k_us:81.401, cons_uk:77.851, cons_us:77.86, im_k_uk:11.928, im_k_us:11.926, im_uk:11.407, im_us:11.409,
   n_uk:73.046, n_us:73.054, pds_uk:.95648, pds_us:.95649, pm_uk:.95628, pm_us:.95661, ps_uk:.95646, ps_us:.9565, px_uk:.95634, px_us:.95656, py_uk:.95648, py_us:.95649,
