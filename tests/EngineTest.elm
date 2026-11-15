@@ -278,7 +278,7 @@ suite =
                     , \_ -> calibrated / 1.0003000158 |> Expect.all [ Expect.atLeast 1.025, Expect.atMost 1.042 ]
                     ]
                     ()
-        , test "with the Brazilian trade estimates, a small spending rise never closes the external accounts, matching the prototype" <|
+        , test "with the Brazilian premises, a small spending rise never closes the external accounts, matching the prototype" <|
             \_ ->
                 let
                     base =
@@ -306,8 +306,8 @@ suite =
                 Expect.all
                     [ \_ -> Expect.within (Absolute 1.0e-7) 0.8853728586 bookRate
                     , \_ -> Expect.within (Absolute 1.0e-7) -0.003219239662 bookAccount
-                    , \_ -> Expect.within (Absolute 1.0e-7) 0.4639329734 brazilRate
-                    , \_ -> Expect.within (Absolute 1.0e-7) -0.8874863289 brazilAccount
+                    , \_ -> Expect.within (Absolute 1.0e-7) 0.3410239589 brazilRate
+                    , \_ -> Expect.within (Absolute 1.0e-7) -3.3176584603 brazilAccount
                     ]
                     ()
         , test "premises do not move the starting point of the open economy" <|
@@ -362,9 +362,9 @@ suite =
                         , List.length result.snapshots
                         , List.all
                             (\snapshot ->
-                                (abs (snapshot.income - 94.278006) < 1.0e-5)
-                                    && (abs (snapshot.foreignBalance - 3.000528) < 1.0e-5)
-                                    && (abs (snapshot.governmentBalance + 5.029632) < 1.0e-5)
+                                (abs (snapshot.income - 94.336761) < 1.0e-5)
+                                    && (abs (snapshot.foreignBalance - 3.002398) < 1.0e-5)
+                                    && (abs (snapshot.governmentBalance + 5.032767) < 1.0e-5)
                             )
                             result.snapshots
                         )
@@ -401,10 +401,10 @@ suite =
                         ending [ ( "eps1", 0.7 ), ( "mu1", 0.7 ) ]
                 in
                 Expect.all
-                    [ \_ -> Expect.within (Absolute 1.0e-7) 0.8446360254 brazilRate
-                    , \_ -> Expect.within (Absolute 1.0e-7) -3.3039123052 brazilAccount
-                    , \_ -> Expect.within (Absolute 1.0e-7) 0.9527688457 bookRate
-                    , \_ -> Expect.within (Absolute 1.0e-7) -3.1131138282 bookAccount
+                    [ \_ -> Expect.within (Absolute 1.0e-7) 0.5307281606 brazilRate
+                    , \_ -> Expect.within (Absolute 1.0e-7) -5.0397483708 brazilAccount
+                    , \_ -> Expect.within (Absolute 1.0e-7) 0.9292507128 bookRate
+                    , \_ -> Expect.within (Absolute 1.0e-7) -3.1475073658 bookAccount
                     ]
                     ()
         , test "from the Brazilian starting point, half a point of interest a quarter lifts the currency at once by what Brazilian studies measure for two points a year" <|
@@ -426,22 +426,22 @@ suite =
                             |> Maybe.withDefault 0
                 in
                 Expect.all
-                    [ \_ -> Expect.within (Absolute 1.0e-7) 1.0593123643 (rateAt 1)
+                    [ \_ -> Expect.within (Absolute 1.0e-7) 1.061567146 (rateAt 1)
                     , \_ -> rateAt 1 |> Expect.all [ Expect.atLeast (1 + 2 * 0.025), Expect.atMost (1 + 2 * 0.042) ]
-                    , \_ -> Expect.within (Absolute 1.0e-7) 0.7819501048 (rateAt 120)
+                    , \_ -> Expect.within (Absolute 1.0e-7) 0.4742762788 (rateAt 120)
                     ]
                     ()
-        , test "from the Brazilian starting point, an interest rate of 6% a quarter has no solution in period 90, as in the prototype" <|
+        , test "from the Brazilian starting point, an interest rate of 6% a quarter has no solution in period 64, as in the prototype" <|
             \_ ->
                 let
                     base =
                         Models.defaultScenario BrazilModel
                 in
                 (Models.run BrazilModel { base | initial = { spending = 18, taxRatePct = 39, interestRatePct = 6 }, horizon = 120 }).failedAt
-                    |> Expect.equal (Just 90)
+                    |> Expect.equal (Just 64)
         , test "a version string names its model" <|
             \_ ->
-                List.map Models.fromVersion [ "sim-1", "pc-1", "pc-7", "open-1", "brazil-1", "brazil-4", "other-1", "" ]
+                List.map Models.fromVersion [ "sim-1", "pc-1", "pc-7", "open-1", "brazil-1", "brazil-5", "other-1", "" ]
                     |> Expect.equal [ Just SimModel, Just PcModel, Just PcModel, Just OpenModel, Just BrazilModel, Just BrazilModel, Nothing, Nothing ]
         , test "every model's current version names itself" <|
             \_ ->

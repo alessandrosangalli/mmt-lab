@@ -24,7 +24,7 @@ C  = α1 · YD + α2 · H(anterior)  consumo das famílias
 
 **BRASIL (o OPENFLEX com ponto de partida brasileiro).** As equações do livro, com três acréscimos: transferências do governo às famílias, investimento estrangeiro direto e crescimento. Cada período é um trimestre, e tudo é medido em relação à tendência, com o PIB real crescendo 2,3% ao ano e os preços 4,6%. A economia parte de uma trajetória de crescimento equilibrado com proporções brasileiras: consumo do governo de 19,1% do PIB, importações de 17,5%, exportações de 17,8%, dívida pública de 82% do PIB anual, 9,9% dela com o exterior, e juro de 3,5% por trimestre. Receita, juros, transferências, déficit do governo e déficit da conta corrente não são alvos e caem perto dos números oficiais. As premissas começam nos valores brasileiros já conferidos e estão ancoradas na partida: mudam a força das reações, não o ponto de partida. É uma calibração parcial; o `CALIBRATION.md` diz de onde vem cada número e o que falta. O ponto de partida é calculado por `tools/openflex/brazil.js`.
 
-No modelo aberto, quatro **premissas** contestadas viram controles na tela: a resposta das exportações ao câmbio, a resposta das importações ao preço, o repasse do câmbio aos preços de importação e a reação das carteiras aos juros. Cada uma mostra o valor do livro e o que se sabe para o Brasil, e um botão aplica os valores brasileiros já conferidos: as duas estimativas de comércio e a reação das carteiras, calibrada para reproduzir a resposta do câmbio aos juros medida no Brasil, com o período do modelo lido como um trimestre. Elas valem por cenário, então dá para comparar a mesma política sob duas premissas.
+No modelo aberto, quatro **premissas** contestadas viram controles na tela: a resposta das exportações ao câmbio, a resposta das importações ao preço, o repasse do câmbio aos preços de importação e a reação das carteiras aos juros. Cada uma mostra o valor do livro e o que se sabe para o Brasil, e um botão aplica os valores brasileiros já conferidos: as duas estimativas de comércio; a reação das carteiras, calibrada para reproduzir a resposta do câmbio aos juros medida no Brasil, com o período lido como um trimestre; e o repasse do câmbio aos importados, calibrado para reproduzir o repasse aos preços ao consumidor. Elas valem por cenário, então dá para comparar a mesma política sob duas premissas.
 
 O **mapa de premissas** roda o cenário para cada combinação de duas premissas, em uma grade de 11 por 11, e mostra em quais a economia se estabiliza, em quais ainda está se ajustando no último período e em quais o modelo deixa de ter solução. Tocar em um quadrado leva aquelas premissas para o cenário. Cada premissa com estimativas brasileiras lidas traz a faixa que elas cobrem. O mapa destaca os quadrados dentro da faixa nos dois eixos e conta como eles terminam: é a resposta que não depende de um único valor de cada premissa. Uma opção faz o mapa cobrir só essa faixa, em 11 passos.
 
@@ -38,7 +38,7 @@ O modelo e o cenário ficam codificados em um link, que reproduz exatamente o me
 
 | Campo | Significado |
 | --- | --- |
-| `v` | Modelo e versão (`sim-1`, `pc-1`, `open-1`, `brazil-4`). Muda sempre que o mesmo cenário passaria a dar números diferentes |
+| `v` | Modelo e versão (`sim-1`, `pc-1`, `open-1`, `brazil-5`). Muda sempre que o mesmo cenário passaria a dar números diferentes |
 | `g`, `t`, `i` | Gasto, alíquota e taxa de juros iniciais |
 | `n` | Número de períodos |
 | `p` | Período em foco |

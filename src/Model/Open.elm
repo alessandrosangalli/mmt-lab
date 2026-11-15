@@ -90,13 +90,13 @@ passThrough : Premise
 passThrough =
     { key = "nu1m"
     , name = "Repasse do câmbio aos preços de importação"
-    , note = "Que parte de uma queda da moeda chega aos preços dos importados. O livro usa 0,70. A medida brasileira disponível é o efeito final no IPCA: de 0,10 a 0,16 em um a dois anos (Banco Central, 2026)."
+    , note = "Quanto de uma mudança no câmbio chega ao preço dos importados: 1 é repasse integral. O livro usa 0,70. Não há estimativa direta lida. O valor 1 é uma calibração indireta: é o que faz os preços ao consumidor do modelo subirem 0,10% para cada 1% de desvalorização em quatro trimestres, como estima o Banco Central (2026). Como os salários do modelo não reagem aos preços, todo o repasse tem de vir dos importados."
     , lowest = 0
     , highest = 1
     , step = 0.05
     , default = OpenFlex.bookParams.nu1m
-    , brazil = Nothing
-    , published = Nothing
+    , brazil = Just 1
+    , published = Just ( 0.9, 1 )
     }
 
 

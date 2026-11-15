@@ -73,7 +73,36 @@ No modelo, o câmbio chega aos preços de importação por `nu1m` e daí ao nív
 
 A amostra do boxe de 2026 vai de julho de 2006 a dezembro de 2025, e o próprio texto diz que os intervalos de confiança de 90% são amplos.
 
-**Como usar.** O alvo de calibração não é `nu1m` sozinho: é a resposta do nível de preços doméstico do modelo a uma depreciação, que deve ficar entre 0,10 e 0,16 no horizonte de um a dois anos. Com os parâmetros do livro, o modelo fica abaixo disso: no cenário de gasto público 20, a moeda perde 36% do valor e o nível de preços sobe 1,2%, um repasse de cerca de 0,03. O modelo calibrado precisa de um repasse três a cinco vezes maior.
+**Como usar.** O alvo de calibração não é `nu1m` sozinho: é a resposta do nível de preços doméstico do modelo a uma depreciação, que deve ficar entre 0,10 e 0,16 no horizonte de um a dois anos.
+
+### A calibração indireta do repasse
+
+No modelo BRASIL, o repasse aos preços ao consumidor foi medido para cada valor de `nu1m`, depois de um aumento do gasto de 18 para 19:
+
+| `nu1m`, repasse aos importados | Repasse aos preços em 4 trimestres | Em 8 trimestres |
+| --- | --- | --- |
+| 0,5 | 0,01 | 0,01 |
+| 0,7, o valor do livro | 0,05 | 0,05 |
+| 0,8 | 0,07 | 0,07 |
+| 0,9 | 0,09 | 0,09 |
+| 1, repasse integral | 0,11 | 0,10 |
+
+Só o repasse integral aos importados chega ao 0,10 que o Banco Central estima para 12 meses. O 0,16 de 24 meses fica fora do alcance do modelo: os salários não reagem aos preços, então não há segunda rodada, e todo o repasse tem de vir dos importados. O valor adotado é 1, com faixa de 0,9 a 1.
+
+**Limite.** Num modelo em que os salários reagissem, um repasse menor aos importados daria o mesmo repasse aos preços ao consumidor. O valor 1 é o que a estrutura atual exige, e não uma medida do repasse aos importados no Brasil.
+
+**O que muda nos resultados, e é muito.** O repasse aos importados decide, junto com a resposta das importações ao preço, se o câmbio se acomoda. Com repasse integral, a desvalorização encarece os importados por inteiro; se o volume importado cai pouco, a conta de importações sobe em vez de cair, e a conta corrente piora. Tempo para o câmbio andar metade do caminho depois de um aumento pequeno do gasto, no modelo BRASIL:
+
+| Repasse aos importados | Importações 0,55, exportações 0,01 | Importações 0,755, exportações 0,01 | Importações 0,755, exportações 0,11 | Livro: 0,70 e 0,70 |
+| --- | --- | --- | --- | --- |
+| 0,7 | 98 trimestres | 52 | 49 | 45 |
+| 0,8 | 557 | 62 | 55 | 46 |
+| 0,9 | Não se acomoda | 87 | 67 | 48 |
+| 1 | Não se acomoda | 167 | 97 | 50 |
+
+Com os valores adotados (repasse 1, importações 0,55), o câmbio não se acomoda: o gasto de 18 para 19 leva a moeda a 0,53 em 120 trimestres, e o modelo deixa de ter solução no período 183. Com a resposta de longo prazo do Banco Central para as importações (0,755), ele se acomoda em todos os valores de repasse. As duas respostas de importações têm fonte. A conclusão sobre o câmbio depende de qual delas vale, e é isso que o multiverso do M4 tem de mostrar.
+
+Este é o terceiro resultado sobre o câmbio a mudar em dois dias, cada vez que uma premissa passou do valor do livro para um valor com fonte brasileira. A lição para o protocolo: nenhum resultado de um único conjunto de premissas deve ser reportado como achado.
 
 ## 3. Consumo
 
@@ -308,7 +337,7 @@ Valores usados:
 
 **Investimento estrangeiro direto.** Todo período, estrangeiros compram das famílias uma parte das empresas, numa proporção fixa do PIB, e passam a receber lucros sobre o que têm. A compra aumenta a riqueza financeira das famílias, e os lucros remetidos saem da renda delas e entram na conta corrente. O modelo não tem capital produtivo, então o que os estrangeiros compram é uma participação nas empresas sem ativo correspondente no balanço. A contabilidade fecha: a conta corrente é igual à variação dos ativos externos líquidos em todos os períodos testados.
 
-Histórico das versões, todas do mesmo dia: o `brazil-2` trouxe crescimento e transferências com valores ainda não conferidos; o `brazil-3` trocou esses valores pelos da tabela abaixo; o `brazil-4` acrescentou o investimento direto.
+Histórico das versões, em dois dias: o `brazil-2` trouxe crescimento e transferências com valores ainda não conferidos; o `brazil-3` trocou esses valores pelos da tabela abaixo; o `brazil-4` acrescentou o investimento direto; o `brazil-5` adotou o repasse integral do câmbio aos importados (seção 2).
 
 Valores das contas externas:
 
@@ -381,6 +410,8 @@ O teste usa um choque pequeno, então mede o comportamento perto do ponto de par
 
 O investimento direto mudou pouco esse comportamento: sem ele, no `brazil-3`, os mesmos números eram 0,822 e 0,724.
 
+**Tudo nesta seção até aqui usa o repasse aos importados do livro, 0,7.** O `brazil-5` adota o repasse integral, pela calibração da seção 2, e com ele o resultado muda: com as respostas brasileiras de comércio adotadas, o câmbio deixa de se acomodar. A tabela da seção 2 traz o quadro completo.
+
 Uma alta de meio ponto no juro por trimestre, que são dois pontos ao ano, valoriza a moeda em 5,9% de imediato: 3,0% por ponto ao ano, dentro da faixa medida. No período 120 a moeda está em 0,782 e a dívida subiu de 3,28 para 3,43 vezes o PIB trimestral. Com juro de 6% por trimestre, o modelo deixa de ter solução no período 90.
 
 Esses resultados foram vistos antes de os critérios de T4 a T6 serem pré-registrados, e isso terá de ser declarado.
@@ -389,7 +420,7 @@ Esses resultados foram vistos antes de os critérios de T4 a T6 serem pré-regis
 
 1. **Conferir o lado externo** contra a posição internacional de investimento do Banco Central: o estoque de investimento direto, os lucros remetidos e os ativos dos residentes no exterior.
 2. **O outro país.** O cálculo manteve o país doméstico perto do tamanho do livro. Para o Brasil, o resto do mundo é muito maior.
-3. **Repasse do câmbio aos preços.** Ajustar para a faixa de 0,10 a 0,16.
+3. **Salários que reagem aos preços.** Sem isso, o repasse de 24 meses (0,16) fica fora do alcance, e o repasse aos importados tem de ser integral.
 4. **Defasagens.** O livro não tem defasagem nas exportações; a estimativa brasileira indica ajuste em três trimestres.
 5. **Investimento produtivo.** O modelo não tem, e por isso o consumo das famílias fica em 80% do PIB, contra 63,4% no Brasil, mais 16,8% de investimento.
 6. **Transferências como controle na tela**, para simular mudanças em benefícios.
