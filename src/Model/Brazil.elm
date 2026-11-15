@@ -55,15 +55,28 @@ passThrough =
             startingAt Rest.params.nu1m Open.passThrough
     in
     { open
-        | note = "Quanto de uma mudança no câmbio chega ao preço dos importados: 1 é repasse integral. Não há estimativa direta lida. O valor 0,35 é uma calibração indireta: depois de uma saída de capitais que desvaloriza a moeda, é o que faz os preços ao consumidor do modelo subirem 0,10% para cada 1% de desvalorização em quatro trimestres, como estima o Banco Central (2026). A faixa, de 0,28 a 0,43, vem das duas pontas da resposta dos salários ao desemprego. Em oito trimestres o modelo dá 0,095, abaixo dos 0,16 do Banco Central: a calibração não passa nessa conferência."
-        , brazil = Just 0.35
-        , published = Just ( 0.28, 0.43 )
+        | note = "Quanto de uma mudança no câmbio chega ao preço dos importados: 1 é repasse integral. Não há estimativa direta lida. O valor 0,95 é uma calibração indireta: depois de uma saída de capitais que desvaloriza a moeda, é o que faz os preços ao consumidor do modelo subirem 0,10% para cada 1% de desvalorização em quatro trimestres, como estima o Banco Central (2026). A faixa, de 0,91 a 0,97, vem das duas pontas da resposta dos salários ao desemprego. Em oito trimestres o modelo dá 0,15, perto dos 0,16 do Banco Central, que ficaram de fora da calibração como conferência."
+        , brazil = Just 0.95
+        , published = Just ( 0.91, 0.97 )
     }
 
 
-portfolioResponse : Premise
-portfolioResponse =
-    startingAt Rest.params.lambda11 Open.portfolioResponse
+{-| The portfolio reaction is calibrated again for this model: with the
+reserves in the central bank and households holding little abroad, the same
+reaction moves the exchange rate more.
+-}
+portfolioReaction : Premise
+portfolioReaction =
+    let
+        open =
+            startingAt Rest.params.lambda11 Open.portfolioResponse
+    in
+    { open
+        | note = "Quantos pontos da riqueza trocam de título a cada ponto de diferença entre os juros dos dois países. O livro usa 5. Não há estimativa direta para o Brasil. O valor 0,8 é uma calibração indireta, com o período lido como um trimestre: faz o modelo reproduzir a valorização de 2,5% a 4,2% por ponto de juro ao ano medida por Vicente, Marins e Gaglianone (2021), que dá a faixa de 0,6 a 1."
+        , step = 0.1
+        , brazil = Just 0.8
+        , published = Just ( 0.6, 1 )
+    }
 
 
 {-| How far wages follow consumer prices. The book keeps wages fixed.
@@ -105,7 +118,7 @@ startingAt value premise =
 
 premises : List Premise
 premises =
-    [ exportResponse, importResponse, passThrough, portfolioResponse, wageIndexation, wageCurve ]
+    [ exportResponse, importResponse, passThrough, portfolioReaction, wageIndexation, wageCurve ]
 
 
 {-| Premises are anchored on the starting path: each one changes how strongly
@@ -127,7 +140,7 @@ toParams chosen policy =
             Rest.vars
 
         portfolio =
-            Premise.value portfolioResponse chosen
+            Premise.value portfolioReaction chosen
 
         exports =
             Premise.value exportResponse chosen

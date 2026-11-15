@@ -133,9 +133,9 @@ info id =
             }
 
         BrazilModel ->
-            { version = "brazil-6"
+            { version = "brazil-7"
             , name = "BRASIL: ponto de partida brasileiro"
-            , summary = "O modelo OPENFLEX do livro, com cinco acréscimos: transferências do governo às famílias, investimento estrangeiro direto, crescimento, desemprego e salários que acompanham os preços e o desemprego. Cada período é um trimestre, e tudo é mostrado em relação à tendência, com o PIB real subindo 2,3% ao ano e os preços 4,6%. Na partida, o desemprego é 5,9%; a receita do governo é 41,8% do PIB, os juros 11,3% e o déficit 5,5%; a dívida pública é 82% do PIB anual, com 9,9% dela no exterior; e a conta corrente tem déficit de 3,3%. A política inicial é gasto 18, alíquota de 39% e juro de 3,5% por trimestre, cerca de 14,75% ao ano. É uma calibração parcial, não uma previsão."
+            , summary = "O modelo OPENFLEX do livro, com cinco acréscimos: transferências do governo às famílias, investimento estrangeiro direto, crescimento, desemprego e salários que acompanham os preços e o desemprego. Cada período é um trimestre, e tudo é mostrado em relação à tendência, com o PIB real subindo 2,3% ao ano e os preços 4,6%. Na partida, o desemprego é 5,9%; a receita do governo é 41,1% do PIB, os juros 11,3% e o déficit 5,5%; a dívida pública é 82% do PIB anual, com 9,9% dela no exterior; o Banco Central tem reservas de 16% do PIB; e a conta corrente tem déficit de 3,4%. A política inicial é gasto 18, alíquota de 39% e juro de 3,5% por trimestre, cerca de 14,75% ao ano. É uma calibração parcial, não uma previsão."
             , incomeLabel = "PIB real em relação à tendência, por trimestre"
             , wealthLabel = "Riqueza das famílias em relação à tendência"
             , usesInterestRate = True
@@ -145,13 +145,13 @@ info id =
             , steadyStateIncome = \_ -> NotComputed
             , premises = Brazil.premises
             , notes =
-                [ "Sem mudança de política, nada se move: a economia segue na tendência, quaisquer que sejam as premissas. Os déficits do governo, de 5,5% do PIB, e da conta corrente, de 3,3%, não são desequilíbrios: mantêm a dívida e o passivo externo constantes como proporção de um PIB que cresce."
-                , "Aumente o gasto de 18 para 19. O desemprego cai de 5,9% para cerca de 5,1% e fica lá; os salários sobem, e a inflação passa de 4,6% para cerca de 5,4% ao ano, também de forma duradoura. O câmbio real quase não muda, e a dívida em proporção do PIB fica estável. O juro está fixo: nada no modelo reage à inflação mais alta."
-                , "Agora leve a indexação e a resposta ao desemprego a 0, os valores do livro, e o repasse a 1. A moeda cai quase metade em 120 trimestres, e o desemprego termina abaixo de zero, o que é impossível. É o motivo de os salários estarem no modelo: sem eles, nada segura a demanda."
-                , "Aumente o gasto para 25. O desemprego vai abaixo de zero mesmo com os salários: o modelo não tem limite de capacidade, e o resultado deixa de fazer sentido físico. O indicador de desemprego mostra quando isso acontece."
-                , "Suba o juro meio ponto por trimestre, que são dois pontos ao ano: a moeda se valoriza cerca de 6% de imediato, dentro da faixa medida no Brasil, e o desemprego sobe para 7,5%. Depois os dois voltam, e a inflação termina mais alta, provavelmente porque o juro maior aumenta a renda das famílias que têm títulos."
-                , "O repasse do câmbio aos importados, 0,35, foi calibrado para os preços ao consumidor subirem 0,10% por 1% de desvalorização em um ano, como estima o Banco Central. Em dois anos o modelo dá 0,095, e o Banco Central, 0,16: a calibração não passa nessa conferência."
-                , "O modelo não tem investimento produtivo nem limite de capacidade, o outro país tem o tamanho do Brasil, e as famílias têm um quinto da riqueza em títulos estrangeiros, proporção herdada do livro. O arquivo CALIBRATION.md, no repositório, diz de onde vem cada número e o que falta."
+                [ "Sem mudança de política, nada se move: a economia segue na tendência, quaisquer que sejam as premissas. Os déficits do governo, de 5,5% do PIB, e da conta corrente, de 3,4%, não são desequilíbrios: mantêm a dívida e o passivo externo constantes como proporção de um PIB que cresce."
+                , "Aumente o gasto de 18 para 19. O desemprego cai de 5,9% para cerca de 4,7% e fica lá; a inflação sobe devagar, para 4,8% ao ano em 120 trimestres. O câmbio real se valoriza cerca de 9%, e a dívida em proporção do PIB quase não muda. O juro está fixo: nada no modelo reage à inflação mais alta."
+                , "Agora leve a indexação e a resposta ao desemprego a 0, os valores do livro. A moeda despenca e o desemprego termina abaixo de zero, o que é impossível. É o motivo de os salários estarem no modelo: sem eles, nada segura a demanda."
+                , "Aumente o gasto para 25. O desemprego vai abaixo de zero e o modelo deixa de ter solução no período 64: ele não tem limite de capacidade. O indicador de desemprego mostra quando o resultado deixa de fazer sentido físico."
+                , "Suba o juro meio ponto por trimestre, que são dois pontos ao ano: a moeda se valoriza cerca de 7% de imediato, dentro da faixa medida no Brasil. Mas o desemprego cai no primeiro trimestre, porque os importados mais baratos aumentam a renda real, e no fim fica em 5,1%, com inflação de 5,0%. No modelo do Banco Central, o juro mais alto freia a economia; aqui falta esse freio."
+                , "O Banco Central tem reservas de 16% do PIB, e as famílias, só 3% da riqueza no exterior. Com isso, o repasse do câmbio aos importados calibrado é 0,95, e o modelo reproduz os dois números de repasse do Banco Central: 0,10 em um ano e 0,15 em dois, contra 0,16."
+                , "O modelo não tem investimento produtivo nem limite de capacidade, e o outro país tem o tamanho do Brasil. O arquivo CALIBRATION.md, no repositório, diz de onde vem cada número e o que falta."
                 , "Nada aqui é resultado sobre o Brasil. Os critérios das teses ainda não foram pré-registrados."
                 ]
             }

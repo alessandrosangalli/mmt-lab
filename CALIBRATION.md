@@ -452,7 +452,7 @@ Valores usados:
 
 **Investimento estrangeiro direto.** Todo período, estrangeiros compram das famílias uma parte das empresas, numa proporção fixa do PIB, e passam a receber lucros sobre o que têm. A compra aumenta a riqueza financeira das famílias, e os lucros remetidos saem da renda delas e entram na conta corrente. O modelo não tem capital produtivo, então o que os estrangeiros compram é uma participação nas empresas sem ativo correspondente no balanço. A contabilidade fecha: a conta corrente é igual à variação dos ativos externos líquidos em todos os períodos testados.
 
-Histórico das versões, em dois dias: o `brazil-2` trouxe crescimento e transferências com valores ainda não conferidos; o `brazil-3` trocou esses valores pelos da tabela abaixo; o `brazil-4` acrescentou o investimento direto; o `brazil-5` adotou o repasse integral do câmbio aos importados; o `brazil-6` acrescentou desemprego e salários e recalibrou o repasse (seção 2).
+Histórico das versões, em dois dias: o `brazil-2` trouxe crescimento e transferências com valores ainda não conferidos; o `brazil-3` trocou esses valores pelos da tabela abaixo; o `brazil-4` acrescentou o investimento direto; o `brazil-5` adotou o repasse integral do câmbio aos importados; o `brazil-6` acrescentou desemprego e salários e recalibrou o repasse (seção 2); o `brazil-7` pôs as reservas no Banco Central e recalibrou o repasse e as carteiras (seção 8).
 
 Valores das contas externas:
 
@@ -558,9 +558,33 @@ O modelo põe nas famílias os ativos externos que no Brasil estão no Banco Cen
 
 O teste no protótipo confirma: com reservas de 16% do PIB e as famílias com 3% da riqueza no exterior, a posição externa líquida vai a −43%, mais perto do Brasil. Mas o modelo deixa de ter solução em choques pequenos de câmbio. No OPENFLEX, o câmbio é o preço que equilibra a demanda dos moradores por títulos estrangeiros com a oferta deles; com os moradores tendo pouco no exterior, qualquer mudança pequena exige um movimento enorme do câmbio. Para o Brasil, em que o câmbio se forma sobretudo na demanda dos estrangeiros por ativos brasileiros e na ação do Banco Central, o fechamento do mercado de câmbio do modelo precisa ser trocado. É uma mudança de estrutura, e a principal pendência da calibração.
 
+### O fechamento do câmbio e o balanço externo brasileiro: o modelo `brazil-7`
+
+**O fechamento.** No OPENFLEX, um dos mercados de títulos é redundante: se todos os outros fecham, ele fecha também. O livro usa o mercado de títulos estrangeiros dos moradores para formar o câmbio, e o banco central doméstico absorve os títulos domésticos que sobram. As equações ganharam uma chave que inverte os papéis: os moradores levam os títulos estrangeiros que quiserem, o banco central doméstico segue o próprio balanço, e o câmbio equilibra a demanda dos estrangeiros por títulos domésticos. No modelo do livro, as duas escolhas dão a mesma solução, como deveriam. A diferença é numérica: a perda de solução que aparecia com as famílias tendo pouco no exterior vinha do método de resolução, e não da economia. Com o fechamento novo, ela some.
+
+**O balanço externo.** O modelo BRASIL passa a pôr as reservas no Banco Central, 15,6% do PIB anual, e deixa nas famílias só 3% da riqueza em títulos estrangeiros. As reservas são calculadas a partir de números lidos do Banco Central: US$ 367,6 bilhões em junho de 2026, divididos pelo PIB em dólares implícito na posição externa líquida (US$ 1.156 bilhões, 49% do PIB). Os 3% são uma ordem de grandeza, e não uma estimativa: o dado das famílias no exterior não foi encontrado, e a posição externa líquida brasileira pediria um valor negativo, porque o modelo não tem os outros passivos externos do país, como as ações e a dívida privada em poder de estrangeiros.
+
+| Em % do PIB anual | `brazil-6` | `brazil-7` | Brasil |
+| --- | --- | --- | --- |
+| Reservas do Banco Central | 0% | 15,6% | Cerca de 16% |
+| Títulos estrangeiros das famílias | 20% | 2,6% (3% da riqueza) | Pequeno |
+| Riqueza das famílias | 94% | 86% | 92% |
+| Posição externa líquida | −42% | −43% | −49% |
+
+**Duas premissas recalibradas com os mesmos alvos.** Com o balanço novo, as mesmas reações dão respostas diferentes, e as duas calibrações indiretas foram refeitas pelo mesmo método:
+
+| Premissa | Alvo | `brazil-6` | `brazil-7` |
+| --- | --- | --- | --- |
+| Repasse do câmbio aos importados (`passthrough.js`) | Preços 0,10% mais altos por 1% de desvalorização em um ano | 0,35 | 0,95, faixa de 0,91 a 0,97 |
+| Reação das carteiras (`portfolio.js`) | Moeda 2,5% a 4,2% mais valorizada por ponto de juro ao ano, no impacto | 2 | 0,8, faixa de 0,6 a 1 |
+
+O repasse agora passa na conferência de dois anos: o modelo dá 0,15, e o Banco Central, 0,16. No `brazil-6` dava 0,095. E 0,95 é um repasse aos importados plausível. As duas coisas indicam que a riqueza das famílias em títulos estrangeiros, herdada do livro, era mesmo o que distorcia a calibração.
+
+**O que muda nos resultados.** Com o gasto de 18 para 19, em 120 trimestres: o desemprego cai para 4,7%, e não para 5,1%; a inflação vai a 4,8% ao ano e continua subindo devagar, em vez de parar em 5,4%; e o câmbio real se valoriza 9%, em vez de 4%. Com o juro meio ponto maior por trimestre, a moeda se valoriza 6,9% no impacto, dentro da faixa medida, mas o desemprego cai no primeiro trimestre, porque os importados mais baratos aumentam a renda real. Isso contraria a curva IS do Banco Central e mostra de novo que falta ao modelo um freio do juro sobre a demanda. Com o gasto em 25, o modelo deixa de ter solução no período 64.
+
 ### O que falta decidir e fazer
 
-1. **Fechamento do mercado de câmbio.** O câmbio do modelo se forma na carteira dos moradores, que no Brasil têm pouco no exterior. Trocar esse fechamento é condição para pôr as reservas no Banco Central e tirar o excesso de ativos externos das famílias.
+1. **Títulos estrangeiros das famílias.** O valor de 3% da riqueza é uma ordem de grandeza. Falta o dado do Banco Central sobre os ativos externos dos residentes por setor.
 2. **Conferir o lado externo** contra a posição internacional de investimento do Banco Central: o estoque de investimento direto, os lucros remetidos e os ativos dos residentes no exterior.
 3. **O outro país.** O cálculo manteve o país doméstico perto do tamanho do livro. Para o Brasil, o resto do mundo é muito maior.
 4. **Limite de capacidade.** Sem ele, gastos grandes levam o desemprego abaixo de zero.
