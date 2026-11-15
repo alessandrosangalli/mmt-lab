@@ -1,4 +1,4 @@
-module Multiverse exposing (Cell, Outcome(..), Span(..), axisRange, axisValues, classify, combinations, halfStep, row, spread, steps)
+module Multiverse exposing (Cell, Outcome(..), Pace(..), Span(..), axisRange, axisValues, classify, combinations, halfStep, pace, row, spread, steps)
 
 {-| The same scenario run under many combinations of premises, to show which
 conclusions survive when the premises change.
@@ -182,3 +182,34 @@ combinations choices =
             List.concatMap
                 (\chosen -> List.map (\value -> Dict.insert key value chosen) values)
                 (combinations rest)
+
+
+{-| Whether a series is coming to rest or getting away.
+-}
+type Pace
+    = Slowing
+    | Speeding
+
+
+{-| Compares how far a series moved over its last ten values with how far it
+moved over the ten before. A run that is still adjusting but moving less and
+less is on its way to settling; one moving more and more is not. `Nothing`
+when there are fewer than 21 values.
+-}
+pace : List Float -> Maybe Pace
+pace series =
+    case List.reverse series of
+        latest :: earlier ->
+            case ( List.head (List.drop 9 earlier), List.head (List.drop 19 earlier) ) of
+                ( Just middle, Just first ) ->
+                    if abs (latest - middle) < abs (middle - first) then
+                        Just Slowing
+
+                    else
+                        Just Speeding
+
+                _ ->
+                    Nothing
+
+        [] ->
+            Nothing

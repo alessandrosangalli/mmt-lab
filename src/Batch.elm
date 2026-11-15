@@ -9,7 +9,7 @@ build and writes what comes out.
 import Dict
 import Json.Encode as Encode
 import Models exposing (ModelId(..))
-import Multiverse exposing (Outcome(..))
+import Multiverse exposing (Outcome(..), Pace(..))
 import Platform
 import Policy exposing (Policy)
 import Premise exposing (Premise, Premises)
@@ -138,7 +138,12 @@ encodeRun change premises =
                         "settles"
 
                     StillAdjusting ->
-                        "adjusting"
+                        case Multiverse.pace (List.filterMap (\snapshot -> Maybe.map .value (List.head snapshot.charts)) run.snapshots) of
+                            Just Speeding ->
+                                "speeding"
+
+                            _ ->
+                                "slowing"
 
                     NoSolution _ ->
                         "failed"
