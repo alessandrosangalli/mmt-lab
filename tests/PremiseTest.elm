@@ -16,6 +16,7 @@ share =
     , step = 0.1
     , default = 0.7
     , brazil = Nothing
+    , published = Nothing
     }
 
 
@@ -47,4 +48,17 @@ suite =
                     (Dict.fromList [ ( "share", 5 ), ( "other", 0.7 ), ( "unknown", 1 ) ])
                     |> Dict.toList
                     |> Expect.equal [ ( "share", 1 ) ]
+        , test "a value is inside the published range when it is between its ends, give or take the margin" <|
+            \_ ->
+                let
+                    ranged =
+                        { share | published = Just ( 0.2, 0.4 ) }
+                in
+                [ Premise.isPublished 0 ranged 0.3
+                , Premise.isPublished 0 ranged 0.45
+                , Premise.isPublished 0.05 ranged 0.45
+                , Premise.isPublished 0.05 ranged 0.1
+                , Premise.isPublished 1 share 0.3
+                ]
+                    |> Expect.equal [ True, False, True, False, False ]
         ]

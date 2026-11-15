@@ -36,6 +36,7 @@ share =
     , step = 0.1
     , default = 0.7
     , brazil = Nothing
+    , published = Nothing
     }
 
 

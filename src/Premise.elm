@@ -1,4 +1,4 @@
-module Premise exposing (Premise, Premises, brazilian, sanitize, value)
+module Premise exposing (Premise, Premises, brazilian, isPublished, sanitize, value)
 
 {-| A premise is an assumption of a model that economists disagree about and
 that changes the result. The laboratory puts each one on screen as a
@@ -13,7 +13,8 @@ book assumes and what has been estimated for Brazil. `brazil` is the value for B
 where this project has read a source in the original: either the central
 published estimate of the premise itself, or the value that makes the model
 reproduce a published estimate of something the premise drives. The note says
-which.
+which. `published` is the range the Brazilian estimates read so far span,
+lowest and highest.
 -}
 type alias Premise =
     { key : String
@@ -24,6 +25,7 @@ type alias Premise =
     , step : Float
     , default : Float
     , brazil : Maybe Float
+    , published : Maybe ( Float, Float )
     }
 
 
@@ -41,6 +43,19 @@ value premise premises =
     Dict.get premise.key premises
         |> Maybe.withDefault premise.default
         |> clamp premise.lowest premise.highest
+
+
+{-| Whether a value is inside the published range, give or take `margin`.
+A premise with no published range has nothing inside it.
+-}
+isPublished : Float -> Premise -> Float -> Bool
+isPublished margin premise chosen =
+    case premise.published of
+        Just ( low, high ) ->
+            chosen >= low - margin && chosen <= high + margin
+
+        Nothing ->
+            False
 
 
 {-| The premises with a published Brazilian estimate, set to that estimate.
