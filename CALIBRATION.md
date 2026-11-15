@@ -29,9 +29,16 @@ No modelo, as exportações reais respondem à renda do resto do mundo (`eps2`) 
 | Velocidade de ajuste das exportações | sem defasagem | Desequilíbrios corrigidos em cerca de três trimestres | Schettini, Squeff e Gouvêa (2012) | Texto |
 | `mu2`, importações e renda doméstica | 1 | de 1,43 a 1,55 no modelo escolhido pelos autores; de 2,22 a 3,89 nas estimativas de cointegração | Santos, Cieplinski, Pimentel e Bhering (2017) | Texto |
 | `mu1`, importações e preço relativo | 0,7 | 0,55 no modelo escolhido pelos autores; de 0,37 a 0,55 entre as especificações | Santos, Cieplinski, Pimentel e Bhering (2017) | Texto |
+| `mu1` no longo prazo | 0,7 | 0,755, com erro-padrão de 0,052, na relação de cointegração entre importações, câmbio real efetivo e PIB. O sinal não aparece na leitura automática da tabela | Banco Central (2013), boxe do Relatório de Inflação de setembro | Texto |
+| `eps1` no longo prazo, segunda fonte | 0,7 | Sem relação de longo prazo entre exportações e câmbio real no período pós-Real | Banco Central (2013), o mesmo boxe | Texto |
+| `mu2` no longo prazo, segunda fonte | 1 | 2,42, com erro-padrão de 0,077 | Banco Central (2013), o mesmo boxe | Texto |
 | `mu1` em estudos anteriores | 0,7 | 0,17: uma depreciação real de 1% reduz o volume importado em 0,17% | Minella e Souza-Sobrinho (2009), citado em Santos e coautores | Citação indireta |
 
 A amostra de Santos e coautores é trimestral, do primeiro trimestre de 1996 ao segundo de 2013. Os autores explicam a resposta baixa das importações pela composição: bens intermediários, combustíveis e alguns serviços somam quase dois terços das importações e têm pouco ou nenhum substituto nacional. Uma das tabelas traz coeficientes de preço positivos depois de 2002, que o texto não discute.
+
+**Curto e longo prazo.** As estimativas de Schettini, Squeff e Gouvêa para o câmbio, de 0,01 a 0,11, já são de longo prazo: vêm das relações de cointegração. No curto prazo eles encontram de 0,10 a 0,12, sem significância. Uma versão anterior deste documento dizia que as estimativas usadas mediam só poucos trimestres; para as exportações, isso estava errado. O boxe do Banco Central chega à mesma conclusão por outro caminho: não encontra relação de longo prazo entre exportações e câmbio. Para as importações, o longo prazo do Banco Central, 0,755, é maior que o 0,55 de Santos e coautores. Somadas, as respostas de longo prazo ficam entre 0,77 e 0,87, ainda abaixo de 1.
+
+**A renda pesa mais que o preço nas importações.** As duas fontes dão uma resposta das importações à renda bem acima de 1. O modelo usa 1, e precisa usar: com resposta maior que 1, as importações cresceriam sem parar como proporção do PIB, e não existiria trajetória de crescimento equilibrado. É uma diferença entre o modelo e as estimativas que não se resolve com parâmetro.
 
 A amostra de Schettini, Squeff e Gouvêa é trimestral, de 1995 a 2009. Os próprios autores avisam que as estatísticas t de uma das tabelas não são confiáveis, então a falta de significância do câmbio é uma indicação, não uma conclusão firme.
 
@@ -48,7 +55,7 @@ Com as estimativas brasileiras, a moeda perde mais da metade do valor em 120 per
 
 O mapa de premissas da tela mostra o quadro completo: a economia se estabiliza quando as duas respostas somam bem mais que 1 e deixa de ter solução quando somam bem menos, com a fronteira perto de 1.
 
-**O que isso não mostra.** Não é um resultado sobre o Brasil, por quatro razões. As carteiras, o consumo e o tamanho relativo dos países continuam com os valores do livro. As estimativas medem a resposta em poucos trimestres, e a resposta do comércio ao câmbio costuma crescer com o tempo. No modelo, a renda do resto do mundo não reage. E a faixa das estimativas é larga: estudos anteriores encontram respostas das importações ainda menores, e outros, maiores que 1.
+**O que isso não mostra.** Não é um resultado sobre o Brasil, por quatro razões. As carteiras, o consumo e o tamanho relativo dos países continuam com os valores do livro. As estimativas de importações variam de 0,37 a 0,755 conforme a fonte e o horizonte. No modelo, a renda do resto do mundo não reage. E a faixa das estimativas é larga: estudos anteriores encontram respostas das importações ainda menores, e outros, maiores que 1.
 
 ## 2. Repasse do câmbio aos preços
 
@@ -357,6 +364,19 @@ Números em relação à tendência, conferidos entre o protótipo e o código E
 
 Três leituras. Primeira: mesmo sem crescimento, o câmbio converge com as respostas brasileiras de comércio, mas leva 220 anos para andar metade do caminho, o que na prática é não se acomodar; foi isso que as versões sem crescimento mostravam em 120 períodos. Segunda: crescimento real e inflação ajudam em medida parecida, e juntos encurtam o prazo em nove vezes. Isso é compatível com a explicação de que o crescimento nominal dilui os estoques a cada período, mas o teste mede o efeito, não prova o mecanismo. Terceira: as respostas de comércio continuam decidindo a velocidade. No Brasil calibrado, metade do ajuste leva cerca de 24 anos; com as respostas do livro, 3 anos.
 
+**A faixa das estimativas vai da divergência a um ajuste de 13 anos.** O mesmo teste, no modelo da tela, com as respostas de comércio dentro da faixa publicada:
+
+| Exportações | Importações | De onde vem | Tempo para o câmbio andar metade do caminho |
+| --- | --- | --- | --- |
+| 0,01 | 0,37 | Menor valor de Santos e coautores | Não se acomoda: o movimento cresce |
+| 0,01 | 0,55 | Valores adotados na tela | 99 trimestres |
+| 0,11 | 0,55 | Maior valor de exportações | 70 trimestres |
+| 0,01 | 0,755 | Longo prazo do Banco Central | 52 trimestres |
+| 0,11 | 0,755 | Os dois maiores | 49 trimestres |
+| 0,70 | 0,70 | Livro | 45 trimestres |
+
+Com a resposta de longo prazo do Banco Central para as importações, o ajuste fica quase tão rápido quanto com os valores do livro. Com o menor valor publicado, o câmbio não se acomoda. A conclusão sobre o câmbio depende, portanto, de onde a resposta das importações está dentro da faixa publicada, e é para isso que serve o multiverso do M4.
+
 O teste usa um choque pequeno, então mede o comportamento perto do ponto de partida. Choques grandes podem se comportar de outro modo: o gasto de 18 para 25, por exemplo, leva a moeda a 0,3 em 120 períodos.
 
 O investimento direto mudou pouco esse comportamento: sem ele, no `brazil-3`, os mesmos números eram 0,822 e 0,724.
@@ -373,11 +393,13 @@ Esses resultados foram vistos antes de os critérios de T4 a T6 serem pré-regis
 4. **Defasagens.** O livro não tem defasagem nas exportações; a estimativa brasileira indica ajuste em três trimestres.
 5. **Investimento produtivo.** O modelo não tem, e por isso o consumo das famílias fica em 80% do PIB, contra 63,4% no Brasil, mais 16,8% de investimento.
 6. **Transferências como controle na tela**, para simular mudanças em benefícios.
-7. **Resposta do comércio no longo prazo.** As estimativas brasileiras usadas são de poucos trimestres. Como elas decidem se o ajuste leva 3 ou 24 anos, uma estimativa de longo prazo é a lacuna que mais pesa.
+7. **Resposta das importações ao preço.** A faixa publicada, de 0,37 a 0,755, vai da divergência a um ajuste de 13 anos. Conferir o sinal no boxe do Banco Central e buscar estimativas mais recentes.
+8. **Resposta do comércio com defasagem**, para o curto e o longo prazo conviverem no modelo.
 
 ## Referências
 
 - Banco Central do Brasil (2018). [Repasse cambial sob a ótica de um modelo semiestrutural](https://www.bcb.gov.br/conteudo/relatorioinflacao/EstudosEspeciais/Repasse_cambial_sob_a_otica_de_um_modelo_semiestrutural.pdf). Estudo Especial 26/2018.
+- Banco Central do Brasil (2013). [Taxa de Câmbio e a Balança Comercial Brasileira](https://www.bcb.gov.br/content/ri/relatorioinflacao/201309/RELINF201309-ri201309b6p.pdf). Boxe do Relatório de Inflação de setembro de 2013, p. 79-81.
 - Banco Central do Brasil (2024). [Atualização dos modelos semiestruturais de pequeno porte](https://www.bcb.gov.br/content/ri/relatorioinflacao/202406/ri202406b12p.pdf). Boxe do Relatório de Inflação, junho de 2024, p. 97-107.
 - Banco Central do Brasil (2026). [Repasse cambial: estimativas por projeções locais](https://www.bcb.gov.br/content/ri/relatorioinflacao/202603/rpm202603b8p.pdf). Boxe do Relatório de Política Monetária, março de 2026, p. 65-69.
 - Brunelli, A., Martins, B. e Carvalho, C. (2025). [Liquidity or Wealth? Consumption, Debt, and Financial Fragility After a Windfall](https://www.bcb.gov.br/content/publicacoes/WorkingPaperSeries/WP634.pdf). Banco Central do Brasil, Working Paper 634.
@@ -396,7 +418,6 @@ Esses resultados foram vistos antes de os critérios de T4 a T6 serem pré-regis
 - Federal Reserve (2026). [Federal Reserve issues FOMC statement, 28 de outubro de 2026](https://www.federalreserve.gov/newsevents/pressreleases/monetary20261028a.htm).
 - IBGE (2026). [Contas Nacionais Trimestrais, 4º trimestre de 2025](https://agenciadenoticias.ibge.gov.br/media/com_mediaibge/arquivos/0038750a1c5c36ff2ffe025f1ee4c6cc.pdf).
 - IBGE (2026). [Indicadores IBGE: Sistema Nacional de Índices de Preços ao Consumidor, outubro de 2026](https://biblioteca.ibge.gov.br/visualizacao/periodicos/236/inpc_ipca_2026_out.pdf).
-- Banco Central do Brasil (2026). [Estatísticas do setor externo, nota para a imprensa de 28 de julho de 2026](https://www.bcb.gov.br/content/estatisticas/hist_estatisticassetorexterno/202607_Texto_de_estatisticas_do_setor_externo.pdf).
 - U.S. Bureau of Labor Statistics (2026). [Consumer Price Index Summary, outubro de 2026](https://www.bls.gov/news.release/cpi.nr0.htm).
 - Tesouro Nacional (2026). [Relatório Mensal da Dívida, agosto de 2026](https://cdn.tesouro.gov.br/sistemas-internos/apex/producao/sistemas/thot/arquivos/publicacoes/55919_1762808/Texto_RMD_Ago_26.pdf).
 - Banco Central do Brasil (2026). [Estatísticas fiscais, nota para a imprensa de 31 de julho de 2026](https://www.bcb.gov.br/content/estatisticas/hist_estatisticasfiscais/202607_Texto_de_estatisticas_fiscais.pdf).
