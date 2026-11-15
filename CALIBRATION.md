@@ -91,7 +91,7 @@ Só o repasse integral aos importados chega ao 0,10 que o Banco Central estima p
 
 ### Salários que acompanham os preços: estrutura pronta, valor em aberto
 
-As equações ganharam um salário que pode acompanhar os preços ao consumidor. A cada trimestre um quarto dos salários é reajustado, e o reajuste repõe uma fração da alta de preços: a premissa de indexação, de 0 (salário fixo em relação à tendência, como no livro) a 1 (reposição integral). O um quarto é uma convenção, de contratos anuais espalhados pelo ano, e não uma estimativa. Com a indexação em 0, os números do modelo são os mesmos de antes.
+As equações ganharam um salário que pode acompanhar os preços ao consumidor. A cada trimestre um quarto dos salários é reajustado, e o reajuste repõe uma fração da alta de preços: a premissa de indexação, de 0 (salário fixo em relação à tendência, como no livro) a 1 (reposição integral). A parcela reajustada por trimestre vem do modelo SAMBA do Banco Central (abaixo): 21,6%. A primeira versão usou um quarto, por convenção. Com a indexação em 0, os números do modelo são os mesmos de antes.
 
 O que os testes no protótipo mostraram, no modelo BRASIL com gasto de 18 para 19:
 
@@ -103,6 +103,20 @@ O que os testes no protótipo mostraram, no modelo BRASIL com gasto de 18 para 1
 | 1 | 0,82 | +20% | 6.602: na prática, não se acomoda |
 
 A indexação troca desvalorização por inflação. Quanto mais os salários repõem os preços, menos a moeda cai e mais os preços sobem. Com reposição integral, o câmbio real quase não muda, e sem mudança no câmbio real o comércio não corrige nada: a economia fica num ajuste sem fim, com os preços subindo acima da tendência.
+
+**O que o modelo SAMBA do Banco Central estima.** O SAMBA é o modelo estrutural do Banco Central, trimestral, estimado de 2001 a 2019 (Fasolo e coautores, 2023, Working Paper 578, tabela 4, p. 45, lida no texto). Nele:
+
+| Parâmetro | Estimativa | Intervalo de 90% |
+| --- | --- | --- |
+| Parcela dos salários que não é renegociada a cada trimestre | 0,784 | 0,764 a 0,802 |
+| Peso da inflação salarial passada na indexação dos que não são renegociados | 0,815 | 0,744 a 0,888 |
+| Peso da inflação ao consumidor passada, em quatro trimestres, na mesma indexação | 0,185, o complemento | |
+
+A cada trimestre, 21,6% dos salários são renegociados olhando para a frente, e os demais são corrigidos por uma média da inflação salarial passada e da inflação ao consumidor passada. Os pesos somam 1: no SAMBA, os salários nominais acompanham os preços por inteiro no longo prazo. O que move o salário real é a renegociação, que responde ao mercado de trabalho.
+
+O modelo deste projeto adota a parcela renegociada, 21,6%, no lugar do um quarto por convenção. A indexação não pode ser lida diretamente do SAMBA. Lá, a reposição é integral, mas o desemprego puxa o salário real. Aqui não há desemprego no salário, e reposição integral trava o salário real e, com ele, o câmbio real, como mostra a última linha da tabela acima. A peça que falta é o salário responder ao desemprego, que já está na etapa A do M4. Sem ela, qualquer valor de indexação seria escolhido para acertar um resultado.
+
+O boxe do Banco Central de setembro de 2026 sobre os reajustes das convenções coletivas confirma o padrão, sem estimar coeficiente: há "elevada aderência entre os reajustes nominais e a inflação passada", e os ganhos reais predominam quando o desemprego está baixo.
 
 **Por que não há valor brasileiro adotado.** Três combinações diferentes de repasse aos importados, indexação e velocidade de reajuste reproduzem igualmente bem os dois números do Banco Central (0,10 em 12 meses e 0,16 em 24), e todas pedem indexação perto de 1. São três parâmetros para dois números. Além disso, o experimento do modelo, um aumento de gasto em que o câmbio continua caindo, não é o do Banco Central, que mede a resposta a uma desvalorização isolada. Adotar indexação perto de 1 com essa base seria apresentar um ajuste frágil como calibração. A premissa fica na tela em 0, sem valor brasileiro e sem faixa, até haver uma fonte para a indexação dos salários no Brasil e um experimento comparável.
 
@@ -464,7 +478,7 @@ Esses resultados foram vistos antes de os critérios de T4 a T6 serem pré-regis
 
 1. **Conferir o lado externo** contra a posição internacional de investimento do Banco Central: o estoque de investimento direto, os lucros remetidos e os ativos dos residentes no exterior.
 2. **O outro país.** O cálculo manteve o país doméstico perto do tamanho do livro. Para o Brasil, o resto do mundo é muito maior.
-3. **Indexação dos salários.** A estrutura está no modelo; falta uma fonte brasileira para o valor e um experimento de repasse comparável ao do Banco Central.
+3. **Salário que responde ao desemprego.** O SAMBA mostra que os salários repõem a inflação por inteiro e que o salário real é movido pelo mercado de trabalho. Falta essa resposta no modelo, e uma estimativa brasileira dela.
 4. **Defasagens.** O livro não tem defasagem nas exportações; a estimativa brasileira indica ajuste em três trimestres.
 5. **Investimento produtivo.** O modelo não tem, e por isso o consumo das famílias fica em 80% do PIB, contra 63,4% no Brasil, mais 16,8% de investimento.
 6. **Transferências como controle na tela**, para simular mudanças em benefícios.
@@ -475,8 +489,10 @@ Esses resultados foram vistos antes de os critérios de T4 a T6 serem pré-regis
 
 - Banco Central do Brasil (2018). [Repasse cambial sob a ótica de um modelo semiestrutural](https://www.bcb.gov.br/conteudo/relatorioinflacao/EstudosEspeciais/Repasse_cambial_sob_a_otica_de_um_modelo_semiestrutural.pdf). Estudo Especial 26/2018.
 - Banco Central do Brasil (2013). [Taxa de Câmbio e a Balança Comercial Brasileira](https://www.bcb.gov.br/content/ri/relatorioinflacao/201309/RELINF201309-ri201309b6p.pdf). Boxe do Relatório de Inflação de setembro de 2013, p. 79-81.
+- Banco Central do Brasil (2026). [Estimativa dos reajustes salariais a partir das convenções coletivas de trabalho](https://www.bcb.gov.br/content/ri/relatorioinflacao/202609/rpm202609b3p.pdf). Boxe do Relatório de Política Monetária de setembro de 2026, p. 57-62.
 - Banco Central do Brasil (2024). [Atualização dos modelos semiestruturais de pequeno porte](https://www.bcb.gov.br/content/ri/relatorioinflacao/202406/ri202406b12p.pdf). Boxe do Relatório de Inflação, junho de 2024, p. 97-107.
 - Banco Central do Brasil (2026). [Repasse cambial: estimativas por projeções locais](https://www.bcb.gov.br/content/ri/relatorioinflacao/202603/rpm202603b8p.pdf). Boxe do Relatório de Política Monetária, março de 2026, p. 65-69.
+- Fasolo, A. M., Araújo, E., Jorge, M. V., Kornelius, A. e Marinho, L. S. G. (2023). [Brazilian Macroeconomic Dynamics Redux: Shocks, Frictions, and Unemployment in SAMBA Model](https://www.bcb.gov.br/pec/wps/ingl/wps578.pdf). Banco Central do Brasil, Working Paper 578.
 - Brunelli, A., Martins, B. e Carvalho, C. (2025). [Liquidity or Wealth? Consumption, Debt, and Financial Fragility After a Windfall](https://www.bcb.gov.br/content/publicacoes/WorkingPaperSeries/WP634.pdf). Banco Central do Brasil, Working Paper 634.
 - Cieplinski, A., Braga, J. e Summa, R. (2017). [Uma avaliação acerca da falha empírica do teorema da paridade descoberta da taxa de juros entre o Real e o Dólar](https://www.eco.unicamp.br/images/arquivos/artigos/3546/05Cieplinski.pdf). *Economia e Sociedade*, 26(2), 401-426.
 - Franzen, A., Meurer, R., Gonçalves, C. E. S. e Seabra, F. (2009). [Determinantes do fluxo de investimentos de portfólio para o mercado acionário brasileiro](https://revistas.usp.br/ee/pt_BR/article/view/35973). *Estudos Econômicos*, 39(2), 301-328.

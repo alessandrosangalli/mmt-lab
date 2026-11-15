@@ -431,9 +431,9 @@ suite =
                     ( [ fixedRate, fixedPrices ], [ indexedRate, indexedPrices ] ) ->
                         Expect.all
                             [ \_ -> Expect.within (Absolute 1.0e-7) 0.5307281606 fixedRate
-                            , \_ -> Expect.within (Absolute 1.0e-7) 0.6932147941 indexedRate
+                            , \_ -> Expect.within (Absolute 1.0e-7) 0.6862046558 indexedRate
                             , \_ -> Expect.within (Absolute 1.0e-7) 1.06266199 (fixedPrices / BrazilRest.vars.pds_uk)
-                            , \_ -> Expect.within (Absolute 1.0e-7) 1.173176632 (indexedPrices / BrazilRest.vars.pds_uk)
+                            , \_ -> Expect.within (Absolute 1.0e-7) 1.172483281 (indexedPrices / BrazilRest.vars.pds_uk)
                             ]
                             ()
 

@@ -67,7 +67,7 @@ params =
     , fdi_flow_uk = 0.0358
     , kappa_uk = 0
     , pref_uk = 0.9699591689481806
-    , wspeed_uk = 0.25
+    , wspeed_uk = 0.216
     }
 
 
