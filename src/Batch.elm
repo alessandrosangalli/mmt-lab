@@ -121,9 +121,9 @@ encodeRun change premises =
                 |> Maybe.andThen (\snapshot -> List.head snapshot.charts)
                 |> Maybe.map .value
 
-        debtRatio =
+        indicator name =
             latest
-                |> Maybe.andThen (\snapshot -> List.head (List.filter (\indicator -> indicator.name == "Dívida pública ÷ PIB") snapshot.indicators))
+                |> Maybe.andThen (\snapshot -> List.head (List.filter (\each -> each.name == name) snapshot.indicators))
                 |> Maybe.map .value
 
         optional =
@@ -151,5 +151,7 @@ encodeRun change premises =
           )
         , ( "failedAt", Maybe.withDefault Encode.null (Maybe.map Encode.int run.failedAt) )
         , ( "rate", optional firstSeries )
-        , ( "debt", optional debtRatio )
+        , ( "debt", optional (indicator "Dívida pública ÷ PIB") )
+        , ( "unemployment", optional (indicator "Desemprego (%)") )
+        , ( "inflation", optional (indicator "Inflação (% ao ano)") )
         ]

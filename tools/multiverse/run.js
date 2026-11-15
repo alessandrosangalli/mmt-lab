@@ -32,10 +32,10 @@ function page(data) {
       const rows = premise.values.map(value => { const these = change.runs.filter(r => r.premises[premise.key] === value), c = tally(these);
         const rates = these.filter(r => r.outcome !== 'failed').map(r => r.rate);
         return `<tr><th scope="row">${number(value, 3)}</th><td>${c.settles}</td><td>${c.slowing}</td><td>${c.speeding}</td><td>${c.failed}</td><td>${rates.length ? number(median(rates)) : 'sem solução'}</td></tr>`; }).join('');
-      return `<h3>${esc(premise.name)}</h3><div class="scroll"><table><thead><tr><th>Valor</th><th>Estabiliza</th><th>Desacelera</th><th>Acelera</th><th>Sem solução</th><th>Câmbio final, mediana</th></tr></thead><tbody>${rows}</tbody></table></div>`; }).join('');
+      return `<h3>${esc(premise.name)}</h3><div class="scroll"><table><thead><tr><th>Valor</th><th>Estabiliza</th><th>Desacelera</th><th>Acelera</th><th>Sem solução</th><th>Câmbio real final, mediana</th></tr></thead><tbody>${rows}</tbody></table></div>`; }).join('');
     return `<section><h2>${esc(change.name)}</h2>
 <p>De ${change.runs.length} combinações de premissas: <strong>${t.settles}</strong> estabilizam; <strong>${t.slowing}</strong> ainda se ajustam, mas cada vez mais devagar; <strong>${t.speeding}</strong> se afastam cada vez mais rápido; e <strong>${t.failed}</strong> ficam sem solução antes do fim.</p>
-<p>Entre as que chegam ao fim, o câmbio em relação à tendência termina de ${range(solved.map(r => r.rate))}, e a dívida pública de ${range(solved.map(r => r.debt))} vezes o PIB trimestral (parte de 3,28).</p>
+<p>Entre as que chegam ao fim, o câmbio real termina de ${range(solved.map(r => r.rate))} (parte de 1); a dívida pública, de ${range(solved.map(r => r.debt))} vezes o PIB trimestral (parte de 3,28); o desemprego, de ${range(solved.map(r => r.unemployment))}% (parte de 5,9%); e a inflação, de ${range(solved.map(r => r.inflation))}% ao ano (parte de 4,6%).</p>
 ${byPremise}</section>`; }).join('\n');
   const grid = data.premises.map(p => `${esc(p.name)}: ${p.values.map(v => number(v, 3)).join('; ')}`).join('</li><li>');
   return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Multiverso do Laboratório MMT</title>
@@ -48,7 +48,7 @@ table{border-collapse:collapse;background:var(--sheet);font-size:.9rem;min-width
 thead th{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);border-bottom:2px solid var(--ink)}th[scope=row],thead th:first-child{text-align:left;font-weight:500}</style></head><body><main>
 <h1>Multiverso</h1>
 <p>O modelo BRASIL (versão ${esc(data.model)}) rodado com todas as combinações das premissas dentro da faixa das estimativas brasileiras lidas, por ${data.horizon} trimestres, para cada mudança de política. Esta página é gerada a cada publicação do laboratório.</p>
-<p class="muted">É uma descrição do modelo, não um veredito sobre o Brasil: os critérios das teses ainda não foram pré-registrados, e o modelo é uma calibração parcial. "Estabiliza" quer dizer que o câmbio se moveu menos de 1% nos últimos dez trimestres. "Desacelera" e "acelera" comparam o movimento do câmbio nos últimos dez trimestres com o dos dez anteriores: quem desacelera caminha para se acomodar, ainda que leve décadas; quem acelera, não.</p>
+<p class="muted">É uma descrição do modelo, não um veredito sobre o Brasil: os critérios das teses ainda não foram pré-registrados, e o modelo é uma calibração parcial. "Estabiliza" quer dizer que o câmbio real se moveu menos de 1% nos últimos dez trimestres. "Desacelera" e "acelera" comparam o movimento do câmbio real nos últimos dez trimestres com o dos dez anteriores: quem desacelera caminha para se acomodar, ainda que leve décadas; quem acelera, não.</p>
 <p>Valores de cada premissa:</p><ul><li>${grid}</li></ul>
 <p><a href="./">Voltar ao laboratório</a></p>
 ${sections}

@@ -7,7 +7,9 @@ const quarterly = yearly => Math.pow(1 + yearly, 0.25);
 // Policy on the path, on the screen's slider steps. 3.5% a quarter is 14.75% a year.
 const POLICY = { g_k_uk: 18, theta_uk: 0.39, r_uk: 0.035 };
 // Premises on the path: the Brazilian values read so far (CALIBRATION.md).
-const PREMISES = { eps1: 0.01, mu1: 0.55, nu1m: 1, port: 2 };
+// kappa: wages follow consumer prices in full, as in the SAMBA model; beta: wage curve (CALIBRATION.md, section 2).
+// nu1m: calibrated by passthrough.js to the central bank's 12-month pass-through.
+const PREMISES = { eps1: 0.01, mu1: 0.55, nu1m: 0.35, port: 2, kappa: 1, beta: -0.06 };
 // Trends and the foreign interest rate (CALIBRATION.md, section 8).
 const WORLD = { trend: quarterly(0.023), infl_uk: quarterly(0.046), infl_us: quarterly(0.02), r_us: 0.0096 };
 // Direct investment inflow and exports, as shares of output (CALIBRATION.md, section 8).
@@ -15,6 +17,8 @@ const EXTERNAL = { directInvestment: 0.0358, exports: 0.178 };
 // Share of wages re-optimized each quarter: 1 minus the wage Calvo probability of the Banco Central's SAMBA
 // model, 0.784 (Fasolo et al. 2023, BCB Working Paper 578, table 4). CALIBRATION.md, section 2.
 const WAGE_RESET = 0.216;
+// Unemployment rate on the starting path: the 2025 average (CALIBRATION.md, section 2).
+const UNEMPLOYMENT = 0.059;
 const TARGETS = { imports: 0.175, debt: 3.28, foreignShare: 0.099, government: 0.191 };
 
 const expected = p => ({ dxre_us: p.infl_uk / p.infl_us - 1, dxre_uk: p.infl_us / p.infl_uk - 1 }); // the trend of each exchange rate
@@ -45,12 +49,14 @@ for (let k = 1; external && k <= STEPS; k++) { const share = k / STEPS, aim = pa
   found = c.rest({ ...found.p, fdi_flow_uk: external.directInvestment * share }, found.v, [...shape, 'tr_k_uk', 'rho_uk'],
     [...shapeTargets, T.government, v => v.x_uk / v.y_uk - aim], false);
   if (!found.ok) throw new Error('direct investment stage ' + k + ' failed: ' + found.err); }
+// The labour force is set so that unemployment on the path is Brazil's.
+found.p = { ...found.p, lf_uk: found.v.n_uk / (1 - UNEMPLOYMENT), ustar_uk: UNEMPLOYMENT };
 // polish: step the model from the point found until it stops moving at machine precision
 let rest = found.v; for (let i = 0; i < 5; i++) rest = m.run(1, [], rest, found.p).out[0];
 const V = {}; for (const k of m.KEYS) V[k] = rest[k];
-// Wages: a quarter of them are reset each quarter, and by default they do not follow prices (kappa 0).
+// Wages: the share reset each quarter, how far they follow prices and how they move with unemployment.
 // The reference price level is the path's own.
-return { P: { ...found.p, pref_uk: V.pds_uk, wspeed_uk: WAGE_RESET, kappa_uk: 0 }, V }; }
+return { P: { ...found.p, pref_uk: V.pds_uk, wspeed_uk: WAGE_RESET, kappa_uk: PREMISES.kappa, beta_uk: PREMISES.beta }, V }; }
 const { P, V } = solvePath();
 
 // Premises re-anchored on the path: whatever their values, the economy starts on it.
@@ -59,7 +65,7 @@ function withPremises(chosen, policy = {}, at = { P, V }) { const P = at.P, V = 
   const home = P.r_uk - P.r_us - P.dxre_us, abroad = P.r_us - P.r_uk - P.dxre_uk, change = P.lambda11 - chosen.port;
   const relImports = Math.log(V.pm_uk / V.py_uk), relExports = Math.log(V.pm_us / V.py_us);
   const passBase = Math.log(V.py_us) - Math.log(V.py_uk) - Math.log(V.xr_uk);
-  return { ...P, ...policy, ...c.port(chosen.port), eps1: chosen.eps1, mu1: chosen.mu1, nu1m: chosen.nu1m, kappa_uk: chosen.kappa || 0,
+  return { ...P, ...policy, ...c.port(chosen.port), eps1: chosen.eps1, mu1: chosen.mu1, nu1m: chosen.nu1m, kappa_uk: chosen.kappa ?? PREMISES.kappa, beta_uk: chosen.beta ?? PREMISES.beta,
     lambda10: P.lambda10 + change * home, lambda20: P.lambda20 - change * home,
     lambda40: P.lambda40 + change * abroad, lambda50: P.lambda50 - change * abroad,
     eps0: P.eps0 + (chosen.eps1 - P.eps1) * relExports, mu0: P.mu0 + (chosen.mu1 - P.mu1) * relImports,
@@ -80,15 +86,16 @@ if (require.main === module) {
   const f = (x, d = 4) => x.toFixed(d); const L = m.carry(V, P);
   console.log('path:', `y ${f(V.y_k_uk)} xr ${f(V.xr_uk, 8)} revenue/y ${f(V.t_uk / V.y_uk)} gov/y ${f(V.g_uk / V.y_uk)} transfers/y ${f(V.tr_uk / V.y_uk)} interest/y ${f(P.r_uk * L.b_uk_s / V.y_uk)} deficit/y ${f(V.psbr_uk / V.y_uk)} imports/y ${f(V.im_uk / V.y_uk)} exports/y ${f(V.x_uk / V.y_uk)} cons/y ${f(V.cons_uk / V.y_uk)} debt/y ${f(V.b_uk_s / V.y_uk)} foreign ${f(V.b_usuk_s / V.b_uk_s)} cab/y ${f(V.cab_uk / V.y_uk)} direct investment stock/y ${f(V.fdi_uk / V.y_uk)} profits sent/y ${f(V.remit_uk / V.y_uk)} rho ${f(P.rho_uk, 5)} trade balance/y ${f((V.x_uk - V.im_uk) / V.y_uk)} foreign bills/wealth ${f(V.b_ukus_d / V.v_uk)} us y ${f(V.y_k_us)}`);
   console.log('solved:', ['mu0', 'alpha2_uk', 'lambda50', 'eps0', 'tr_k_uk', 'rho_uk'].map(k => k + ' ' + P[k]).join(', '));
-  for (const ch of [PREMISES, { eps1: .7, mu1: .7, nu1m: .7, port: 5 }, { eps1: 0, mu1: 1, nu1m: .3, port: 0 }, { eps1: .5, mu1: .8, nu1m: 1, port: 10 }]) {
+  for (const ch of [PREMISES, { eps1: .7, mu1: .7, nu1m: .7, port: 5, kappa: 0, beta: 0 }, { eps1: 0, mu1: 1, nu1m: .3, port: 0, kappa: 0.5, beta: -0.15 }, { eps1: .5, mu1: .8, nu1m: 1, port: 10, kappa: 1, beta: 0 }]) {
     const p = withPremises(ch); const r = m.run(60, [], V, p); const z = r.out.at(-1);
     console.log('on the path with', JSON.stringify(ch), r.failedAt ? 'FAIL@' + r.failedAt : `drift y ${(z.y_k_uk / V.y_k_uk - 1).toExponential(1)} xr ${(z.xr_uk / V.xr_uk - 1).toExponential(1)}`); }
-  const book = { eps1: .7, mu1: .7, nu1m: .7, port: 2 };
+  const book = { ...PREMISES, eps1: .7, mu1: .7 };
   const show = (label, ch, policy, n = 120) => { const r = m.run(n, [{ at: 1, set: withPremises(ch, policy) }], V, withPremises(ch)); const o = r.out;
     const col = o.length ? Math.max(...o.map(x => Math.max(...Object.values(m.tfm(x)).map(Math.abs)))) : NaN;
-    const at = i => o[i - 1] ? `t${i} xr ${o[i - 1].xr_uk.toFixed(10)} y ${o[i - 1].y_k_uk.toFixed(7)} cab ${o[i - 1].cab_uk.toFixed(10)} debt/y ${f(o[i - 1].b_uk_s / o[i - 1].y_uk, 3)} p ${(o[i - 1].pds_uk / V.pds_uk).toFixed(10)}` : '';
+    const at = i => o[i - 1] ? `t${i} xr ${o[i - 1].xr_uk.toFixed(10)} y ${o[i - 1].y_k_uk.toFixed(7)} cab ${o[i - 1].cab_uk.toFixed(10)} debt/y ${f(o[i - 1].b_uk_s / o[i - 1].y_uk, 3)} p ${(o[i - 1].pds_uk / V.pds_uk).toFixed(10)} u ${(100 * o[i - 1].u_uk).toFixed(7)} real ${(o[i - 1].xr_uk * o[i - 1].pds_uk / o[i - 1].pds_us / (V.xr_uk * V.pds_uk / V.pds_us)).toFixed(10)}` : '';
     console.log(label.padEnd(34), r.failedAt ? 'FAIL@' + r.failedAt : 'ok', at(1), '|', at(40), '|', at(120), '| tfm', col.toExponential(1)); };
-  show('default, g 19', PREMISES, { g_k_uk: 19 }); show('wages follow prices 0.9, g 19', { ...PREMISES, kappa: 0.9 }, { g_k_uk: 19 }); show('wages follow prices 1, nothing', { ...PREMISES, kappa: 1 }, {}); show('book trade, g 19', book, { g_k_uk: 19 });
+  show('default, g 19', PREMISES, { g_k_uk: 19 }); show('book trade, g 19', book, { g_k_uk: 19 });
+  show('book wages (fixed), g 19', { ...PREMISES, kappa: 0, beta: 0, nu1m: 1 }, { g_k_uk: 19 });
   show('default, g 17', PREMISES, { g_k_uk: 17 });
   show('default, r 4%', PREMISES, { r_uk: .04 }); show('book trade, r 4%', book, { r_uk: .04 });
   show('default, r 3%', PREMISES, { r_uk: .03 }); show('default, tax 40', PREMISES, { theta_uk: .40 });
