@@ -1,4 +1,4 @@
-module Multiverse exposing (Cell, Outcome(..), axisValues, classify, row, steps)
+module Multiverse exposing (Cell, Outcome(..), Span(..), axisRange, axisValues, classify, halfStep, row, steps)
 
 {-| The same scenario run under many combinations of premises, to show which
 conclusions survive when the premises change.
@@ -38,21 +38,52 @@ steps =
     11
 
 
-{-| Evenly spaced values across a premise's range, ends included.
+{-| What an axis of the map covers: the whole range of the premise's control,
+or only the range the Brazilian estimates read so far span. A premise with no
+published range is always shown whole.
 -}
-axisValues : Premise -> List Float
-axisValues premise =
+type Span
+    = Whole
+    | Published
+
+
+axisRange : Span -> Premise -> ( Float, Float )
+axisRange span premise =
+    case ( span, premise.published ) of
+        ( Published, Just range ) ->
+            range
+
+        _ ->
+            ( premise.lowest, premise.highest )
+
+
+{-| The values of a premise along an axis, in even steps.
+-}
+axisValues : Span -> Premise -> List Float
+axisValues span premise =
     let
-        span =
-            premise.highest - premise.lowest
+        ( low, high ) =
+            axisRange span premise
 
         at index =
-            premise.lowest + span * toFloat index / toFloat (steps - 1)
+            low + (high - low) * toFloat index / toFloat (steps - 1)
 
         tidy number =
             toFloat (round (number * 1000000)) / 1000000
     in
     List.map (\index -> tidy (at index)) (List.range 0 (steps - 1))
+
+
+{-| Half the distance between two neighbouring values of an axis: how far a
+square of the map reaches on each side of its value.
+-}
+halfStep : Span -> Premise -> Float
+halfStep span premise =
+    let
+        ( low, high ) =
+            axisRange span premise
+    in
+    (high - low) / toFloat (steps - 1) / 2
 
 
 {-| A run has settled when, in its last period, the balance with the rest of
@@ -101,8 +132,8 @@ classify run =
 {-| One line of the grid: every value of the horizontal premise, at one value
 of the vertical one. Everything else in the scenario stays as it is.
 -}
-row : (Scenario -> Run) -> Scenario -> Premise -> Premise -> Float -> List Cell
-row run scenario horizontal vertical y =
+row : (Scenario -> Run) -> Scenario -> Span -> Premise -> Premise -> Float -> List Cell
+row run scenario span horizontal vertical y =
     let
         cell x =
             { x = x
@@ -119,4 +150,4 @@ row run scenario horizontal vertical y =
                     )
             }
     in
-    List.map cell (axisValues horizontal)
+    List.map cell (axisValues span horizontal)
