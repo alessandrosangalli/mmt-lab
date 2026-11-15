@@ -15,7 +15,9 @@ const EXTERNAL = { directInvestment: 0.0358, exports: 0.178 };
 const TARGETS = { imports: 0.175, debt: 3.28, foreignShare: 0.099, government: 0.191 };
 
 const expected = p => ({ dxre_us: p.infl_uk / p.infl_us - 1, dxre_uk: p.infl_us / p.infl_uk - 1 }); // the trend of each exchange rate
-const base = { ...m.P0, ...c.port(PREMISES.port), eps1: PREMISES.eps1, mu1: PREMISES.mu1, nu1m: PREMISES.nu1m, ...WORLD, ...expected(WORLD) };
+function solvePath(world = WORLD, external = EXTERNAL) {
+const flat = world.trend * world.infl_uk === 1;
+const base = { ...m.P0, ...c.port(PREMISES.port), eps1: PREMISES.eps1, mu1: PREMISES.mu1, nu1m: PREMISES.nu1m, ...world, ...expected(world) };
 const T = { imports: v => v.im_uk / v.y_uk - TARGETS.imports, debt: v => v.b_uk_s / v.y_uk - TARGETS.debt,
   foreign: v => v.b_usuk_s / v.b_uk_s - TARGETS.foreignShare, rate: v => v.xr_uk - 1, government: v => v.g_uk / v.y_uk - TARGETS.government };
 const shape = ['mu0', 'alpha2_uk', 'lambda50', 'eps0'], shapeTargets = [T.imports, T.debt, T.foreign, T.rate];
@@ -25,28 +27,30 @@ const shape = ['mu0', 'alpha2_uk', 'lambda50', 'eps0'], shapeTargets = [T.import
 const stage = [...shape, 'theta_uk', 'tr_k_uk', 'g_k_uk'];
 const stageTargets = [...shapeTargets, T.government, v => v.t_uk / v.y_uk - 0.324, v => v.y_k_uk / 94.8344 - 1];
 let found = { p: null, v: start }; const STEPS = 8;
-for (let k = 1; k <= STEPS; k++) { const part = { trend: Math.pow(WORLD.trend, k / STEPS), infl_uk: Math.pow(WORLD.infl_uk, k / STEPS), infl_us: Math.pow(WORLD.infl_us, k / STEPS) };
-  found = c.rest({ ...(found.p || base), r_uk: POLICY.r_uk, r_us: WORLD.r_us, ...part, ...expected(part) }, found.v, stage, stageTargets, false);
+for (let k = 1; k <= STEPS; k++) { const part = { trend: Math.pow(world.trend, k / STEPS), infl_uk: Math.pow(world.infl_uk, k / STEPS), infl_us: Math.pow(world.infl_us, k / STEPS) };
+  found = c.rest({ ...(found.p || base), r_uk: POLICY.r_uk, r_us: world.r_us, ...part, ...expected(part) }, found.v, stage, stageTargets, flat);
   if (!found.ok) throw new Error('growth stage ' + k + ' failed: ' + found.err); }
 for (let theta = 0.30; theta < POLICY.theta_uk + 0.005; theta += 0.01) {
-  found = c.rest({ ...found.p, ...POLICY, theta_uk: Math.min(theta, POLICY.theta_uk) }, found.v, [...shape, 'tr_k_uk'], [...shapeTargets, T.government], false);
+  found = c.rest({ ...found.p, ...POLICY, theta_uk: Math.min(theta, POLICY.theta_uk) }, found.v, [...shape, 'tr_k_uk'], [...shapeTargets, T.government], flat);
   if (!found.ok) throw new Error('no growth path found at tax rate ' + theta + ': ' + found.err); }
 found.p.theta_uk = POLICY.theta_uk;
 // Direct investment is switched on a little at a time. The profit rate foreign-owned firms send abroad is
 // solved so that exports land on their share of output. The current account is then a result: on a
 // growth path it is pinned by the stocks of foreign assets and liabilities.
 const pathExports = found.v.x_uk / found.v.y_uk;
-for (let k = 1; k <= STEPS; k++) { const share = k / STEPS, aim = pathExports + (EXTERNAL.exports - pathExports) * share;
-  found = c.rest({ ...found.p, fdi_flow_uk: EXTERNAL.directInvestment * share }, found.v, [...shape, 'tr_k_uk', 'rho_uk'],
+for (let k = 1; external && k <= STEPS; k++) { const share = k / STEPS, aim = pathExports + (external.exports - pathExports) * share;
+  found = c.rest({ ...found.p, fdi_flow_uk: external.directInvestment * share }, found.v, [...shape, 'tr_k_uk', 'rho_uk'],
     [...shapeTargets, T.government, v => v.x_uk / v.y_uk - aim], false);
   if (!found.ok) throw new Error('direct investment stage ' + k + ' failed: ' + found.err); }
 // polish: step the model from the point found until it stops moving at machine precision
 let rest = found.v; for (let i = 0; i < 5; i++) rest = m.run(1, [], rest, found.p).out[0];
-const P = found.p; const V = {}; for (const k of m.KEYS) V[k] = rest[k];
+const V = {}; for (const k of m.KEYS) V[k] = rest[k];
+return { P: found.p, V }; }
+const { P, V } = solvePath();
 
 // Premises re-anchored on the path: whatever their values, the economy starts on it.
 // Mirrors `toParams` in src/Model/Brazil.elm.
-function withPremises(chosen, policy = {}) {
+function withPremises(chosen, policy = {}, at = { P, V }) { const P = at.P, V = at.V;
   const home = P.r_uk - P.r_us - P.dxre_us, abroad = P.r_us - P.r_uk - P.dxre_uk, change = P.lambda11 - chosen.port;
   const relImports = Math.log(V.pm_uk / V.py_uk), relExports = Math.log(V.pm_us / V.py_us);
   const passBase = Math.log(V.py_us) - Math.log(V.py_uk) - Math.log(V.xr_uk);
@@ -55,12 +59,22 @@ function withPremises(chosen, policy = {}) {
     lambda40: P.lambda40 + change * abroad, lambda50: P.lambda50 - change * abroad,
     eps0: P.eps0 + (chosen.eps1 - P.eps1) * relExports, mu0: P.mu0 + (chosen.mu1 - P.mu1) * relImports,
     nu0m: P.nu0m - (chosen.nu1m - P.nu1m) * passBase }; }
-module.exports = { P, V, withPremises, PREMISES, POLICY };
+// The same economy on other trends: walks growth and inflation from a known path to `world` in small steps.
+function moveTo(world, from, steps = 8) { let at = from; const was = from.P;
+  const target = [v => v.im_uk / v.y_uk - TARGETS.imports, v => v.b_uk_s / v.y_uk - TARGETS.debt, v => v.b_usuk_s / v.b_uk_s - TARGETS.foreignShare,
+    v => v.xr_uk - 1, v => v.g_uk / v.y_uk - TARGETS.government];
+  for (let k = 1; k <= steps; k++) { const mix = key => Math.pow(was[key], 1 - k / steps) * Math.pow(world[key], k / steps);
+    const part = { trend: mix('trend'), infl_uk: mix('infl_uk'), infl_us: mix('infl_us') };
+    const r = c.rest({ ...at.P, ...part, ...expected(part) }, at.V, ['mu0', 'alpha2_uk', 'lambda50', 'eps0', 'tr_k_uk'], target, part.trend * part.infl_uk === 1);
+    if (!r.ok) throw new Error('step ' + k + ' failed: ' + r.err); at = { P: r.p, V: r.v }; }
+  let rest = at.V; for (let i = 0; i < 5; i++) rest = m.run(1, [], rest, at.P).out[0];
+  const V = {}; for (const k of m.KEYS) V[k] = rest[k]; return { P: at.P, V }; }
+module.exports = { P, V, withPremises, PREMISES, POLICY, WORLD, solvePath, moveTo };
 
 if (require.main === module) {
   const f = (x, d = 4) => x.toFixed(d); const L = m.carry(V, P);
   console.log('path:', `y ${f(V.y_k_uk)} xr ${f(V.xr_uk, 8)} revenue/y ${f(V.t_uk / V.y_uk)} gov/y ${f(V.g_uk / V.y_uk)} transfers/y ${f(V.tr_uk / V.y_uk)} interest/y ${f(P.r_uk * L.b_uk_s / V.y_uk)} deficit/y ${f(V.psbr_uk / V.y_uk)} imports/y ${f(V.im_uk / V.y_uk)} exports/y ${f(V.x_uk / V.y_uk)} cons/y ${f(V.cons_uk / V.y_uk)} debt/y ${f(V.b_uk_s / V.y_uk)} foreign ${f(V.b_usuk_s / V.b_uk_s)} cab/y ${f(V.cab_uk / V.y_uk)} direct investment stock/y ${f(V.fdi_uk / V.y_uk)} profits sent/y ${f(V.remit_uk / V.y_uk)} rho ${f(P.rho_uk, 5)} trade balance/y ${f((V.x_uk - V.im_uk) / V.y_uk)} foreign bills/wealth ${f(V.b_ukus_d / V.v_uk)} us y ${f(V.y_k_us)}`);
-  console.log('solved:', [...shape, 'tr_k_uk'].map(k => k + ' ' + P[k]).join(', '));
+  console.log('solved:', ['mu0', 'alpha2_uk', 'lambda50', 'eps0', 'tr_k_uk', 'rho_uk'].map(k => k + ' ' + P[k]).join(', '));
   for (const ch of [PREMISES, { eps1: .7, mu1: .7, nu1m: .7, port: 5 }, { eps1: 0, mu1: 1, nu1m: .3, port: 0 }, { eps1: .5, mu1: .8, nu1m: 1, port: 10 }]) {
     const p = withPremises(ch); const r = m.run(60, [], V, p); const z = r.out.at(-1);
     console.log('on the path with', JSON.stringify(ch), r.failedAt ? 'FAIL@' + r.failedAt : `drift y ${(z.y_k_uk / V.y_k_uk - 1).toExponential(1)} xr ${(z.xr_uk / V.xr_uk - 1).toExponential(1)}`); }

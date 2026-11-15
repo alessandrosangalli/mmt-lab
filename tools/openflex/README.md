@@ -11,6 +11,7 @@ O arquivo `src/Model/OpenFlex.elm` é gerado a partir de uma única lista de equ
 | `steady.json` | O estado estacionário da linha de base, calculado pelo protótipo |
 | `calibrate.js` | Calcula um ponto de repouso diretamente, como um sistema de equações, com parâmetros livres escolhidos para reproduzir proporções-alvo. Com `node tools/openflex/calibrate.js`, imprime o repouso do livro e o de proporções brasileiras sem crescimento |
 | `brazil.js` | Calcula o ponto de partida brasileiro, uma trajetória de crescimento, confere que a economia fica nela com quaisquer premissas, imprime os números usados nos testes e escreve `src/Model/BrazilRest.elm` |
+| `stability.js` | Experimento: resolve o ponto de partida brasileiro para vários ritmos de crescimento e inflação e mede em quanto tempo o câmbio se acomoda depois de um aumento pequeno do gasto. Resultados em `CALIBRATION.md`, seção 8 |
 
 Para refazer tudo, com o Node instalado:
 
