@@ -48,8 +48,10 @@ ydhs_k_us = v.yd_us / v.pds_us - L.v_k_us * (v.pds_us - L.pds_us) / v.pds_us
 ydhse_k_uk = (v.ydhs_k_uk + L.ydhs_k_uk) / 2
 # [12.40] expected real disposable income in US
 ydhse_k_us = (v.ydhs_k_us + L.ydhs_k_us) / 2
+# (not in the book) the share of income UK households spend falls by zeta for each point the real interest rate
+# stands above its rate on the starting path, rstar. The real rate is the nominal rate less last period's inflation.
 # [12.37] real consumption in UK
-c_k_uk = p.alpha1_uk * v.ydhse_k_uk + p.alpha2_uk * L.v_k_uk
+c_k_uk = (p.alpha1_uk - p.zeta_uk * (p.r_uk - (L.gpi_uk - 1) - p.rstar_uk)) * v.ydhse_k_uk + p.alpha2_uk * L.v_k_uk
 # [12.38] real consumption in US
 c_k_us = p.alpha1_us * v.ydhse_k_us + p.alpha2_us * L.v_k_us
 # [12.41] real sales in UK
@@ -104,6 +106,8 @@ g_us = p.g_k_us * v.pds_us
 fdi_in_uk = p.fdi_flow_uk * v.y_uk
 # the stock of UK firms owned abroad
 fdi_uk = L.fdi_uk + v.fdi_in_uk
+# UK inflation in the period, gross and per period, trend included (not in the book)
+gpi_uk = v.pds_uk / L.pds_uk
 # [12.3] wealth accumulation in UK, plus the proceeds of direct investment
 v_uk = L.v_uk + v.yd_uk - v.cons_uk + v.fdi_in_uk
 # [12.6] wealth accumulation in US

@@ -531,23 +531,53 @@ Uma alta de meio ponto no juro por trimestre, que são dois pontos ao ano, valor
 
 Esses resultados foram vistos antes de os critérios de T4 a T6 serem pré-registrados, e isso terá de ser declarado.
 
+### O freio do juro e o balanço externo: dois limites de estrutura
+
+**O que se tentou.** O resultado do juro no `brazil-6` (juro maior termina com desemprego menor) vem de o modelo não ter nenhum canal pelo qual o juro freie a demanda, além do câmbio. Pela etapa B do M4, o próximo passo era um freio do juro sobre o consumo, calibrado pela curva IS do modelo semiestrutural do Banco Central (boxe de junho de 2024, tabela 1, lido no texto): o hiato do produto tem persistência de 0,85, e cada ponto de juro real acima do neutro, ao ano, tira 0,44 ponto por trimestre. Mantido o juro real um ponto acima do neutro, isso dá −0,44% no primeiro trimestre, −1,40% no quarto, −2,13% no oitavo e cerca de −2,9% no longo prazo. A leitura automática não mostra o sinal do coeficiente; o sinal negativo é o significado econômico do termo, e precisa ser conferido no PDF.
+
+As equações ganharam o freio: a parcela da renda que as famílias consomem cai quando o juro real, o nominal menos a inflação do trimestre anterior, fica acima do juro real de partida. Ele está desligado, e os resultados da tela não mudam. A calibração não pôde ser feita, por dois motivos (`tools/openflex/brake.js`):
+
+| Experimento | Resultado no modelo |
+| --- | --- |
+| Juro nominal fixo um ponto ao ano acima, com freio de 0 a 6 | O freio derruba o PIB por alguns trimestres, mas a inflação sobe até o juro real voltar ao de partida. No período 120, o PIB está 0,4% acima da tendência qualquer que seja o freio |
+| Juro real mantido um ponto acima, movendo o nominal com a inflação passada | O modelo oscila com amplitude crescente e perde a solução no trimestre 18, com ou sem freio |
+
+O primeiro é o esperado com juro fixo: sem uma regra que reaja à inflação, ela acaba anulando o juro real mais alto. O segundo mostra que, neste modelo, um banco central que acompanha a inflação um a um desestabiliza a economia. A suspeita é o pagamento de juros às famílias, 11% do PIB, que sobe junto com o juro e realimenta a demanda. Os dois pedem uma regra de juros desenhada com cuidado antes de qualquer calibração do freio.
+
+**O balanço externo do modelo está errado num ponto que contamina tudo.** A matriz de patrimônio financeiro do Banco Central (abril de 2026, lida no texto) dá, para o fim de 2025, patrimônio financeiro líquido das famílias de 92% do PIB e um passivo líquido do país com o exterior de 49% do PIB. A nota do setor externo de setembro de 2026 dá ativos externos de US$ 1.105 bilhões e posição líquida de −US$ 1.156 bilhões em dezembro de 2025; a de julho, reservas de US$ 367,6 bilhões em junho de 2026. Comparando:
+
+| Em % do PIB anual | Modelo | Brasil |
+| --- | --- | --- |
+| Riqueza das famílias | 94% | 92% de patrimônio financeiro líquido |
+| Posição externa líquida | −42% | −49% |
+| Empresas de propriedade estrangeira | 53% | Cerca de 48%, pelos US$ 1.142 bilhões de participação no capital |
+| Reservas do Banco Central | 0% | Cerca de 16% (calculado: reservas divididas pelo PIB implícito na posição líquida) |
+| Títulos estrangeiros das famílias | 20%, um quinto da riqueza, herdado do livro | Pequeno; não lido |
+
+O modelo põe nas famílias os ativos externos que no Brasil estão no Banco Central. Isso importa porque uma desvalorização aumenta a riqueza das famílias, e o consumo maior mexe no desemprego, nos salários e nos preços. É por isso que o repasse aos importados calibrado ficou em 0,35, baixo, e a conferência de dois anos falhou.
+
+O teste no protótipo confirma: com reservas de 16% do PIB e as famílias com 3% da riqueza no exterior, a posição externa líquida vai a −43%, mais perto do Brasil. Mas o modelo deixa de ter solução em choques pequenos de câmbio. No OPENFLEX, o câmbio é o preço que equilibra a demanda dos moradores por títulos estrangeiros com a oferta deles; com os moradores tendo pouco no exterior, qualquer mudança pequena exige um movimento enorme do câmbio. Para o Brasil, em que o câmbio se forma sobretudo na demanda dos estrangeiros por ativos brasileiros e na ação do Banco Central, o fechamento do mercado de câmbio do modelo precisa ser trocado. É uma mudança de estrutura, e a principal pendência da calibração.
+
 ### O que falta decidir e fazer
 
-1. **Conferir o lado externo** contra a posição internacional de investimento do Banco Central: o estoque de investimento direto, os lucros remetidos e os ativos dos residentes no exterior.
-2. **O outro país.** O cálculo manteve o país doméstico perto do tamanho do livro. Para o Brasil, o resto do mundo é muito maior.
-3. **Limite de capacidade.** Sem ele, gastos grandes levam o desemprego abaixo de zero.
-4. **Regra de juros.** O juro está fixo. O modelo do Banco Central tem uma regra que reage às expectativas de inflação; sem ela, a inflação mais alta não tem resposta.
-5. **Repasse em dois anos.** A calibração erra o número de 24 meses do Banco Central (0,095 contra 0,16).
-4. **Defasagens.** O livro não tem defasagem nas exportações; a estimativa brasileira indica ajuste em três trimestres.
-5. **Investimento produtivo.** O modelo não tem, e por isso o consumo das famílias fica em 80% do PIB, contra 63,4% no Brasil, mais 16,8% de investimento.
-6. **Transferências como controle na tela**, para simular mudanças em benefícios.
-7. **Resposta das importações ao preço.** A faixa publicada, de 0,37 a 0,755, vai da divergência a um ajuste de 13 anos. Conferir o sinal no boxe do Banco Central e buscar estimativas mais recentes.
-8. **Resposta do comércio com defasagem**, para o curto e o longo prazo conviverem no modelo.
+1. **Fechamento do mercado de câmbio.** O câmbio do modelo se forma na carteira dos moradores, que no Brasil têm pouco no exterior. Trocar esse fechamento é condição para pôr as reservas no Banco Central e tirar o excesso de ativos externos das famílias.
+2. **Conferir o lado externo** contra a posição internacional de investimento do Banco Central: o estoque de investimento direto, os lucros remetidos e os ativos dos residentes no exterior.
+3. **O outro país.** O cálculo manteve o país doméstico perto do tamanho do livro. Para o Brasil, o resto do mundo é muito maior.
+4. **Limite de capacidade.** Sem ele, gastos grandes levam o desemprego abaixo de zero.
+5. **Regra de juros e freio do juro.** O juro está fixo. A regra mais simples, acompanhar a inflação, faz o modelo explodir; o freio sobre o consumo existe nas equações, mas não pôde ser calibrado.
+6. **Repasse em dois anos.** A calibração erra o número de 24 meses do Banco Central (0,095 contra 0,16).
+7. **Defasagens.** O livro não tem defasagem nas exportações; a estimativa brasileira indica ajuste em três trimestres.
+8. **Investimento produtivo.** O modelo não tem, e por isso o consumo das famílias fica em 80% do PIB, contra 63,4% no Brasil, mais 16,8% de investimento.
+9. **Transferências como controle na tela**, para simular mudanças em benefícios.
+10. **Resposta das importações ao preço.** A faixa publicada, de 0,37 a 0,755, vai da divergência a um ajuste de 13 anos. Conferir o sinal no boxe do Banco Central e buscar estimativas mais recentes.
+11. **Resposta do comércio com defasagem**, para o curto e o longo prazo conviverem no modelo.
 
 ## Referências
 
 - Banco Central do Brasil (2018). [Repasse cambial sob a ótica de um modelo semiestrutural](https://www.bcb.gov.br/conteudo/relatorioinflacao/EstudosEspeciais/Repasse_cambial_sob_a_otica_de_um_modelo_semiestrutural.pdf). Estudo Especial 26/2018.
 - Banco Central do Brasil (2013). [Taxa de Câmbio e a Balança Comercial Brasileira](https://www.bcb.gov.br/content/ri/relatorioinflacao/201309/RELINF201309-ri201309b6p.pdf). Boxe do Relatório de Inflação de setembro de 2013, p. 79-81.
+- Banco Central do Brasil (2026). [Matriz do Patrimônio Financeiro Trimestral, abril de 2026](https://www.bcb.gov.br/content/estatisticas/matriz-patrimonio-financeiro-relatorio/relatorio-matriz-patrimonio-financeiro-trimestral-abr26.pdf).
+- Banco Central do Brasil (2026). [Estatísticas do setor externo, nota de 28 de setembro de 2026](https://www.bcb.gov.br/content/estatisticas/hist_estatisticassetorexterno/202609_Texto_de_estatisticas_do_setor_externo.pdf).
 - Banco Central do Brasil (2026). [Decomposição da inflação de 2025](https://www.bcb.gov.br/content/ri/relatorioinflacao/202603/rpm202603b10p.pdf). Boxe do Relatório de Política Monetária de março de 2026, p. 83-85.
 - Banco Central do Brasil (2026). [Estimativa dos reajustes salariais a partir das convenções coletivas de trabalho](https://www.bcb.gov.br/content/ri/relatorioinflacao/202609/rpm202609b3p.pdf). Boxe do Relatório de Política Monetária de setembro de 2026, p. 57-62.
 - Banco Central do Brasil (2024). [Atualização dos modelos semiestruturais de pequeno porte](https://www.bcb.gov.br/content/ri/relatorioinflacao/202406/ri202406b12p.pdf). Boxe do Relatório de Inflação, junho de 2024, p. 97-107.
