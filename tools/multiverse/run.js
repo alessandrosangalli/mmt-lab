@@ -14,6 +14,8 @@ app.ports.report.subscribe(data => {
   const total = data.changes.reduce((n, c) => n + c.runs.length, 0);
   console.log(`multiverse: ${total} runs of ${data.model} in ${seconds}s`);
   for (const c of data.changes) { console.log('  ' + c.name.padEnd(40), JSON.stringify(tally(c.runs)));
+    const solved = c.runs.filter(r => r.outcome !== 'failed');
+    for (const key of ['rate', 'unemployment', 'inflation', 'debt']) console.log('    ' + key.padEnd(13), range(solved.map(r => r[key]).filter(x => x !== null)));
     // how many runs settle or slow down, for each value of each premise
     for (const premise of data.premises) console.log('    ' + premise.key.padEnd(6), premise.values.map(value => { const these = c.runs.filter(r => r.premises[premise.key] === value);
       return `${value}: ${these.filter(r => r.outcome === 'settles' || r.outcome === 'slowing').length}/${these.length}`; }).join('  ')); }
