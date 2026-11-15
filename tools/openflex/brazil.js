@@ -7,7 +7,7 @@ const quarterly = yearly => Math.pow(1 + yearly, 0.25);
 // Policy on the path, on the screen's slider steps. 3.5% a quarter is 14.75% a year.
 const POLICY = { g_k_uk: 18, theta_uk: 0.39, r_uk: 0.035 };
 // Premises on the path: the Brazilian values read so far (CALIBRATION.md).
-const PREMISES = { eps1: 0.01, mu1: 0.55, nu1m: 0.7, port: 2 };
+const PREMISES = { eps1: 0.01, mu1: 0.55, nu1m: 1, port: 2 };
 // Trends and the foreign interest rate (CALIBRATION.md, section 8).
 const WORLD = { trend: quarterly(0.023), infl_uk: quarterly(0.046), infl_us: quarterly(0.02), r_us: 0.0096 };
 // Direct investment inflow and exports, as shares of output (CALIBRATION.md, section 8).
