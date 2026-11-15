@@ -735,6 +735,13 @@ viewPremise target prefix premises premise =
             , onChange = PremiseChanged target premise.key
             }
         , p [ class "premise-note" ] [ text premise.note ]
+        , case premise.published of
+            Just ( low, high ) ->
+                p [ class "premise-note" ]
+                    [ text ("Faixa das estimativas brasileiras lidas: de " ++ Format.fixed 2 low ++ " a " ++ Format.fixed 2 high ++ ".") ]
+
+            Nothing ->
+                text ""
         ]
 
 
@@ -1314,7 +1321,9 @@ viewMapResult info model =
                         , span [ class "key failed" ] [ text "Sem solução (o número é o período)" ]
                         , span [ class "key here" ] [ text "Cenário A" ]
                         , span [ class "key brazil" ] [ text "Estimativas brasileiras, quando há para os dois eixos" ]
+                        , span [ class "key published" ] [ text "Dentro da faixa publicada nos dois eixos" ]
                         ]
+                    , viewPublishedTally horizontal vertical job finished
                     , p [ class "hint" ]
                         [ text
                             (if stale then
@@ -1341,6 +1350,59 @@ viewMapResult info model =
 
         Mapped job ->
             show job True
+
+
+{-| Whether a square of the map sits inside the published range of both of
+its premises. A square stands for half a step on each side of its value.
+-}
+inPublished : Premise -> Premise -> Cell -> Bool
+inPublished horizontal vertical cell =
+    let
+        halfStep premise =
+            (premise.highest - premise.lowest) / toFloat (Multiverse.steps - 1) / 2
+    in
+    Premise.isPublished (halfStep horizontal) horizontal cell.x
+        && Premise.isPublished (halfStep vertical) vertical cell.y
+
+
+{-| How the squares inside the published ranges end: the answer that does not
+hang on a single value of each premise.
+-}
+viewPublishedTally : Premise -> Premise -> MapJob -> Bool -> Html Msg
+viewPublishedTally horizontal vertical job finished =
+    let
+        inside =
+            List.filter (inPublished horizontal vertical) (List.concat job.rows)
+
+        count wanted =
+            List.length (List.filter (\cell -> wanted cell.outcome) inside)
+
+        settled =
+            count ((==) Settles)
+
+        adjusting =
+            count ((==) StillAdjusting)
+
+        failed =
+            List.length inside - settled - adjusting
+    in
+    if not finished || List.isEmpty inside then
+        text ""
+
+    else
+        p [ class "hint" ]
+            [ text
+                ("Dentro da faixa das estimativas brasileiras lidas, nos dois eixos, há "
+                    ++ String.fromInt (List.length inside)
+                    ++ " quadrados: "
+                    ++ String.fromInt settled
+                    ++ " estabilizam, "
+                    ++ String.fromInt adjusting
+                    ++ " ainda se ajustam no último período e "
+                    ++ String.fromInt failed
+                    ++ " ficam sem solução."
+                )
+            ]
 
 
 viewMapGrid : Premises -> Premise -> Premise -> MapJob -> Bool -> Html Msg
@@ -1403,6 +1465,9 @@ viewMapGrid premises horizontal vertical job finished =
                            )
                         ++ (if isBrazil cell then
                                 " brazil"
+
+                            else if inPublished horizontal vertical cell then
+                                " published"
 
                             else
                                 ""

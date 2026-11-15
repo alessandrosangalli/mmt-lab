@@ -291,6 +291,8 @@ button.cell:disabled { opacity: 1; }
 .key.failed::before { background: var(--red); }
 .key.here::before { background: transparent; box-shadow: inset 0 0 0 2px var(--ink); }
 .cell.brazil { box-shadow: inset 0 0 0 3px var(--sheet), inset 0 0 0 5px var(--ink); }
+.cell.published { box-shadow: inset 0 0 0 2px var(--sheet); }
+.key.published::before { background: var(--muted); box-shadow: inset 0 0 0 2px var(--sheet), 0 0 0 1px var(--muted); }
 .key.brazil::before { background: var(--muted); box-shadow: inset 0 0 0 2px var(--sheet), 0 0 0 2px var(--ink); }
 .premises .buttons { margin-top: 2px; }
 .share input {

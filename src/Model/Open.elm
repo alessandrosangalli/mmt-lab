@@ -68,6 +68,7 @@ exportResponse =
     , step = 0.01
     , default = OpenFlex.bookParams.eps1
     , brazil = Just 0.01
+    , published = Just ( 0, 0.11 )
     }
 
 
@@ -81,6 +82,7 @@ importResponse =
     , step = 0.01
     , default = OpenFlex.bookParams.mu1
     , brazil = Just 0.55
+    , published = Just ( 0.37, 0.755 )
     }
 
 
@@ -94,6 +96,7 @@ passThrough =
     , step = 0.05
     , default = OpenFlex.bookParams.nu1m
     , brazil = Nothing
+    , published = Nothing
     }
 
 
@@ -107,6 +110,7 @@ portfolioResponse =
     , step = 0.5
     , default = OpenFlex.bookParams.lambda11
     , brazil = Just 2
+    , published = Just ( 1.5, 2.5 )
     }
 
 
