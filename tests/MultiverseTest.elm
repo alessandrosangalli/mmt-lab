@@ -5,7 +5,7 @@ import Engine exposing (Run, Snapshot)
 import Expect
 import Model.Open as Open
 import Models exposing (ModelId(..))
-import Multiverse exposing (Outcome(..))
+import Multiverse exposing (Outcome(..), Span(..))
 import Premise exposing (Premise)
 import Scenario exposing (Scenario)
 import Test exposing (Test, describe, test)
@@ -64,7 +64,7 @@ expansion =
 
 outcomesAt : Float -> List Outcome
 outcomesAt importResponse =
-    Multiverse.row (Models.run OpenModel) expansion (premiseNamed "eps1") (premiseNamed "mu1") importResponse
+    Multiverse.row (Models.run OpenModel) expansion Whole (premiseNamed "eps1") (premiseNamed "mu1") importResponse
         |> List.map .outcome
 
 
@@ -100,8 +100,23 @@ suite =
                     |> Expect.equal [ Settles, StillAdjusting, StillAdjusting ]
         , test "an axis covers the whole range of the premise in even steps" <|
             \_ ->
-                Multiverse.axisValues share
+                Multiverse.axisValues Whole share
                     |> Expect.equal [ 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1 ]
+        , test "an axis can cover only the published range, and covers the whole control when there is none" <|
+            \_ ->
+                let
+                    ranged =
+                        { share | published = Just ( 0.2, 0.4 ) }
+                in
+                ( Multiverse.axisValues Published ranged
+                , Multiverse.axisValues Published share
+                , Multiverse.halfStep Published ranged
+                )
+                    |> Expect.equal
+                        ( [ 0.2, 0.22, 0.24, 0.26, 0.28, 0.3, 0.32, 0.34, 0.36, 0.38, 0.4 ]
+                        , [ 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1 ]
+                        , 0.01
+                        )
         , test "a line varies only the horizontal premise" <|
             \_ ->
                 let
@@ -115,9 +130,9 @@ suite =
                                 Just 1
                         }
                 in
-                Multiverse.row echo Scenario.default share { share | key = "other" } 0.4
+                Multiverse.row echo Scenario.default Whole share { share | key = "other" } 0.4
                     |> List.map (\cell -> ( cell.x, cell.y, cell.outcome ))
-                    |> Expect.equal (List.map (\x -> ( x, 0.4, Settles )) (Multiverse.axisValues share))
+                    |> Expect.equal (List.map (\x -> ( x, 0.4, Settles )) (Multiverse.axisValues Whole share))
         , test "with imports fully responsive to price, the open economy settles whatever the export response" <|
             \_ ->
                 outcomesAt 1

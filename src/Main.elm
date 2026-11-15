@@ -18,11 +18,11 @@ import Engine exposing (Snapshot)
 import Format
 import Html exposing (Html, a, button, div, h1, h2, h3, input, label, li, node, ol, option, p, section, select, span, table, tbody, td, text, tfoot, th, thead, tr)
 import Html.Attributes as Attr exposing (class)
-import Html.Events exposing (onClick, onInput)
+import Html.Events exposing (onCheck, onClick, onInput)
 import Json.Decode as Decode
 import Link
 import Models exposing (Info, ModelId, SteadyState(..))
-import Multiverse exposing (Cell, Outcome(..))
+import Multiverse exposing (Cell, Outcome(..), Span(..))
 import Policy exposing (Policy)
 import Premise exposing (Premise, Premises)
 import Process
@@ -44,6 +44,7 @@ type alias Model =
     , linkVersion : Maybe String
     , baseUrl : String
     , mapAxes : Axes
+    , mapSpan : Span
     , map : MapState
     }
 
@@ -62,6 +63,7 @@ values still to run, and `rows` the lines done so far, top line first.
 -}
 type alias MapJob =
     { axes : Axes
+    , span : Span
     , basis : Scenario
     , pending : List Float
     , rows : List (List Cell)
@@ -103,6 +105,7 @@ type Msg
     | PeriodSlid String
     | Reset
     | MapAxisChanged Bool String
+    | MapSpanChanged Bool
     | MapRequested
     | MapTick
     | MapCellChosen Float Float
@@ -122,6 +125,7 @@ init flags =
         , linkVersion = link.version
         , baseUrl = stringFlag "base" flags
         , mapAxes = { horizontal = "", vertical = "" }
+        , mapSpan = Whole
         , map = NoMap
         }
     , Cmd.none
@@ -334,6 +338,16 @@ apply msg model =
             else
                 { model | mapAxes = { axes | vertical = key } }
 
+        MapSpanChanged onlyPublished ->
+            { model
+                | mapSpan =
+                    if onlyPublished then
+                        Published
+
+                    else
+                        Whole
+            }
+
         MapRequested ->
             case findPremise model.mapAxes.vertical (Models.info model.modelId).premises of
                 Just vertical ->
@@ -341,8 +355,9 @@ apply msg model =
                         | map =
                             Mapping
                                 { axes = model.mapAxes
+                                , span = model.mapSpan
                                 , basis = basisOf model.mapAxes model.scenario
-                                , pending = List.reverse (Multiverse.axisValues vertical)
+                                , pending = List.reverse (Multiverse.axisValues model.mapSpan vertical)
                                 , rows = []
                                 }
                     }
@@ -393,7 +408,7 @@ advanceMap job model =
             ( y :: rest, Just horizontal, Just vertical ) ->
                 let
                     line =
-                        Multiverse.row (Models.run model.modelId) job.basis horizontal vertical y
+                        Multiverse.row (Models.run model.modelId) job.basis job.span horizontal vertical y
 
                     updated =
                         { job | pending = rest, rows = job.rows ++ [ line ] }
@@ -1294,6 +1309,20 @@ viewMap info model =
                             )
                         ]
                     ]
+                 , if horizontal.published == Nothing && vertical.published == Nothing then
+                    text ""
+
+                   else
+                    label [ class "map-span" ]
+                        [ input
+                            [ Attr.type_ "checkbox"
+                            , Attr.checked (model.mapSpan == Published)
+                            , Attr.disabled busy
+                            , onCheck MapSpanChanged
+                            ]
+                            []
+                        , text " Mostrar só a faixa das estimativas brasileiras lidas. Uma premissa sem faixa aparece inteira."
+                        ]
                  ]
                     ++ viewMapResult info model
                 )
@@ -1355,14 +1384,10 @@ viewMapResult info model =
 {-| Whether a square of the map sits inside the published range of both of
 its premises. A square stands for half a step on each side of its value.
 -}
-inPublished : Premise -> Premise -> Cell -> Bool
-inPublished horizontal vertical cell =
-    let
-        halfStep premise =
-            (premise.highest - premise.lowest) / toFloat (Multiverse.steps - 1) / 2
-    in
-    Premise.isPublished (halfStep horizontal) horizontal cell.x
-        && Premise.isPublished (halfStep vertical) vertical cell.y
+inPublished : Span -> Premise -> Premise -> Cell -> Bool
+inPublished span horizontal vertical cell =
+    Premise.isPublished (Multiverse.halfStep span horizontal) horizontal cell.x
+        && Premise.isPublished (Multiverse.halfStep span vertical) vertical cell.y
 
 
 {-| How the squares inside the published ranges end: the answer that does not
@@ -1372,7 +1397,7 @@ viewPublishedTally : Premise -> Premise -> MapJob -> Bool -> Html Msg
 viewPublishedTally horizontal vertical job finished =
     let
         inside =
-            List.filter (inPublished horizontal vertical) (List.concat job.rows)
+            List.filter (inPublished job.span horizontal vertical) (List.concat job.rows)
 
         count wanted =
             List.length (List.filter (\cell -> wanted cell.outcome) inside)
@@ -1409,13 +1434,21 @@ viewMapGrid : Premises -> Premise -> Premise -> MapJob -> Bool -> Html Msg
 viewMapGrid premises horizontal vertical job finished =
     let
         xs =
-            Multiverse.axisValues horizontal
+            Multiverse.axisValues job.span horizontal
 
         ys =
-            List.reverse (Multiverse.axisValues vertical)
+            List.reverse (Multiverse.axisValues job.span vertical)
 
         halfStep premise =
-            (premise.highest - premise.lowest) / toFloat (Multiverse.steps - 1) / 2
+            Multiverse.halfStep job.span premise
+
+        places =
+            case job.span of
+                Whole ->
+                    2
+
+                Published ->
+                    3
 
         isHere cell =
             (abs (cell.x - Premise.value horizontal premises) < halfStep horizontal)
@@ -1466,7 +1499,7 @@ viewMapGrid premises horizontal vertical job finished =
                         ++ (if isBrazil cell then
                                 " brazil"
 
-                            else if inPublished horizontal vertical cell then
+                            else if inPublished job.span horizontal vertical cell then
                                 " published"
 
                             else
@@ -1477,11 +1510,11 @@ viewMapGrid premises horizontal vertical job finished =
                 , Attr.title
                     (horizontal.name
                         ++ " "
-                        ++ Format.fixed 2 cell.x
+                        ++ Format.fixed places cell.x
                         ++ ", "
                         ++ vertical.name
                         ++ " "
-                        ++ Format.fixed 2 cell.y
+                        ++ Format.fixed places cell.y
                         ++ ": "
                         ++ describe cell.outcome
                     )
@@ -1490,7 +1523,7 @@ viewMapGrid premises horizontal vertical job finished =
                 [ text content ]
 
         viewLine y line =
-            div [ class "map-tick" ] [ text (Format.fixed 2 y) ]
+            div [ class "map-tick" ] [ text (Format.fixed places y) ]
                 :: (case line of
                         Just cells ->
                             List.map viewMapCell cells
@@ -1504,7 +1537,7 @@ viewMapGrid premises horizontal vertical job finished =
     in
     div [ class "map-grid" ]
         (List.concat lines
-            ++ (div [ class "map-tick" ] [] :: List.map (\x -> div [ class "map-tick below" ] [ text (Format.fixed 2 x) ]) xs)
+            ++ (div [ class "map-tick" ] [] :: List.map (\x -> div [ class "map-tick below" ] [ text (Format.fixed places x) ]) xs)
         )
 
 

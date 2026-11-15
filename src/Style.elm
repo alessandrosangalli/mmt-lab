@@ -236,6 +236,8 @@ button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
   gap: 12px;
   margin-bottom: 12px;
 }
+.map-span { display: block; margin: 0 0 12px; font-size: 0.85rem; color: var(--muted); line-height: 1.5; }
+.map-span input { margin-right: 6px; accent-color: var(--blue); }
 .map-axis { display: grid; gap: 4px; min-width: 0; flex: 1 1 220px; }
 .map-axis label { font-size: 0.8rem; color: var(--muted); }
 .map-axis select {
