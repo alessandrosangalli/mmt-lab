@@ -418,7 +418,6 @@ Esses resultados foram vistos antes de os critérios de T4 a T6 serem pré-regis
 - Federal Reserve (2026). [Federal Reserve issues FOMC statement, 28 de outubro de 2026](https://www.federalreserve.gov/newsevents/pressreleases/monetary20261028a.htm).
 - IBGE (2026). [Contas Nacionais Trimestrais, 4º trimestre de 2025](https://agenciadenoticias.ibge.gov.br/media/com_mediaibge/arquivos/0038750a1c5c36ff2ffe025f1ee4c6cc.pdf).
 - IBGE (2026). [Indicadores IBGE: Sistema Nacional de Índices de Preços ao Consumidor, outubro de 2026](https://biblioteca.ibge.gov.br/visualizacao/periodicos/236/inpc_ipca_2026_out.pdf).
-- Banco Central do Brasil (2026). [Estatísticas do setor externo, nota para a imprensa de 28 de julho de 2026](https://www.bcb.gov.br/content/estatisticas/hist_estatisticassetorexterno/202607_Texto_de_estatisticas_do_setor_externo.pdf).
 - U.S. Bureau of Labor Statistics (2026). [Consumer Price Index Summary, outubro de 2026](https://www.bls.gov/news.release/cpi.nr0.htm).
 - Tesouro Nacional (2026). [Relatório Mensal da Dívida, agosto de 2026](https://cdn.tesouro.gov.br/sistemas-internos/apex/producao/sistemas/thot/arquivos/publicacoes/55919_1762808/Texto_RMD_Ago_26.pdf).
 - Banco Central do Brasil (2026). [Estatísticas fiscais, nota para a imprensa de 31 de julho de 2026](https://www.bcb.gov.br/content/estatisticas/hist_estatisticasfiscais/202607_Texto_de_estatisticas_fiscais.pdf).
