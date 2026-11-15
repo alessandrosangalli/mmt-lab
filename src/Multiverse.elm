@@ -157,12 +157,16 @@ row run scenario span horizontal vertical y =
 -}
 spread : Int -> ( Float, Float ) -> List Float
 spread count ( low, high ) =
+    let
+        tidy number =
+            toFloat (round (number * 1000000)) / 1000000
+    in
     if count <= 1 then
-        [ (low + high) / 2 ]
+        [ tidy ((low + high) / 2) ]
 
     else
         List.map
-            (\index -> toFloat (round ((low + (high - low) * toFloat index / toFloat (count - 1)) * 1000000)) / 1000000)
+            (\index -> tidy (low + (high - low) * toFloat index / toFloat (count - 1)))
             (List.range 0 (count - 1))
 
 
