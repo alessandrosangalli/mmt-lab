@@ -120,6 +120,47 @@ O boxe do Banco Central de setembro de 2026 sobre os reajustes das convenções 
 
 **Por que não há valor brasileiro adotado.** Três combinações diferentes de repasse aos importados, indexação e velocidade de reajuste reproduzem igualmente bem os dois números do Banco Central (0,10 em 12 meses e 0,16 em 24), e todas pedem indexação perto de 1. São três parâmetros para dois números. Além disso, o experimento do modelo, um aumento de gasto em que o câmbio continua caindo, não é o do Banco Central, que mede a resposta a uma desvalorização isolada. Adotar indexação perto de 1 com essa base seria apresentar um ajuste frágil como calibração. A premissa fica na tela em 0, sem valor brasileiro e sem faixa, até haver uma fonte para a indexação dos salários no Brasil e um experimento comparável.
 
+### Desemprego e curva de salários: o modelo `brazil-6`
+
+**Por que o bloco de salários tinha de entrar.** Sem ele, nada no modelo segura a demanda. No `brazil-5`, com o gasto de 18 para 19, o emprego crescia até passar da força de trabalho: o desemprego chegava a −0,2% no período 120, o que é impossível. O modelo calculava o emprego, mas não comparava com ninguém.
+
+**O que entrou nas equações.** Uma força de trabalho que cresce com a tendência, posta para o desemprego de partida ser o brasileiro, e uma curva de salários: os salários reajustados no trimestre sobem quando o desemprego está abaixo do nível de partida e caem quando está acima. Desligada, a curva não muda nada, e os números do livro continuam idênticos.
+
+| Grandeza | Valor | Fonte | Lida |
+| --- | --- | --- | --- |
+| Desemprego de partida | 5,9%, a média de 2025 | Banco Central, boxe "Decomposição da inflação de 2025", março de 2026 | Texto |
+| Resposta do salário real ao desemprego | −0,06: o salário real cai 0,06% quando o desemprego sobe 1% | Santolin e Antigo (2020), tabela 2, modelo 1, PNAD de 2001 a 2015 | Texto |
+| Faixa da mesma resposta | −0,047 a −0,08 | Silva, Monsueto e Porsse (2015) e Baltagi, Rokicki e Souza (2017), citados por Santolin e Antigo | Secundária |
+| Indexação dos salários | 1, reposição integral | Fasolo e coautores (2023), modelo SAMBA | Texto |
+
+A curva entra linearizada em torno do desemprego de partida, para continuar definida se o desemprego chegar a zero. Duas outras estimativas foram abertas e não usadas: Gonçalves, Medeiros e Aragón (2023) estimam uma curva de Phillips salarial mensal com coeficiente de −0,04 por ponto de desemprego, num formato que não se traduz diretamente para o do modelo; Nóbrega, Besarria e Araujo (2020) acham sinais trocados num dos dois regimes do mercado de trabalho.
+
+**O repasse aos importados teve de ser recalibrado, num experimento melhor.** A calibração anterior media o repasse depois de um aumento do gasto. Com a curva de salários, o aumento do gasto também mexe nos salários, e o número deixa de medir o repasse do câmbio. O novo experimento move só o câmbio: os moradores dos dois países trocam, de uma vez, 1% da riqueza de títulos domésticos por estrangeiros (`tools/openflex/passthrough.js`). Com os salários do livro, esse experimento confirma o valor anterior: repasse integral dá 0,100 em quatro trimestres. Com o bloco de salários:
+
+| Resposta dos salários ao desemprego | Repasse aos importados que dá 0,10 em 4 trimestres | Repasse aos preços em 8 trimestres | Banco Central, 8 trimestres |
+| --- | --- | --- | --- |
+| −0,047 | 0,43 | 0,102 | 0,16 |
+| −0,06 | 0,35 | 0,095 | 0,16 |
+| −0,08 | 0,28 | 0,093 | 0,16 |
+
+O valor adotado é 0,35, com faixa de 0,28 a 0,43. A calibração acerta o número de um ano, que foi o alvo, e erra o de dois anos, que ficou de fora como conferência: o modelo dá 0,095, e o Banco Central, 0,16. Um repasse aos importados de 0,35 também é baixo para o que se espera na fronteira. As duas coisas indicam que algo no modelo amortece o repasse. A suspeita principal é a riqueza das famílias em títulos estrangeiros, um quinto, herdada do livro: uma desvalorização aumenta essa riqueza, e o consumo maior derruba o desemprego e mexe nos salários. Conferir os ativos externos dos residentes continua pendente.
+
+**O que muda nos resultados.** Com o gasto de 18 para 19, em 120 trimestres:
+
+| | `brazil-5`, salários do livro | `brazil-6` |
+| --- | --- | --- |
+| Desemprego | −0,2%: impossível | 5,1%, estável |
+| Inflação | 4,6% mais o efeito do câmbio | 5,4% ao ano, estável |
+| Câmbio real | 0,60 | 1,04 |
+| Câmbio nominal | 0,53 | 0,82 |
+| Dívida sobre o PIB trimestral | 3,56 | 3,24 |
+
+O ajuste deixa de passar pelo câmbio e passa pelos salários e pela inflação. O desemprego fica abaixo do de partida para sempre, com inflação permanentemente mais alta, e não acelerando. Isso acontece porque a indexação é à inflação passada: com inflação constante, o atraso corrói um pouco os salários a cada trimestre, e essa corrosão compensa o empurrão do desemprego baixo. Num modelo em que os salários olhassem para a inflação esperada, a inflação acelerava. O juro está fixo, então nada reage à inflação mais alta. As duas coisas pesam diretamente na pergunta do projeto, e nenhuma está decidida pelas fontes lidas.
+
+**O que continua sem limite.** O modelo não tem limite de capacidade. Com o gasto em 25, o desemprego vai abaixo de zero mesmo com os salários. O indicador de desemprego na tela mostra quando isso acontece.
+
+**O câmbio real passa a ser a medida de acomodação.** Com os preços mudando de nível, o câmbio nominal acompanha a inflação para sempre, e não serve para dizer se a economia se acomodou. O modelo BRASIL mostra primeiro o câmbio real, e o multiverso o usa para classificar cada rodada.
+
 **Limite.** Com a indexação em 0, vale o que já estava dito: num modelo em que os salários reagissem, um repasse menor aos importados daria o mesmo repasse aos preços ao consumidor. O valor 1 é o que a estrutura atual exige, e não uma medida do repasse aos importados no Brasil.
 
 **O que muda nos resultados, e é muito.** O repasse aos importados decide, junto com a resposta das importações ao preço, se o câmbio se acomoda. Com repasse integral, a desvalorização encarece os importados por inteiro; se o volume importado cai pouco, a conta de importações sobe em vez de cair, e a conta corrente piora. Tempo para o câmbio andar metade do caminho depois de um aumento pequeno do gasto, no modelo BRASIL:
@@ -133,7 +174,23 @@ O boxe do Banco Central de setembro de 2026 sobre os reajustes das convenções 
 
 Com os valores adotados (repasse 1, importações 0,55), o câmbio não se acomoda: o gasto de 18 para 19 leva a moeda a 0,53 em 120 trimestres, e o modelo deixa de ter solução no período 183. Com a resposta de longo prazo do Banco Central para as importações (0,755), ele se acomoda em todos os valores de repasse. As duas respostas de importações têm fonte. A conclusão sobre o câmbio depende de qual delas vale, e é isso que o multiverso do M4 tem de mostrar.
 
-### O multiverso: as quatro premissas ao mesmo tempo
+### O multiverso: as premissas ao mesmo tempo
+
+**Rodada do `brazil-6`, com o bloco de salários.** São 729 combinações de cinco premissas dentro das faixas publicadas (a indexação fica fixa em 1, por não ter faixa), por 120 trimestres, para cinco mudanças de política. Todas as 3.645 rodadas se acomodam no câmbio real. O que varia entre as combinações é pouco; o que separa as mudanças de política é muito:
+
+| Mudança, depois de 120 trimestres | Câmbio real | Desemprego (partida: 5,9%) | Inflação (partida: 4,6% ao ano) | Dívida sobre o PIB trimestral (partida: 3,28) |
+| --- | --- | --- | --- | --- |
+| Gasto de 18 para 19 | 1,02 a 1,06 | 4,9% a 5,3% | 5,3% a 5,5% | 3,23 a 3,25 |
+| Gasto de 18 para 17 | 0,93 a 0,97 | 6,5% a 6,9% | 3,7% a 3,9% | 3,31 a 3,33 |
+| Alíquota um ponto maior | 0,93 a 0,97 | 6,5% a 6,9% | 3,7% a 3,9% | 3,28 a 3,30 |
+| Juro meio ponto maior por trimestre | 0,99 a 1,01 | 4,9% a 5,2% | 5,3% a 5,5% | 3,32 a 3,35 |
+| Juro meio ponto menor por trimestre | 0,98 a 1,01 | 6,5% a 6,9% | 3,8% a 3,9% | 3,21 a 3,25 |
+
+**O resultado do juro.** No modelo, um juro mais alto termina com desemprego mais baixo e inflação mais alta, o contrário do que um banco central espera. No curto prazo o juro freia (o desemprego vai a 7,5% no primeiro trimestre), mas depois o pagamento de juros às famílias que têm títulos públicos, que é 11% do PIB, sustenta o consumo. É o canal da tese T6, e ele domina no modelo em todas as combinações de premissas. Três cuidados: o modelo não tem investimento, que é por onde o juro mais freia a economia; não tem crédito às famílias; e o juro é fixado, não reage à inflação. Qualquer um dos três pode inverter o resultado. Ele foi visto antes de o critério de T6 ser pré-registrado, e isso terá de ser declarado.
+
+**O que isso diz sobre o câmbio.** A conclusão da rodada anterior, de que tudo dependia da resposta das importações, era consequência dos salários fixos. Com salários que reagem, o ajuste passa pelos salários e pela inflação, e o câmbio real se acomoda em toda a faixa publicada. É a quarta vez que o resultado sobre o câmbio muda com uma premissa ou uma peça de estrutura.
+
+### A rodada anterior, do `brazil-5`, com salários fixos
 
 A cada publicação, o CI roda o modelo BRASIL com 243 combinações das quatro premissas dentro das faixas publicadas, por 120 trimestres, para cinco mudanças de política (`src/Batch.elm`). Na rodada do `brazil-5`, para o gasto de 18 para 19:
 
@@ -395,7 +452,7 @@ Valores usados:
 
 **Investimento estrangeiro direto.** Todo período, estrangeiros compram das famílias uma parte das empresas, numa proporção fixa do PIB, e passam a receber lucros sobre o que têm. A compra aumenta a riqueza financeira das famílias, e os lucros remetidos saem da renda delas e entram na conta corrente. O modelo não tem capital produtivo, então o que os estrangeiros compram é uma participação nas empresas sem ativo correspondente no balanço. A contabilidade fecha: a conta corrente é igual à variação dos ativos externos líquidos em todos os períodos testados.
 
-Histórico das versões, em dois dias: o `brazil-2` trouxe crescimento e transferências com valores ainda não conferidos; o `brazil-3` trocou esses valores pelos da tabela abaixo; o `brazil-4` acrescentou o investimento direto; o `brazil-5` adotou o repasse integral do câmbio aos importados (seção 2).
+Histórico das versões, em dois dias: o `brazil-2` trouxe crescimento e transferências com valores ainda não conferidos; o `brazil-3` trocou esses valores pelos da tabela abaixo; o `brazil-4` acrescentou o investimento direto; o `brazil-5` adotou o repasse integral do câmbio aos importados; o `brazil-6` acrescentou desemprego e salários e recalibrou o repasse (seção 2).
 
 Valores das contas externas:
 
@@ -478,7 +535,9 @@ Esses resultados foram vistos antes de os critérios de T4 a T6 serem pré-regis
 
 1. **Conferir o lado externo** contra a posição internacional de investimento do Banco Central: o estoque de investimento direto, os lucros remetidos e os ativos dos residentes no exterior.
 2. **O outro país.** O cálculo manteve o país doméstico perto do tamanho do livro. Para o Brasil, o resto do mundo é muito maior.
-3. **Salário que responde ao desemprego.** O SAMBA mostra que os salários repõem a inflação por inteiro e que o salário real é movido pelo mercado de trabalho. Falta essa resposta no modelo, e uma estimativa brasileira dela.
+3. **Limite de capacidade.** Sem ele, gastos grandes levam o desemprego abaixo de zero.
+4. **Regra de juros.** O juro está fixo. O modelo do Banco Central tem uma regra que reage às expectativas de inflação; sem ela, a inflação mais alta não tem resposta.
+5. **Repasse em dois anos.** A calibração erra o número de 24 meses do Banco Central (0,095 contra 0,16).
 4. **Defasagens.** O livro não tem defasagem nas exportações; a estimativa brasileira indica ajuste em três trimestres.
 5. **Investimento produtivo.** O modelo não tem, e por isso o consumo das famílias fica em 80% do PIB, contra 63,4% no Brasil, mais 16,8% de investimento.
 6. **Transferências como controle na tela**, para simular mudanças em benefícios.
@@ -489,6 +548,7 @@ Esses resultados foram vistos antes de os critérios de T4 a T6 serem pré-regis
 
 - Banco Central do Brasil (2018). [Repasse cambial sob a ótica de um modelo semiestrutural](https://www.bcb.gov.br/conteudo/relatorioinflacao/EstudosEspeciais/Repasse_cambial_sob_a_otica_de_um_modelo_semiestrutural.pdf). Estudo Especial 26/2018.
 - Banco Central do Brasil (2013). [Taxa de Câmbio e a Balança Comercial Brasileira](https://www.bcb.gov.br/content/ri/relatorioinflacao/201309/RELINF201309-ri201309b6p.pdf). Boxe do Relatório de Inflação de setembro de 2013, p. 79-81.
+- Banco Central do Brasil (2026). [Decomposição da inflação de 2025](https://www.bcb.gov.br/content/ri/relatorioinflacao/202603/rpm202603b10p.pdf). Boxe do Relatório de Política Monetária de março de 2026, p. 83-85.
 - Banco Central do Brasil (2026). [Estimativa dos reajustes salariais a partir das convenções coletivas de trabalho](https://www.bcb.gov.br/content/ri/relatorioinflacao/202609/rpm202609b3p.pdf). Boxe do Relatório de Política Monetária de setembro de 2026, p. 57-62.
 - Banco Central do Brasil (2024). [Atualização dos modelos semiestruturais de pequeno porte](https://www.bcb.gov.br/content/ri/relatorioinflacao/202406/ri202406b12p.pdf). Boxe do Relatório de Inflação, junho de 2024, p. 97-107.
 - Banco Central do Brasil (2026). [Repasse cambial: estimativas por projeções locais](https://www.bcb.gov.br/content/ri/relatorioinflacao/202603/rpm202603b8p.pdf). Boxe do Relatório de Política Monetária, março de 2026, p. 65-69.
@@ -496,11 +556,14 @@ Esses resultados foram vistos antes de os critérios de T4 a T6 serem pré-regis
 - Brunelli, A., Martins, B. e Carvalho, C. (2025). [Liquidity or Wealth? Consumption, Debt, and Financial Fragility After a Windfall](https://www.bcb.gov.br/content/publicacoes/WorkingPaperSeries/WP634.pdf). Banco Central do Brasil, Working Paper 634.
 - Cieplinski, A., Braga, J. e Summa, R. (2017). [Uma avaliação acerca da falha empírica do teorema da paridade descoberta da taxa de juros entre o Real e o Dólar](https://www.eco.unicamp.br/images/arquivos/artigos/3546/05Cieplinski.pdf). *Economia e Sociedade*, 26(2), 401-426.
 - Franzen, A., Meurer, R., Gonçalves, C. E. S. e Seabra, F. (2009). [Determinantes do fluxo de investimentos de portfólio para o mercado acionário brasileiro](https://revistas.usp.br/ee/pt_BR/article/view/35973). *Estudos Econômicos*, 39(2), 301-328.
+- Gonçalves, Medeiros e Aragón (2023). [Curva de Phillips salarial brasileira: uma abordagem de regressão quantílica](https://seer.ufrgs.br/index.php/AnaliseEconomica/article/download/109192/94809/647476). *Análise Econômica*, 41(86). Aberta e não usada.
+- Nóbrega, W. C. L., Besarria, C. N. e Araujo, F. A. O. (2020). [Unemployment rate and wage growth in Brazil: evidence from a Markov-switching model](https://revistas.usp.br/ecoa/article/download/151926/169677/473728). *Economia Aplicada*, 24(2), 171-194. Aberta e não usada.
 - Gonçalves, C., Rodrigues, M. e Genta, F. (2025). [Monetary Policy and Inflation Expectations: High-Frequency Evidence from Brazil](https://www.imf.org/en/publications/wp/issues/2025/02/28/monetary-policy-and-inflation-expectations-high-frequency-evidence-from-brazil-562685). IMF Working Paper 2025/048.
 - Lopes, L. S. (2017). [Testando teorias para o consumo agregado no Brasil](https://www.scielo.br/j/neco/a/jhrqCyvzyVBHLnMmCj6XVtb/?lang=pt). *Nova Economia*, 27(1), 209-240.
 - Banco Central do Brasil (2026). [Estatísticas do setor externo, nota para a imprensa de 28 de julho de 2026](https://www.bcb.gov.br/content/estatisticas/hist_estatisticassetorexterno/202607_Texto_de_estatisticas_do_setor_externo.pdf).
 - IBGE (2025). [Contas Nacionais Trimestrais, 2º trimestre de 2025](https://agenciadenoticias.ibge.gov.br/media/com_mediaibge/arquivos/568f71479261775bd98e8c2a84ae9f32.pdf).
 - Santos, C. H. M., Cieplinski, A., Pimentel, D. M. e Bhering, G. (2017). [Por que a elasticidade-preço das importações é baixa no Brasil? Evidências a partir das desagregações das importações por categorias de uso](https://www.eco.unicamp.br/images/arquivos/artigos/3517/05Santos.pdf). *Economia e Sociedade*, 26(1), 141-164.
+- Santolin, R. e Antigo, M. F. (2020). [Curvas de salário dinâmicas e efeitos sobre o salário real e o desemprego de longo prazo para a economia brasileira](https://ppe.ipea.gov.br/index.php/ppe/article/download/2069/1301). *Pesquisa e Planejamento Econômico*, 50(1), 128-156.
 - Schettini, B. P., Squeff, G. C. e Gouvêa, R. R. (2012). [Estimativas da função exportações brasileiras agregadas com dados das Contas Nacionais Trimestrais, 1995-2009](https://revistas.usp.br/ecoa/article/view/46197). *Economia Aplicada*, 16(1), 167-196.
 - Vicente, J. V. M., Marins, J. T. M. e Gaglianone, W. P. (2021). [Impacts of the Monetary Policy Committee Decisions on the Foreign Exchange Rate in Brazil](https://www.bcb.gov.br/pec/wps/ingl/wps552.pdf). Banco Central do Brasil, Working Paper 552. Publicado na *Brazilian Review of Finance*, 20(2), 2022.
 - Tesouro Nacional. [Estimativa da Carga Tributária Bruta do Governo Geral, 2025](https://cdn.tesouro.gov.br/sistemas-internos/apex/producao/sistemas/thot/arquivos/publicacoes/54334_1699660/Boletim_CTB_2025.pdf).

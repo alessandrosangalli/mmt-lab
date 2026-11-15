@@ -362,83 +362,44 @@ suite =
                         , List.length result.snapshots
                         , List.all
                             (\snapshot ->
-                                (abs (snapshot.income - 94.336761) < 1.0e-5)
-                                    && (abs (snapshot.foreignBalance - 3.002398) < 1.0e-5)
-                                    && (abs (snapshot.governmentBalance + 5.032767) < 1.0e-5)
+                                (abs (snapshot.income - 94.210232) < 1.0e-5)
+                                    && (abs (snapshot.foreignBalance - 2.998371) < 1.0e-5)
+                                    && (abs (snapshot.governmentBalance + 5.026017) < 1.0e-5)
+                                    && (abs (brazilSeries "Desemprego (%)" snapshot - 5.9) < 1.0e-6)
                             )
                             result.snapshots
                         )
                 in
                 [ still []
-                , still [ ( "eps1", 0.7 ), ( "mu1", 0.7 ), ( "port", 5 ) ]
-                , still [ ( "eps1", 0 ), ( "mu1", 1 ), ( "nu1m", 0.3 ), ( "port", 0 ) ]
-                , still [ ( "eps1", 0.5 ), ( "mu1", 0.8 ), ( "nu1m", 1 ), ( "port", 10 ) ]
-                , still [ ( "kappa", 1 ) ]
+                , still [ ( "eps1", 0.7 ), ( "mu1", 0.7 ), ( "port", 5 ), ( "kappa", 0 ), ( "beta", 0 ) ]
+                , still [ ( "eps1", 0 ), ( "mu1", 1 ), ( "nu1m", 0.3 ), ( "port", 0 ), ( "kappa", 0.5 ), ( "beta", -0.15 ) ]
+                , still [ ( "eps1", 0.5 ), ( "mu1", 0.8 ), ( "nu1m", 1 ), ( "port", 10 ), ( "kappa", 1 ), ( "beta", 0 ) ]
                 ]
-                    |> Expect.equal (List.repeat 5 ( Nothing, 60, True ))
-        , test "from the Brazilian starting point, more spending weakens the currency much more with the Brazilian trade responses than with the book's, matching the prototype" <|
+                    |> Expect.equal (List.repeat 4 ( Nothing, 60, True ))
+        , test "from the Brazilian starting point, more spending lowers unemployment for good and leaves the real exchange rate near where it was, matching the prototype" <|
             \_ ->
                 let
-                    base =
-                        Models.defaultScenario BrazilModel
-
                     ending premises =
-                        (Models.run BrazilModel
-                            { base
-                                | initial = { spending = 19, taxRatePct = 39, interestRatePct = 3.5 }
-                                , horizon = 120
-                                , premises = Dict.fromList premises
-                            }
-                        ).snapshots
-                            |> List.reverse
-                            |> List.head
-                            |> Maybe.map (\snapshot -> ( List.head snapshot.charts |> Maybe.map .value |> Maybe.withDefault 0, negate snapshot.foreignBalance ))
-                            |> Maybe.withDefault ( 0, 0 )
-
-                    ( brazilRate, brazilAccount ) =
-                        ending []
-
-                    ( bookRate, bookAccount ) =
-                        ending [ ( "eps1", 0.7 ), ( "mu1", 0.7 ) ]
+                        brazilEnding { spending = 19, taxRatePct = 39, interestRatePct = 3.5 } premises
                 in
                 Expect.all
-                    [ \_ -> Expect.within (Absolute 1.0e-7) 0.5307281606 brazilRate
-                    , \_ -> Expect.within (Absolute 1.0e-7) -5.0397483708 brazilAccount
-                    , \_ -> Expect.within (Absolute 1.0e-7) 0.9292507128 bookRate
-                    , \_ -> Expect.within (Absolute 1.0e-7) -3.1475073658 bookAccount
+                    [ \_ -> Expect.within (Absolute 1.0e-7) 1.0391382769 (brazilSeries "Câmbio real (valor da moeda doméstica, corrigido pelos preços dos dois países)" (ending []))
+                    , \_ -> Expect.within (Absolute 1.0e-7) 0.8215183232 (brazilSeries "Taxa de câmbio (valor da moeda doméstica)" (ending []))
+                    , \_ -> Expect.within (Absolute 1.0e-6) 5.0905413654 (brazilSeries "Desemprego (%)" (ending []))
+                    , \_ -> Expect.within (Absolute 1.0e-7) 1.0204809395 (brazilSeries "Câmbio real (valor da moeda doméstica, corrigido pelos preços dos dois países)" (ending [ ( "eps1", 0.7 ), ( "mu1", 0.7 ) ]))
                     ]
                     ()
-        , test "from the Brazilian starting point, wages that follow prices slow the currency's fall and raise prices, matching the prototype" <|
+        , test "from the Brazilian starting point, without the wage block more spending drives unemployment below zero, matching the prototype" <|
             \_ ->
                 let
-                    base =
-                        Models.defaultScenario BrazilModel
-
-                    ending premises =
-                        (Models.run BrazilModel
-                            { base
-                                | initial = { spending = 19, taxRatePct = 39, interestRatePct = 3.5 }
-                                , horizon = 120
-                                , premises = Dict.fromList premises
-                            }
-                        ).snapshots
-                            |> List.reverse
-                            |> List.head
-                            |> Maybe.map (\snapshot -> List.map .value snapshot.charts)
-                            |> Maybe.withDefault []
+                    ending =
+                        brazilEnding { spending = 19, taxRatePct = 39, interestRatePct = 3.5 } [ ( "kappa", 0 ), ( "beta", 0 ), ( "nu1m", 1 ) ]
                 in
-                case ( ending [], ending [ ( "kappa", 0.9 ) ] ) of
-                    ( [ fixedRate, fixedPrices ], [ indexedRate, indexedPrices ] ) ->
-                        Expect.all
-                            [ \_ -> Expect.within (Absolute 1.0e-7) 0.5307281606 fixedRate
-                            , \_ -> Expect.within (Absolute 1.0e-7) 0.6862046558 indexedRate
-                            , \_ -> Expect.within (Absolute 1.0e-7) 1.06266199 (fixedPrices / BrazilRest.vars.pds_uk)
-                            , \_ -> Expect.within (Absolute 1.0e-7) 1.172483281 (indexedPrices / BrazilRest.vars.pds_uk)
-                            ]
-                            ()
-
-                    _ ->
-                        Expect.fail "the open models chart the exchange rate and the price level"
+                Expect.all
+                    [ \_ -> Expect.within (Absolute 1.0e-6) -0.1828457892 (brazilSeries "Desemprego (%)" ending)
+                    , \_ -> Expect.within (Absolute 1.0e-7) 0.5279432143 (brazilSeries "Taxa de câmbio (valor da moeda doméstica)" ending)
+                    ]
+                    ()
         , test "from the Brazilian starting point, half a point of interest a quarter lifts the currency at once by what Brazilian studies measure for two points a year" <|
             \_ ->
                 let
@@ -453,30 +414,59 @@ suite =
                         result.snapshots
                             |> List.filter (\snapshot -> snapshot.number == number)
                             |> List.head
-                            |> Maybe.andThen (\snapshot -> List.head snapshot.charts)
-                            |> Maybe.map .value
+                            |> Maybe.map (brazilSeries "Taxa de câmbio (valor da moeda doméstica)")
                             |> Maybe.withDefault 0
                 in
                 Expect.all
-                    [ \_ -> Expect.within (Absolute 1.0e-7) 1.061567146 (rateAt 1)
+                    [ \_ -> Expect.within (Absolute 1.0e-7) 1.056798251 (rateAt 1)
                     , \_ -> rateAt 1 |> Expect.all [ Expect.atLeast (1 + 2 * 0.025), Expect.atMost (1 + 2 * 0.042) ]
-                    , \_ -> Expect.within (Absolute 1.0e-7) 0.4742762788 (rateAt 120)
+                    , \_ -> Expect.within (Absolute 1.0e-7) 0.8117950126 (rateAt 120)
                     ]
                     ()
-        , test "from the Brazilian starting point, an interest rate of 6% a quarter has no solution in period 64, as in the prototype" <|
-            \_ ->
-                let
-                    base =
-                        Models.defaultScenario BrazilModel
-                in
-                (Models.run BrazilModel { base | initial = { spending = 18, taxRatePct = 39, interestRatePct = 6 }, horizon = 120 }).failedAt
-                    |> Expect.equal (Just 64)
         , test "a version string names its model" <|
             \_ ->
-                List.map Models.fromVersion [ "sim-1", "pc-1", "pc-7", "open-1", "brazil-1", "brazil-5", "other-1", "" ]
+                List.map Models.fromVersion [ "sim-1", "pc-1", "pc-7", "open-1", "brazil-1", "brazil-6", "other-1", "" ]
                     |> Expect.equal [ Just SimModel, Just PcModel, Just PcModel, Just OpenModel, Just BrazilModel, Just BrazilModel, Nothing, Nothing ]
         , test "every model's current version names itself" <|
             \_ ->
                 List.map (\model -> Models.fromVersion (Models.info model).version) Models.all
                     |> Expect.equal (List.map Just Models.all)
         ]
+
+
+{-| A series or an indicator of a snapshot, by name.
+-}
+brazilSeries : String -> Engine.Snapshot -> Float
+brazilSeries name snapshot =
+    (snapshot.charts ++ snapshot.indicators)
+        |> List.filter (\each -> each.name == name)
+        |> List.head
+        |> Maybe.map .value
+        |> Maybe.withDefault (0 / 0)
+
+
+{-| The last period of the Brazilian model after 120 quarters of a policy.
+-}
+brazilEnding : Policy.Policy -> List ( String, Float ) -> Engine.Snapshot
+brazilEnding policy premises =
+    let
+        base =
+            Models.defaultScenario BrazilModel
+
+        run =
+            Models.run BrazilModel { base | initial = policy, horizon = 120, premises = Dict.fromList premises }
+    in
+    List.reverse run.snapshots
+        |> List.head
+        |> Maybe.withDefault
+            { number = 0
+            , income = 0
+            , householdWealth = 0
+            , privateSurplus = 0
+            , governmentBalance = 0
+            , foreignBalance = 0
+            , indicators = []
+            , charts = []
+            , flows = []
+            , stocks = []
+            }

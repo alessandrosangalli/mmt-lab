@@ -12,6 +12,7 @@ O arquivo `src/Model/OpenFlex.elm` é gerado a partir de uma única lista de equ
 | `calibrate.js` | Calcula um ponto de repouso diretamente, como um sistema de equações, com parâmetros livres escolhidos para reproduzir proporções-alvo. Com `node tools/openflex/calibrate.js`, imprime o repouso do livro e o de proporções brasileiras sem crescimento |
 | `brazil.js` | Calcula o ponto de partida brasileiro, uma trajetória de crescimento, confere que a economia fica nela com quaisquer premissas, imprime os números usados nos testes e escreve `src/Model/BrazilRest.elm` |
 | `stability.js` | Experimento: resolve o ponto de partida brasileiro para vários ritmos de crescimento e inflação e mede em quanto tempo o câmbio se acomoda depois de um aumento pequeno do gasto. Resultados em `CALIBRATION.md`, seção 8 |
+| `passthrough.js` | Calibra o repasse do câmbio aos importados no modelo BRASIL, com uma saída de capitais que move só o câmbio. Resultados em `CALIBRATION.md`, seção 2 |
 
 Para refazer tudo, com o Node instalado:
 
@@ -24,7 +25,7 @@ node tools/openflex/brazil.js src/Model/BrazilRest.elm
 
 ## Crescimento, transferências, investimento direto e salários
 
-A lista de equações tem quatro acréscimos em relação ao livro, todos desligados na linha de base: transferências do governo às famílias (`tr_k_uk`), investimento estrangeiro direto (`fdi_flow_uk`, com lucros remetidos à taxa `rho_uk`), salários que acompanham os preços (`kappa_uk`, com a parcela `wspeed_uk` reajustada a cada período) e tendências de crescimento (`trend`, `infl_uk`, `infl_us`). Cada valor é medido em relação à sua tendência, e os valores do período anterior chegam às equações já divididos por um período de crescimento (`carry`, em `gen.js`). Com as tendências em 1 e os outros acréscimos em 0, os números são idênticos aos de antes, bit a bit.
+A lista de equações tem quatro acréscimos em relação ao livro, todos desligados na linha de base: transferências do governo às famílias (`tr_k_uk`), investimento estrangeiro direto (`fdi_flow_uk`, com lucros remetidos à taxa `rho_uk`), salários que acompanham os preços e o desemprego (`kappa_uk` e `beta_uk`, com a parcela `wspeed_uk` reajustada a cada período e a força de trabalho `lf_uk`) e tendências de crescimento (`trend`, `infl_uk`, `infl_us`). Cada valor é medido em relação à sua tendência, e os valores do período anterior chegam às equações já divididos por um período de crescimento (`carry`, em `gen.js`). Com as tendências em 1 e os outros acréscimos em 0, os números são idênticos aos de antes, bit a bit.
 
 ## De onde vêm as equações
 

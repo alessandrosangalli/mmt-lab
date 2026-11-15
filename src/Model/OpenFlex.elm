@@ -32,9 +32,10 @@ bank's balance sheet. And the home central bank's bill holdings follow the
 book's own alternative equation 12.82A (it holds the bills nobody else
 does), which keeps the accounts from drifting apart over long runs.
 
-Four things are added, and all are switched off in the book's baseline. The
-home wage can follow consumer prices (`kappa_uk`), a share `wspeed_uk` of
-wages being reset each period. The
+Five things are added, and all are switched off in the book's baseline. The
+home wage can follow consumer prices (`kappa_uk`) and unemployment
+(`beta_uk`, against a labour force `lf_uk`), a share `wspeed_uk` of wages
+being reset each period. The
 home government can pay transfers to households (`tr_k_uk`). Foreigners can
 buy a share of home firms from home households every period (`fdi_flow_uk`,
 as a share of output) and receive profits on what they own (`rho_uk`). And
@@ -107,6 +108,9 @@ type alias Params =
     , kappa_uk : Float
     , pref_uk : Float
     , wspeed_uk : Float
+    , beta_uk : Float
+    , lf_uk : Float
+    , ustar_uk : Float
     }
 
 
@@ -164,6 +168,9 @@ bookParams =
     , kappa_uk = 0
     , pref_uk = 1
     , wspeed_uk = 1
+    , beta_uk = 0
+    , lf_uk = 1000000
+    , ustar_uk = 1
     }
 
 
@@ -202,6 +209,7 @@ type alias Vars =
     , y_k_uk : Float
     , y_k_us : Float
     , n_uk : Float
+    , u_uk : Float
     , n_us : Float
     , wage_uk : Float
     , ps_uk : Float
@@ -279,6 +287,7 @@ steadyState =
     , y_k_uk = 97.39377960442496
     , y_k_us = 97.40542030406188
     , n_uk = 73.04716088234079
+    , u_uk = 0.9999269528391177
     , n_us = 73.05589162533704
     , wage_uk = 1
     , ps_uk = 0.9564617717085792
@@ -367,6 +376,7 @@ carry params vars =
     , y_k_uk = vars.y_k_uk / params.trend
     , y_k_us = vars.y_k_us / params.trend
     , n_uk = vars.n_uk / params.trend
+    , u_uk = vars.u_uk / 1
     , n_us = vars.n_us / params.trend
     , wage_uk = vars.wage_uk / params.infl_uk
     , ps_uk = vars.ps_uk / params.infl_uk
@@ -555,13 +565,17 @@ sweep laggedParams lagged params guess =
         n_uk =
             y_k_uk / params.pr_uk
 
+        -- unemployment rate in UK, against a labour force that grows with the trend (not in the book)
+        u_uk =
+            1 - n_uk / params.lf_uk
+
         -- [12.66] employment in US
         n_us =
             y_k_us / params.pr_us
 
-        -- the wage is w_uk and the price level pref_uk.
+        -- comparison with the starting path, where the wage is w_uk and the price level pref_uk.
         wage_uk =
-            params.w_uk * exp ((1 - params.wspeed_uk) * ln (lagged.wage_uk * params.infl_uk / params.w_uk) + params.wspeed_uk * params.kappa_uk * ln (lagged.pds_uk * params.infl_uk / params.pref_uk))
+            params.w_uk * exp ((1 - params.wspeed_uk) * ln (lagged.wage_uk * params.infl_uk / params.w_uk) + params.wspeed_uk * (params.kappa_uk * ln (lagged.pds_uk * params.infl_uk / params.pref_uk) + params.beta_uk * (lagged.u_uk - params.ustar_uk) / params.ustar_uk))
 
         -- [12.45] price of sales in UK
         ps_uk =
@@ -745,6 +759,7 @@ sweep laggedParams lagged params guess =
     , y_k_uk = y_k_uk
     , y_k_us = y_k_us
     , n_uk = n_uk
+    , u_uk = u_uk
     , n_us = n_us
     , wage_uk = wage_uk
     , ps_uk = ps_uk
@@ -838,6 +853,7 @@ distance before after =
         , relativeChange before.y_k_uk after.y_k_uk
         , relativeChange before.y_k_us after.y_k_us
         , relativeChange before.n_uk after.n_uk
+        , relativeChange before.u_uk after.u_uk
         , relativeChange before.n_us after.n_us
         , relativeChange before.wage_uk after.wage_uk
         , relativeChange before.ps_uk after.ps_uk

@@ -62,13 +62,16 @@ y_k_uk = v.s_k_uk - v.im_k_uk
 y_k_us = v.s_k_us - v.im_k_us
 # [12.65] employment in UK
 n_uk = v.y_k_uk / p.pr_uk
+# unemployment rate in UK, against a labour force that grows with the trend (not in the book)
+u_uk = 1 - v.n_uk / p.lf_uk
 # [12.66] employment in US
 n_us = v.y_k_us / p.pr_us
-# the UK wage (not in the book, where it is fixed). Each period a share `wspeed` of wages is reset, to follow
-# last period's consumer prices with elasticity `kappa`; the rest stay where they were. L. values arrive divided
-# by one period of inflation, so they are multiplied back before the comparison with the starting path, where
-# the wage is w_uk and the price level pref_uk.
-wage_uk = p.w_uk * exp((1 - p.wspeed_uk) * log(L.wage_uk * p.infl_uk / p.w_uk) + p.wspeed_uk * p.kappa_uk * log(L.pds_uk * p.infl_uk / p.pref_uk))
+# the UK wage (not in the book, where it is fixed). Each period a share `wspeed` of wages is reset; the rest stay
+# where they were. A reset wage follows last period's consumer prices with elasticity `kappa`, and moves with
+# last period's unemployment against its rate on the starting path, `ustar`, with elasticity `beta` (a wage
+# curve, linearised around `ustar` so that it stays defined when unemployment runs out). L. values arrive divided by one period of trend growth, so they are multiplied back before the
+# comparison with the starting path, where the wage is w_uk and the price level pref_uk.
+wage_uk = p.w_uk * exp((1 - p.wspeed_uk) * log(L.wage_uk * p.infl_uk / p.w_uk) + p.wspeed_uk * (p.kappa_uk * log(L.pds_uk * p.infl_uk / p.pref_uk) + p.beta_uk * (L.u_uk - p.ustar_uk) / p.ustar_uk))
 # [12.45] price of sales in UK
 ps_uk = (1 + p.phi_uk) * (v.wage_uk * v.n_uk + v.im_uk) / v.s_k_uk
 # [12.46] price of sales in US
