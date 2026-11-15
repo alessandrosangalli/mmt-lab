@@ -35,6 +35,12 @@ jobs:
           elm make src/Batch.elm --optimize --output=build/batch.js
           node tools/multiverse/run.js build/batch.js dist
 
+      - name: TEMP json
+        run: |
+          echo "=====B64-BEGIN"
+          gzip -9 -c dist/multiverse.json | base64 -w 200
+          echo "=====B64-END"
+
       - name: Check formatting
         run: npx --yes elm-format@0.8.7 --validate src tests
 

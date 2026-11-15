@@ -13,7 +13,10 @@ app.ports.report.subscribe(data => {
   fs.writeFileSync(path.join(outDir, 'multiverse.html'), page(data));
   const total = data.changes.reduce((n, c) => n + c.runs.length, 0);
   console.log(`multiverse: ${total} runs of ${data.model} in ${seconds}s`);
-  for (const c of data.changes) console.log('  ' + c.name.padEnd(40), JSON.stringify(tally(c.runs)));
+  for (const c of data.changes) { console.log('  ' + c.name.padEnd(40), JSON.stringify(tally(c.runs)));
+    // how many runs settle or slow down, for each value of each premise
+    for (const premise of data.premises) console.log('    ' + premise.key.padEnd(6), premise.values.map(value => { const these = c.runs.filter(r => r.premises[premise.key] === value);
+      return `${value}: ${these.filter(r => r.outcome === 'settles' || r.outcome === 'slowing').length}/${these.length}`; }).join('  ')); }
 });
 
 const tally = runs => { const t = { settles: 0, slowing: 0, speeding: 0, failed: 0 }; for (const r of runs) t[r.outcome]++; return t; };
