@@ -5,7 +5,7 @@ import Engine exposing (Run, Snapshot)
 import Expect
 import Model.Open as Open
 import Models exposing (ModelId(..))
-import Multiverse exposing (Outcome(..), Span(..))
+import Multiverse exposing (Outcome(..), Pace(..), Span(..))
 import Premise exposing (Premise)
 import Scenario exposing (Scenario)
 import Test exposing (Test, describe, test)
@@ -117,6 +117,31 @@ suite =
                         , [ 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1 ]
                         , 0.01
                         )
+        , test "a series moving less over its last ten values than over the ten before is slowing" <|
+            \_ ->
+                [ Multiverse.pace (List.map (\index -> 1 - 0.9 ^ toFloat index) (List.range 0 20))
+                , Multiverse.pace (List.map (\index -> 1.01 ^ (1.1 ^ toFloat index)) (List.range 0 20))
+                , Multiverse.pace (List.map (\index -> 0.97 ^ (1.05 ^ toFloat index)) (List.range 0 20))
+                , Multiverse.pace (List.map toFloat (List.range 0 19))
+                ]
+                    |> Expect.equal [ Just Slowing, Just Speeding, Just Speeding, Nothing ]
+        , test "values spread evenly over a range, ends included" <|
+            \_ ->
+                ( Multiverse.spread 3 ( 0.9, 1 ), Multiverse.spread 1 ( 0.2, 0.4 ), Multiverse.spread 5 ( 0, 1 ) )
+                    |> Expect.equal ( [ 0.9, 0.95, 1 ], [ 0.3 ], [ 0, 0.25, 0.5, 0.75, 1 ] )
+        , test "combinations take one value of each premise" <|
+            \_ ->
+                Multiverse.combinations [ ( "a", [ 1, 2 ] ), ( "b", [ 10, 20, 30 ] ) ]
+                    |> List.map Dict.toList
+                    |> List.sort
+                    |> Expect.equal
+                        [ [ ( "a", 1 ), ( "b", 10 ) ]
+                        , [ ( "a", 1 ), ( "b", 20 ) ]
+                        , [ ( "a", 1 ), ( "b", 30 ) ]
+                        , [ ( "a", 2 ), ( "b", 10 ) ]
+                        , [ ( "a", 2 ), ( "b", 20 ) ]
+                        , [ ( "a", 2 ), ( "b", 30 ) ]
+                        ]
         , test "a line varies only the horizontal premise" <|
             \_ ->
                 let

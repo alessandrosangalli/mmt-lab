@@ -1,4 +1,4 @@
-module Multiverse exposing (Cell, Outcome(..), Span(..), axisRange, axisValues, classify, halfStep, row, steps)
+module Multiverse exposing (Cell, Outcome(..), Pace(..), Span(..), axisRange, axisValues, classify, combinations, halfStep, pace, row, spread, steps)
 
 {-| The same scenario run under many combinations of premises, to show which
 conclusions survive when the premises change.
@@ -11,7 +11,7 @@ combination, how the economy ends up.
 
 import Dict
 import Engine exposing (Run)
-import Premise exposing (Premise)
+import Premise exposing (Premise, Premises)
 import Scenario exposing (Scenario)
 
 
@@ -151,3 +151,75 @@ row run scenario span horizontal vertical y =
             }
     in
     List.map cell (axisValues span horizontal)
+
+
+{-| A number of values evenly spread over a range, ends included.
+-}
+spread : Int -> ( Float, Float ) -> List Float
+spread count ( low, high ) =
+    let
+        tidy number =
+            toFloat (round (number * 1000000)) / 1000000
+    in
+    if count <= 1 then
+        [ tidy ((low + high) / 2) ]
+
+    else
+        List.map
+            (\index -> tidy (low + (high - low) * toFloat index / toFloat (count - 1)))
+            (List.range 0 (count - 1))
+
+
+{-| Every way of choosing one value for each premise.
+-}
+combinations : List ( String, List Float ) -> List Premises
+combinations choices =
+    case choices of
+        [] ->
+            [ Dict.empty ]
+
+        ( key, values ) :: rest ->
+            List.concatMap
+                (\chosen -> List.map (\value -> Dict.insert key value chosen) values)
+                (combinations rest)
+
+
+{-| Whether a series is coming to rest or getting away.
+-}
+type Pace
+    = Slowing
+    | Speeding
+
+
+{-| Compares how far a series moved over its last ten values with how far it
+moved over the ten before. A run that is still adjusting but moving less and
+less is on its way to settling; one moving more and more is not. Movement is
+measured in proportion when the values are positive, so that a series falling
+by the same percentage every period does not pass for one coming to rest.
+`Nothing` when there are fewer than 21 values.
+-}
+pace : List Float -> Maybe Pace
+pace series =
+    case List.reverse series of
+        latest :: earlier ->
+            case ( List.head (List.drop 9 earlier), List.head (List.drop 19 earlier) ) of
+                ( Just middle, Just first ) ->
+                    let
+                        moved from to =
+                            if from > 0 && to > 0 then
+                                abs (logBase e (to / from))
+
+                            else
+                                abs (to - from)
+                    in
+                    if moved middle latest < moved first middle then
+                        Just Slowing
+
+                    else
+                        Just Speeding
+
+                _ ->
+                    Nothing
+
+        [] ->
+            Nothing

@@ -102,6 +102,33 @@ Só o repasse integral aos importados chega ao 0,10 que o Banco Central estima p
 
 Com os valores adotados (repasse 1, importações 0,55), o câmbio não se acomoda: o gasto de 18 para 19 leva a moeda a 0,53 em 120 trimestres, e o modelo deixa de ter solução no período 183. Com a resposta de longo prazo do Banco Central para as importações (0,755), ele se acomoda em todos os valores de repasse. As duas respostas de importações têm fonte. A conclusão sobre o câmbio depende de qual delas vale, e é isso que o multiverso do M4 tem de mostrar.
 
+### O multiverso: as quatro premissas ao mesmo tempo
+
+A cada publicação, o CI roda o modelo BRASIL com 243 combinações das quatro premissas dentro das faixas publicadas, por 120 trimestres, para cinco mudanças de política (`src/Batch.elm`). Na rodada do `brazil-5`, para o gasto de 18 para 19:
+
+| Como termina | Combinações |
+| --- | --- |
+| Estabiliza: o câmbio se moveu menos de 1% nos últimos dez trimestres | 27 |
+| Ainda se ajusta, cada vez mais devagar | 51 |
+| Afasta-se cada vez mais rápido | 147 |
+| Sem solução antes do fim | 18 |
+
+Um terço das combinações caminha para se acomodar, e dois terços não. O que separa os dois grupos é quase só a resposta das importações ao preço:
+
+| Resposta das importações | Combinações que estabilizam ou desaceleram, de 27 |
+| --- | --- |
+| de 0,37 a 0,56 | 0 |
+| 0,61 | 6 |
+| 0,66 | 18 |
+| 0,71 | 27 |
+| 0,755 | 27 |
+
+A reação das carteiras não muda nada, e a resposta das exportações e o repasse mudam pouco. As outras quatro mudanças de política dão o mesmo quadro, com a fronteira no mesmo lugar. A página completa está em `multiverse.html`, no site do laboratório.
+
+**O que isso diz.** No modelo, com as estimativas brasileiras lidas até aqui, a pergunta "o câmbio se acomoda depois de uma mudança de política?" se reduz a outra: a resposta das importações ao preço está acima ou abaixo de cerca de 0,65? As fontes lidas dão 0,37 a 0,55 (Santos e coautores) e 0,755 (Banco Central, longo prazo). Elas ficam de lados opostos da fronteira.
+
+**Limites.** A grade usa três valores para três premissas e nove para as importações. O horizonte é de 120 trimestres. E as premissas variam, mas a estrutura do modelo não: sem salários que reagem, sem investimento, com o outro país do mesmo tamanho.
+
 Este é o terceiro resultado sobre o câmbio a mudar em dois dias, cada vez que uma premissa passou do valor do livro para um valor com fonte brasileira. A lição para o protocolo: nenhum resultado de um único conjunto de premissas deve ser reportado como achado.
 
 ## 3. Consumo

@@ -310,6 +310,7 @@ button.cell:disabled { opacity: 1; }
   color: var(--ink);
 }
 .share a { color: var(--blue); font-size: 0.9rem; }
+.hint a { color: var(--blue); }
 .share p { margin: 8px 0 0; }
 .scroll { overflow-x: auto; }
 table.godley {
