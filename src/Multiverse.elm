@@ -193,8 +193,10 @@ type Pace
 
 {-| Compares how far a series moved over its last ten values with how far it
 moved over the ten before. A run that is still adjusting but moving less and
-less is on its way to settling; one moving more and more is not. `Nothing`
-when there are fewer than 21 values.
+less is on its way to settling; one moving more and more is not. Movement is
+measured in proportion when the values are positive, so that a series falling
+by the same percentage every period does not pass for one coming to rest.
+`Nothing` when there are fewer than 21 values.
 -}
 pace : List Float -> Maybe Pace
 pace series =
@@ -202,7 +204,15 @@ pace series =
         latest :: earlier ->
             case ( List.head (List.drop 9 earlier), List.head (List.drop 19 earlier) ) of
                 ( Just middle, Just first ) ->
-                    if abs (latest - middle) < abs (middle - first) then
+                    let
+                        moved from to =
+                            if from > 0 && to > 0 then
+                                abs (logBase e (to / from))
+
+                            else
+                                abs (to - from)
+                    in
+                    if moved middle latest < moved first middle then
                         Just Slowing
 
                     else
