@@ -176,6 +176,30 @@ Com os valores adotados (repasse 1, importações 0,55), o câmbio não se acomo
 
 ### O multiverso: as premissas ao mesmo tempo
 
+**Rodada do `brazil-7`, com as reservas no Banco Central.** As mesmas 729 combinações de cinco premissas, para cinco mudanças de política, por 120 trimestres. O quadro uniforme do `brazil-6` some, e volta a fronteira na resposta das importações ao preço:
+
+| Resposta das importações | Gasto de 18 para 19: combinações que estabilizam ou desaceleram, de 81 | Juro meio ponto maior | Juro meio ponto menor |
+| --- | --- | --- | --- |
+| 0,37 | 18 | 39 | 8 |
+| 0,42 | 42 | 27 | 36 |
+| 0,47 | 51 | 33 | 73 |
+| 0,51 | 69 | 71 | 81 |
+| 0,56 e acima | 81 | 81 | 81 |
+
+| Mudança | Estabiliza | Desacelera | Acelera | Sem solução | Desemprego final, mediana |
+| --- | --- | --- | --- | --- | --- |
+| Gasto de 18 para 19 | 552 | 33 | 51 | 93 | 4,8% |
+| Gasto de 18 para 17 | 594 | 129 | 6 | 0 | 7,0% |
+| Alíquota um ponto maior | 582 | 135 | 12 | 0 | 7,0% |
+| Juro meio ponto maior por trimestre | 448 | 127 | 149 | 5 | 5,2% |
+| Juro meio ponto menor por trimestre | 482 | 121 | 120 | 6 | 6,7% |
+
+Nas combinações que divergem, os números finais deixam de fazer sentido (desemprego de até 20%, inflação de até 16% ao ano). As medianas, dominadas pelas combinações que se acomodam, repetem o quadro do modelo da tela: gasto maior ou juro maior terminam com desemprego mais baixo e inflação mais alta.
+
+**O que isso diz.** Com o balanço externo corrigido, o canal que segurava o câmbio no `brazil-6` era, em boa parte, a riqueza das famílias em títulos estrangeiros. Sem ele, a pergunta "a economia se acomoda depois de uma mudança de política?" volta a depender de a resposta das importações ao preço estar acima ou abaixo de cerca de 0,55. As fontes lidas dão de 0,37 a 0,55 (Santos e coautores) e 0,755 (Banco Central, longo prazo), e o valor adotado, 0,55, fica sobre a fronteira. A resposta das exportações e a dos salários ao desemprego pesam um pouco; a reação das carteiras e o repasse, quase nada. Essa é a quinta mudança do resultado sobre o câmbio, e a lição do protocolo continua valendo: só o que vale na faixa inteira pode ser reportado.
+
+### Rodada do `brazil-6`, com os ativos externos nas famílias
+
 **Rodada do `brazil-6`, com o bloco de salários.** São 729 combinações de cinco premissas dentro das faixas publicadas (a indexação fica fixa em 1, por não ter faixa), por 120 trimestres, para cinco mudanças de política. Todas as 3.645 rodadas se acomodam no câmbio real. O que varia entre as combinações é pouco; o que separa as mudanças de política é muito:
 
 | Mudança, depois de 120 trimestres | Câmbio real | Desemprego (partida: 5,9%) | Inflação (partida: 4,6% ao ano) | Dívida sobre o PIB trimestral (partida: 3,28) |
