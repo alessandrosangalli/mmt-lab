@@ -50,7 +50,7 @@ for (let k = 1; external && k <= STEPS; k++) { const share = k / STEPS, aim = pa
     [...shapeTargets, T.government, v => v.x_uk / v.y_uk - aim], false);
   if (!found.ok) throw new Error('direct investment stage ' + k + ' failed: ' + found.err); }
 // The labour force is set so that unemployment on the path is Brazil's.
-found.p = { ...found.p, lf_uk: found.v.n_uk / (1 - UNEMPLOYMENT), ustar_uk: UNEMPLOYMENT };
+found.p = { ...found.p, lf_uk: found.v.n_uk / (1 - UNEMPLOYMENT), ustar_uk: UNEMPLOYMENT, rstar_uk: found.p.r_uk - (found.p.infl_uk - 1) };
 // polish: step the model from the point found until it stops moving at machine precision
 let rest = found.v; for (let i = 0; i < 5; i++) rest = m.run(1, [], rest, found.p).out[0];
 const V = {}; for (const k of m.KEYS) V[k] = rest[k];
@@ -65,7 +65,7 @@ function withPremises(chosen, policy = {}, at = { P, V }) { const P = at.P, V = 
   const home = P.r_uk - P.r_us - P.dxre_us, abroad = P.r_us - P.r_uk - P.dxre_uk, change = P.lambda11 - chosen.port;
   const relImports = Math.log(V.pm_uk / V.py_uk), relExports = Math.log(V.pm_us / V.py_us);
   const passBase = Math.log(V.py_us) - Math.log(V.py_uk) - Math.log(V.xr_uk);
-  return { ...P, ...policy, ...c.port(chosen.port), eps1: chosen.eps1, mu1: chosen.mu1, nu1m: chosen.nu1m, kappa_uk: chosen.kappa ?? PREMISES.kappa, beta_uk: chosen.beta ?? PREMISES.beta,
+  return { ...P, ...policy, ...c.port(chosen.port), eps1: chosen.eps1, mu1: chosen.mu1, nu1m: chosen.nu1m, kappa_uk: chosen.kappa ?? PREMISES.kappa, beta_uk: chosen.beta ?? PREMISES.beta, zeta_uk: chosen.zeta ?? PREMISES.zeta ?? 0,
     lambda10: P.lambda10 + change * home, lambda20: P.lambda20 - change * home,
     lambda40: P.lambda40 + change * abroad, lambda50: P.lambda50 - change * abroad,
     eps0: P.eps0 + (chosen.eps1 - P.eps1) * relExports, mu0: P.mu0 + (chosen.mu1 - P.mu1) * relImports,

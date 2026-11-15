@@ -32,10 +32,11 @@ bank's balance sheet. And the home central bank's bill holdings follow the
 book's own alternative equation 12.82A (it holds the bills nobody else
 does), which keeps the accounts from drifting apart over long runs.
 
-Five things are added, and all are switched off in the book's baseline. The
+Six things are added, and all are switched off in the book's baseline. The
 home wage can follow consumer prices (`kappa_uk`) and unemployment
 (`beta_uk`, against a labour force `lf_uk`), a share `wspeed_uk` of wages
-being reset each period. The
+being reset each period. Home households can spend less of their income when
+the real interest rate stands above `rstar_uk` (`zeta_uk`). The
 home government can pay transfers to households (`tr_k_uk`). Foreigners can
 buy a share of home firms from home households every period (`fdi_flow_uk`,
 as a share of output) and receive profits on what they own (`rho_uk`). And
@@ -111,6 +112,8 @@ type alias Params =
     , beta_uk : Float
     , lf_uk : Float
     , ustar_uk : Float
+    , zeta_uk : Float
+    , rstar_uk : Float
     }
 
 
@@ -171,6 +174,8 @@ bookParams =
     , beta_uk = 0
     , lf_uk = 1000000
     , ustar_uk = 1
+    , zeta_uk = 0
+    , rstar_uk = 0
     }
 
 
@@ -228,6 +233,7 @@ type alias Vars =
     , g_us : Float
     , fdi_in_uk : Float
     , fdi_uk : Float
+    , gpi_uk : Float
     , v_uk : Float
     , v_us : Float
     , v_k_uk : Float
@@ -306,6 +312,7 @@ steadyState =
     , g_us = 15.303912198127824
     , fdi_in_uk = 0
     , fdi_uk = 0
+    , gpi_uk = 1
     , v_uk = 145.97765396348274
     , v_us = 145.99556992662787
     , v_k_uk = 152.6200543524883
@@ -395,6 +402,7 @@ carry params vars =
     , g_us = vars.g_us / (params.trend * params.infl_us)
     , fdi_in_uk = vars.fdi_in_uk / (params.trend * params.infl_uk)
     , fdi_uk = vars.fdi_uk / (params.trend * params.infl_uk)
+    , gpi_uk = vars.gpi_uk / 1
     , v_uk = vars.v_uk / (params.trend * params.infl_uk)
     , v_us = vars.v_us / (params.trend * params.infl_us)
     , v_k_uk = vars.v_k_uk / params.trend
@@ -539,7 +547,7 @@ sweep laggedParams lagged params guess =
 
         -- [12.37] real consumption in UK
         c_k_uk =
-            params.alpha1_uk * ydhse_k_uk + params.alpha2_uk * lagged.v_k_uk
+            (params.alpha1_uk - params.zeta_uk * (params.r_uk - (lagged.gpi_uk - 1) - params.rstar_uk)) * ydhse_k_uk + params.alpha2_uk * lagged.v_k_uk
 
         -- [12.38] real consumption in US
         c_k_us =
@@ -640,6 +648,10 @@ sweep laggedParams lagged params guess =
         -- the stock of UK firms owned abroad
         fdi_uk =
             lagged.fdi_uk + fdi_in_uk
+
+        -- UK inflation in the period, gross and per period, trend included (not in the book)
+        gpi_uk =
+            pds_uk / lagged.pds_uk
 
         -- [12.3] wealth accumulation in UK, plus the proceeds of direct investment
         v_uk =
@@ -778,6 +790,7 @@ sweep laggedParams lagged params guess =
     , g_us = g_us
     , fdi_in_uk = fdi_in_uk
     , fdi_uk = fdi_uk
+    , gpi_uk = gpi_uk
     , v_uk = v_uk
     , v_us = v_us
     , v_k_uk = v_k_uk
@@ -872,6 +885,7 @@ distance before after =
         , relativeChange before.g_us after.g_us
         , relativeChange before.fdi_in_uk after.fdi_in_uk
         , relativeChange before.fdi_uk after.fdi_uk
+        , relativeChange before.gpi_uk after.gpi_uk
         , relativeChange before.v_uk after.v_uk
         , relativeChange before.v_us after.v_us
         , relativeChange before.v_k_uk after.v_k_uk
