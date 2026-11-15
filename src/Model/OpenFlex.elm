@@ -32,7 +32,9 @@ bank's balance sheet. And the home central bank's bill holdings follow the
 book's own alternative equation 12.82A (it holds the bills nobody else
 does), which keeps the accounts from drifting apart over long runs.
 
-Three things are added, and all are switched off in the book's baseline. The
+Four things are added, and all are switched off in the book's baseline. The
+home wage can follow consumer prices (`kappa_uk`), a share `wspeed_uk` of
+wages being reset each period. The
 home government can pay transfers to households (`tr_k_uk`). Foreigners can
 buy a share of home firms from home households every period (`fdi_flow_uk`,
 as a share of output) and receive profits on what they own (`rho_uk`). And
@@ -102,6 +104,9 @@ type alias Params =
     , tr_k_uk : Float
     , rho_uk : Float
     , fdi_flow_uk : Float
+    , kappa_uk : Float
+    , pref_uk : Float
+    , wspeed_uk : Float
     }
 
 
@@ -156,6 +161,9 @@ bookParams =
     , tr_k_uk = 0
     , rho_uk = 0
     , fdi_flow_uk = 0
+    , kappa_uk = 0
+    , pref_uk = 1
+    , wspeed_uk = 1
     }
 
 
@@ -195,6 +203,7 @@ type alias Vars =
     , y_k_us : Float
     , n_uk : Float
     , n_us : Float
+    , wage_uk : Float
     , ps_uk : Float
     , ps_us : Float
     , s_uk : Float
@@ -271,6 +280,7 @@ steadyState =
     , y_k_us = 97.40542030406188
     , n_uk = 73.04716088234079
     , n_us = 73.05589162533704
+    , wage_uk = 1
     , ps_uk = 0.9564617717085792
     , ps_us = 0.9565020013458044
     , s_uk = 104.56240169271636
@@ -358,6 +368,7 @@ carry params vars =
     , y_k_us = vars.y_k_us / params.trend
     , n_uk = vars.n_uk / params.trend
     , n_us = vars.n_us / params.trend
+    , wage_uk = vars.wage_uk / params.infl_uk
     , ps_uk = vars.ps_uk / params.infl_uk
     , ps_us = vars.ps_us / params.infl_us
     , s_uk = vars.s_uk / (params.trend * params.infl_uk)
@@ -548,9 +559,13 @@ sweep laggedParams lagged params guess =
         n_us =
             y_k_us / params.pr_us
 
+        -- the wage is w_uk and the price level pref_uk.
+        wage_uk =
+            params.w_uk * exp ((1 - params.wspeed_uk) * ln (lagged.wage_uk * params.infl_uk / params.w_uk) + params.wspeed_uk * params.kappa_uk * ln (lagged.pds_uk * params.infl_uk / params.pref_uk))
+
         -- [12.45] price of sales in UK
         ps_uk =
-            (1 + params.phi_uk) * (params.w_uk * n_uk + im_uk) / s_k_uk
+            (1 + params.phi_uk) * (wage_uk * n_uk + im_uk) / s_k_uk
 
         -- [12.46] price of sales in US
         ps_us =
@@ -731,6 +746,7 @@ sweep laggedParams lagged params guess =
     , y_k_us = y_k_us
     , n_uk = n_uk
     , n_us = n_us
+    , wage_uk = wage_uk
     , ps_uk = ps_uk
     , ps_us = ps_us
     , s_uk = s_uk
@@ -823,6 +839,7 @@ distance before after =
         , relativeChange before.y_k_us after.y_k_us
         , relativeChange before.n_uk after.n_uk
         , relativeChange before.n_us after.n_us
+        , relativeChange before.wage_uk after.wage_uk
         , relativeChange before.ps_uk after.ps_uk
         , relativeChange before.ps_us after.ps_us
         , relativeChange before.s_uk after.s_uk

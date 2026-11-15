@@ -12,6 +12,8 @@ const PREMISES = { eps1: 0.01, mu1: 0.55, nu1m: 1, port: 2 };
 const WORLD = { trend: quarterly(0.023), infl_uk: quarterly(0.046), infl_us: quarterly(0.02), r_us: 0.0096 };
 // Direct investment inflow and exports, as shares of output (CALIBRATION.md, section 8).
 const EXTERNAL = { directInvestment: 0.0358, exports: 0.178 };
+// Share of wages reset each quarter: yearly contracts, spread evenly over the year. A convention, not an estimate.
+const WAGE_RESET = 0.25;
 const TARGETS = { imports: 0.175, debt: 3.28, foreignShare: 0.099, government: 0.191 };
 
 const expected = p => ({ dxre_us: p.infl_uk / p.infl_us - 1, dxre_uk: p.infl_us / p.infl_uk - 1 }); // the trend of each exchange rate
@@ -45,7 +47,9 @@ for (let k = 1; external && k <= STEPS; k++) { const share = k / STEPS, aim = pa
 // polish: step the model from the point found until it stops moving at machine precision
 let rest = found.v; for (let i = 0; i < 5; i++) rest = m.run(1, [], rest, found.p).out[0];
 const V = {}; for (const k of m.KEYS) V[k] = rest[k];
-return { P: found.p, V }; }
+// Wages: a quarter of them are reset each quarter, and by default they do not follow prices (kappa 0).
+// The reference price level is the path's own.
+return { P: { ...found.p, pref_uk: V.pds_uk, wspeed_uk: WAGE_RESET, kappa_uk: 0 }, V }; }
 const { P, V } = solvePath();
 
 // Premises re-anchored on the path: whatever their values, the economy starts on it.
@@ -54,7 +58,7 @@ function withPremises(chosen, policy = {}, at = { P, V }) { const P = at.P, V = 
   const home = P.r_uk - P.r_us - P.dxre_us, abroad = P.r_us - P.r_uk - P.dxre_uk, change = P.lambda11 - chosen.port;
   const relImports = Math.log(V.pm_uk / V.py_uk), relExports = Math.log(V.pm_us / V.py_us);
   const passBase = Math.log(V.py_us) - Math.log(V.py_uk) - Math.log(V.xr_uk);
-  return { ...P, ...policy, ...c.port(chosen.port), eps1: chosen.eps1, mu1: chosen.mu1, nu1m: chosen.nu1m,
+  return { ...P, ...policy, ...c.port(chosen.port), eps1: chosen.eps1, mu1: chosen.mu1, nu1m: chosen.nu1m, kappa_uk: chosen.kappa || 0,
     lambda10: P.lambda10 + change * home, lambda20: P.lambda20 - change * home,
     lambda40: P.lambda40 + change * abroad, lambda50: P.lambda50 - change * abroad,
     eps0: P.eps0 + (chosen.eps1 - P.eps1) * relExports, mu0: P.mu0 + (chosen.mu1 - P.mu1) * relImports,
@@ -81,9 +85,9 @@ if (require.main === module) {
   const book = { eps1: .7, mu1: .7, nu1m: .7, port: 2 };
   const show = (label, ch, policy, n = 120) => { const r = m.run(n, [{ at: 1, set: withPremises(ch, policy) }], V, withPremises(ch)); const o = r.out;
     const col = o.length ? Math.max(...o.map(x => Math.max(...Object.values(m.tfm(x)).map(Math.abs)))) : NaN;
-    const at = i => o[i - 1] ? `t${i} xr ${o[i - 1].xr_uk.toFixed(10)} y ${o[i - 1].y_k_uk.toFixed(7)} cab ${o[i - 1].cab_uk.toFixed(10)} debt/y ${f(o[i - 1].b_uk_s / o[i - 1].y_uk, 3)}` : '';
-    console.log(label.padEnd(26), r.failedAt ? 'FAIL@' + r.failedAt : 'ok', at(1), '|', at(40), '|', at(120), '| tfm', col.toExponential(1)); };
-  show('default, g 19', PREMISES, { g_k_uk: 19 }); show('book trade, g 19', book, { g_k_uk: 19 });
+    const at = i => o[i - 1] ? `t${i} xr ${o[i - 1].xr_uk.toFixed(10)} y ${o[i - 1].y_k_uk.toFixed(7)} cab ${o[i - 1].cab_uk.toFixed(10)} debt/y ${f(o[i - 1].b_uk_s / o[i - 1].y_uk, 3)} p ${(o[i - 1].pds_uk / V.pds_uk).toFixed(10)}` : '';
+    console.log(label.padEnd(34), r.failedAt ? 'FAIL@' + r.failedAt : 'ok', at(1), '|', at(40), '|', at(120), '| tfm', col.toExponential(1)); };
+  show('default, g 19', PREMISES, { g_k_uk: 19 }); show('wages follow prices 0.9, g 19', { ...PREMISES, kappa: 0.9 }, { g_k_uk: 19 }); show('wages follow prices 1, nothing', { ...PREMISES, kappa: 1 }, {}); show('book trade, g 19', book, { g_k_uk: 19 });
   show('default, g 17', PREMISES, { g_k_uk: 17 });
   show('default, r 4%', PREMISES, { r_uk: .04 }); show('book trade, r 4%', book, { r_uk: .04 });
   show('default, r 3%', PREMISES, { r_uk: .03 }); show('default, tax 40', PREMISES, { theta_uk: .40 });

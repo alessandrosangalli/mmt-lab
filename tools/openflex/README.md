@@ -22,9 +22,9 @@ npx elm-format --yes src/Model/OpenFlex.elm
 node tools/openflex/brazil.js src/Model/BrazilRest.elm
 ```
 
-## Crescimento, transferências e investimento direto
+## Crescimento, transferências, investimento direto e salários
 
-A lista de equações tem três acréscimos em relação ao livro, todos desligados na linha de base: transferências do governo às famílias (`tr_k_uk`), investimento estrangeiro direto (`fdi_flow_uk`, com lucros remetidos à taxa `rho_uk`) e tendências de crescimento (`trend`, `infl_uk`, `infl_us`). Cada valor é medido em relação à sua tendência, e os valores do período anterior chegam às equações já divididos por um período de crescimento (`carry`, em `gen.js`). Com as tendências em 1 e os outros acréscimos em 0, os números são idênticos aos de antes, bit a bit.
+A lista de equações tem quatro acréscimos em relação ao livro, todos desligados na linha de base: transferências do governo às famílias (`tr_k_uk`), investimento estrangeiro direto (`fdi_flow_uk`, com lucros remetidos à taxa `rho_uk`), salários que acompanham os preços (`kappa_uk`, com a parcela `wspeed_uk` reajustada a cada período) e tendências de crescimento (`trend`, `infl_uk`, `infl_us`). Cada valor é medido em relação à sua tendência, e os valores do período anterior chegam às equações já divididos por um período de crescimento (`carry`, em `gen.js`). Com as tendências em 1 e os outros acréscimos em 0, os números são idênticos aos de antes, bit a bit.
 
 ## De onde vêm as equações
 

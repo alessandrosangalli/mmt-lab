@@ -373,8 +373,9 @@ suite =
                 , still [ ( "eps1", 0.7 ), ( "mu1", 0.7 ), ( "port", 5 ) ]
                 , still [ ( "eps1", 0 ), ( "mu1", 1 ), ( "nu1m", 0.3 ), ( "port", 0 ) ]
                 , still [ ( "eps1", 0.5 ), ( "mu1", 0.8 ), ( "nu1m", 1 ), ( "port", 10 ) ]
+                , still [ ( "kappa", 1 ) ]
                 ]
-                    |> Expect.equal (List.repeat 4 ( Nothing, 60, True ))
+                    |> Expect.equal (List.repeat 5 ( Nothing, 60, True ))
         , test "from the Brazilian starting point, more spending weakens the currency much more with the Brazilian trade responses than with the book's, matching the prototype" <|
             \_ ->
                 let
@@ -407,6 +408,37 @@ suite =
                     , \_ -> Expect.within (Absolute 1.0e-7) -3.1475073658 bookAccount
                     ]
                     ()
+        , test "from the Brazilian starting point, wages that follow prices slow the currency's fall and raise prices, matching the prototype" <|
+            \_ ->
+                let
+                    base =
+                        Models.defaultScenario BrazilModel
+
+                    ending premises =
+                        (Models.run BrazilModel
+                            { base
+                                | initial = { spending = 19, taxRatePct = 39, interestRatePct = 3.5 }
+                                , horizon = 120
+                                , premises = Dict.fromList premises
+                            }
+                        ).snapshots
+                            |> List.reverse
+                            |> List.head
+                            |> Maybe.map (\snapshot -> List.map .value snapshot.charts)
+                            |> Maybe.withDefault []
+                in
+                case ( ending [], ending [ ( "kappa", 0.9 ) ] ) of
+                    ( [ fixedRate, fixedPrices ], [ indexedRate, indexedPrices ] ) ->
+                        Expect.all
+                            [ \_ -> Expect.within (Absolute 1.0e-7) 0.5307281606 fixedRate
+                            , \_ -> Expect.within (Absolute 1.0e-7) 0.6932147941 indexedRate
+                            , \_ -> Expect.within (Absolute 1.0e-7) 1.062661990 (fixedPrices / BrazilRest.vars.pds_uk)
+                            , \_ -> Expect.within (Absolute 1.0e-7) 1.173176632 (indexedPrices / BrazilRest.vars.pds_uk)
+                            ]
+                            ()
+
+                    _ ->
+                        Expect.fail "the open models chart the exchange rate and the price level"
         , test "from the Brazilian starting point, half a point of interest a quarter lifts the currency at once by what Brazilian studies measure for two points a year" <|
             \_ ->
                 let

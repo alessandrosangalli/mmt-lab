@@ -64,8 +64,13 @@ y_k_us = v.s_k_us - v.im_k_us
 n_uk = v.y_k_uk / p.pr_uk
 # [12.66] employment in US
 n_us = v.y_k_us / p.pr_us
+# the UK wage (not in the book, where it is fixed). Each period a share `wspeed` of wages is reset, to follow
+# last period's consumer prices with elasticity `kappa`; the rest stay where they were. L. values arrive divided
+# by one period of inflation, so they are multiplied back before the comparison with the starting path, where
+# the wage is w_uk and the price level pref_uk.
+wage_uk = p.w_uk * exp((1 - p.wspeed_uk) * log(L.wage_uk * p.infl_uk / p.w_uk) + p.wspeed_uk * p.kappa_uk * log(L.pds_uk * p.infl_uk / p.pref_uk))
 # [12.45] price of sales in UK
-ps_uk = (1 + p.phi_uk) * (p.w_uk * v.n_uk + v.im_uk) / v.s_k_uk
+ps_uk = (1 + p.phi_uk) * (v.wage_uk * v.n_uk + v.im_uk) / v.s_k_uk
 # [12.46] price of sales in US
 ps_us = (1 + p.phi_us) * (p.w_us * v.n_us + v.im_us) / v.s_k_us
 # [12.43] value of sales in UK
