@@ -120,7 +120,7 @@ suite =
         , test "a series moving less over its last ten values than over the ten before is slowing" <|
             \_ ->
                 [ Multiverse.pace (List.map (\index -> 1 - 0.9 ^ toFloat index) (List.range 0 20))
-                , Multiverse.pace (List.map (\index -> 1.1 ^ toFloat index) (List.range 0 20))
+                , Multiverse.pace (List.map (\index -> 1.01 ^ (1.1 ^ toFloat index)) (List.range 0 20))
                 , Multiverse.pace (List.map (\index -> 0.97 ^ (1.05 ^ toFloat index)) (List.range 0 20))
                 , Multiverse.pace (List.map toFloat (List.range 0 19))
                 ]
