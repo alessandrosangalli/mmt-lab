@@ -174,7 +174,23 @@ O ajuste deixa de passar pelo câmbio e passa pelos salários e pela inflação.
 
 Com os valores adotados (repasse 1, importações 0,55), o câmbio não se acomoda: o gasto de 18 para 19 leva a moeda a 0,53 em 120 trimestres, e o modelo deixa de ter solução no período 183. Com a resposta de longo prazo do Banco Central para as importações (0,755), ele se acomoda em todos os valores de repasse. As duas respostas de importações têm fonte. A conclusão sobre o câmbio depende de qual delas vale, e é isso que o multiverso do M4 tem de mostrar.
 
-### O multiverso: as quatro premissas ao mesmo tempo
+### O multiverso: as premissas ao mesmo tempo
+
+**Rodada do `brazil-6`, com o bloco de salários.** São 729 combinações de cinco premissas dentro das faixas publicadas (a indexação fica fixa em 1, por não ter faixa), por 120 trimestres, para cinco mudanças de política. Todas as 3.645 rodadas se acomodam no câmbio real. O que varia entre as combinações é pouco; o que separa as mudanças de política é muito:
+
+| Mudança, depois de 120 trimestres | Câmbio real | Desemprego (partida: 5,9%) | Inflação (partida: 4,6% ao ano) | Dívida sobre o PIB trimestral (partida: 3,28) |
+| --- | --- | --- | --- | --- |
+| Gasto de 18 para 19 | 1,02 a 1,06 | 4,9% a 5,3% | 5,3% a 5,5% | 3,23 a 3,25 |
+| Gasto de 18 para 17 | 0,93 a 0,97 | 6,5% a 6,9% | 3,7% a 3,9% | 3,31 a 3,33 |
+| Alíquota um ponto maior | 0,93 a 0,97 | 6,5% a 6,9% | 3,7% a 3,9% | 3,28 a 3,30 |
+| Juro meio ponto maior por trimestre | 0,99 a 1,01 | 4,9% a 5,2% | 5,3% a 5,5% | 3,32 a 3,35 |
+| Juro meio ponto menor por trimestre | 0,98 a 1,01 | 6,5% a 6,9% | 3,8% a 3,9% | 3,21 a 3,25 |
+
+**O resultado do juro.** No modelo, um juro mais alto termina com desemprego mais baixo e inflação mais alta, o contrário do que um banco central espera. No curto prazo o juro freia (o desemprego vai a 7,5% no primeiro trimestre), mas depois o pagamento de juros às famílias que têm títulos públicos, que é 11% do PIB, sustenta o consumo. É o canal da tese T6, e ele domina no modelo em todas as combinações de premissas. Três cuidados: o modelo não tem investimento, que é por onde o juro mais freia a economia; não tem crédito às famílias; e o juro é fixado, não reage à inflação. Qualquer um dos três pode inverter o resultado. Ele foi visto antes de o critério de T6 ser pré-registrado, e isso terá de ser declarado.
+
+**O que isso diz sobre o câmbio.** A conclusão da rodada anterior, de que tudo dependia da resposta das importações, era consequência dos salários fixos. Com salários que reagem, o ajuste passa pelos salários e pela inflação, e o câmbio real se acomoda em toda a faixa publicada. É a quarta vez que o resultado sobre o câmbio muda com uma premissa ou uma peça de estrutura.
+
+### A rodada anterior, do `brazil-5`, com salários fixos
 
 A cada publicação, o CI roda o modelo BRASIL com 243 combinações das quatro premissas dentro das faixas publicadas, por 120 trimestres, para cinco mudanças de política (`src/Batch.elm`). Na rodada do `brazil-5`, para o gasto de 18 para 19:
 
