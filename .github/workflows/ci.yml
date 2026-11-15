@@ -29,6 +29,12 @@ jobs:
           elm make src/Main.elm --optimize --output=dist/elm.js
           cp public/index.html dist/index.html
 
+      - name: Run the multiverse
+        run: |
+          mkdir -p build
+          elm make src/Batch.elm --optimize --output=build/batch.js
+          node tools/multiverse/run.js build/batch.js dist
+
       - name: Check formatting
         run: npx --yes elm-format@0.8.7 --validate src tests
 

@@ -1323,6 +1323,15 @@ viewMap info model =
                             []
                         , text " Mostrar só a faixa das estimativas brasileiras lidas. Uma premissa sem faixa aparece inteira."
                         ]
+                 , if String.startsWith "brazil-" info.version then
+                    p [ class "hint" ]
+                        [ text "O mapa varia duas premissas por vez. A rodada com todas ao mesmo tempo, dentro das faixas, é feita a cada publicação: "
+                        , a [ Attr.href "multiverse.html" ] [ text "ver o multiverso" ]
+                        , text "."
+                        ]
+
+                   else
+                    text ""
                  ]
                     ++ viewMapResult info model
                 )

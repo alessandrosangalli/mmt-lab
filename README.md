@@ -28,6 +28,8 @@ No modelo aberto, quatro **premissas** contestadas viram controles na tela: a re
 
 O **mapa de premissas** roda o cenário para cada combinação de duas premissas, em uma grade de 11 por 11, e mostra em quais a economia se estabiliza, em quais ainda está se ajustando no último período e em quais o modelo deixa de ter solução. Tocar em um quadrado leva aquelas premissas para o cenário. Cada premissa com estimativas brasileiras lidas traz a faixa que elas cobrem. O mapa destaca os quadrados dentro da faixa nos dois eixos e conta como eles terminam: é a resposta que não depende de um único valor de cada premissa. Uma opção faz o mapa cobrir só essa faixa, em 11 passos.
 
+O **multiverso** vai além de duas premissas: a cada publicação, o CI roda o modelo BRASIL com todas as combinações das quatro premissas dentro das faixas publicadas, para cinco mudanças de política, e publica o resultado em [`multiverse.html`](https://alessandrosangalli.github.io/mmt-lab/multiverse.html) e `multiverse.json`. O programa é `src/Batch.elm`, sem tela, rodado por `tools/multiverse/run.js`.
+
 Na tela você monta um **cenário**: a política inicial (gasto público G, alíquota θ e, no modelo PC, a taxa de juros r), mudanças de política datadas e o número de períodos. Os gráficos mostram o PIB, a riqueza das famílias e os saldos setoriais em cada período, e no modelo aberto também a taxa de câmbio e o nível de preços; ao escolher um período, você vê a tabela de Godley e o balanço dele. Dá para comparar dois cenários: as curvas aparecem sobrepostas, e uma tabela mostra a diferença entre eles no período escolhido.
 
 O modelo e o cenário ficam codificados em um link, que reproduz exatamente o mesmo experimento:

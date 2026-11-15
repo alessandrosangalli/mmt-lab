@@ -1,4 +1,4 @@
-module Multiverse exposing (Cell, Outcome(..), Span(..), axisRange, axisValues, classify, halfStep, row, steps)
+module Multiverse exposing (Cell, Outcome(..), Span(..), axisRange, axisValues, classify, combinations, halfStep, row, spread, steps)
 
 {-| The same scenario run under many combinations of premises, to show which
 conclusions survive when the premises change.
@@ -11,7 +11,7 @@ combination, how the economy ends up.
 
 import Dict
 import Engine exposing (Run)
-import Premise exposing (Premise)
+import Premise exposing (Premise, Premises)
 import Scenario exposing (Scenario)
 
 
@@ -151,3 +151,30 @@ row run scenario span horizontal vertical y =
             }
     in
     List.map cell (axisValues span horizontal)
+
+
+{-| A number of values evenly spread over a range, ends included.
+-}
+spread : Int -> ( Float, Float ) -> List Float
+spread count ( low, high ) =
+    if count <= 1 then
+        [ (low + high) / 2 ]
+
+    else
+        List.map
+            (\index -> toFloat (round ((low + (high - low) * toFloat index / toFloat (count - 1)) * 1000000)) / 1000000)
+            (List.range 0 (count - 1))
+
+
+{-| Every way of choosing one value for each premise.
+-}
+combinations : List ( String, List Float ) -> List Premises
+combinations choices =
+    case choices of
+        [] ->
+            [ Dict.empty ]
+
+        ( key, values ) :: rest ->
+            List.concatMap
+                (\chosen -> List.map (\value -> Dict.insert key value chosen) values)
+                (combinations rest)
